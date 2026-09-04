@@ -309,6 +309,8 @@ function getOrCreateChart(chartKey, containerId) {
   }
 
   servmonCharts[chartKey] = window.echarts.init(container);
+  servmonCharts[chartKey].group = "servmon-metric-charts";
+  window.echarts.connect("servmon-metric-charts");
   return servmonCharts[chartKey];
 }
 
@@ -332,6 +334,11 @@ function buildEchartsLineOption({
     tooltip: {
       trigger: "axis",
       confine: true,
+      axisPointer: {
+        type: "cross",
+        lineStyle: { color: palette.series1, type: "dashed", width: 1 },
+        crossStyle: { color: palette.axis },
+      },
       backgroundColor: palette.tooltipBg,
       borderColor: palette.tooltipBorder,
       textStyle: { color: palette.tooltipText },
@@ -387,6 +394,7 @@ function buildEchartsLineOption({
       itemStyle: { color: item.color },
       connectNulls: false,
       data: item.data,
+      ...(item.markLine ? { markLine: item.markLine } : {}),
     })),
   };
 }
@@ -431,10 +439,29 @@ function renderCharts(rows) {
 
   const cpuChart = getOrCreateChart("cpu", "cpuHistoryChart");
   if (cpuChart) {
+    const warnThresh = Number(window.SERVMON_CPU_THRESHOLDS?.warn || 2.0);
+    const critThresh = Number(window.SERVMON_CPU_THRESHOLDS?.critical || 4.0);
+    const cpuMarkLines = {
+      symbol: "none",
+      silent: true,
+      data: [
+        {
+          yAxis: warnThresh,
+          lineStyle: { color: palette.series2, type: "dashed", width: 1.5 },
+          label: { formatter: `Warn (${warnThresh.toFixed(1)})`, position: "insideEndTop", color: palette.series2, fontSize: 10 },
+        },
+        {
+          yAxis: critThresh,
+          lineStyle: { color: palette.series3, type: "dashed", width: 1.5 },
+          label: { formatter: `Crit (${critThresh.toFixed(1)})`, position: "insideEndTop", color: palette.series3, fontSize: 10 },
+        },
+      ],
+    };
+
     cpuChart.setOption(
       buildEchartsLineOption({
         palette,
-        series: [{ name: "CPU Load", data: cpuData, color: palette.series3 }],
+        series: [{ name: "CPU Load", data: cpuData, color: palette.series3, markLine: cpuMarkLines }],
         yFormatter: (v) => toNumber(v, 0).toFixed(2),
         tooltipFormatter: (v) => toNumber(v, 0).toFixed(2),
       }),

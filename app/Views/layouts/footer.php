@@ -9,8 +9,14 @@ $isAdminPage = $isAdminPage ?? false;
 $isPublicPage = $isPublicPage ?? false;
 if ($isPublicPage) {
 ?>
-<footer class="public-copyright" aria-label="Copyright">
-    <span>&copy; <?= e(date('Y')) ?> <?= e(APP_NAME) ?> <span class="public-copyright-separator">&middot;</span> Created with <i class="ti ti-heart" aria-hidden="true"></i> <strong>Arief</strong></span>
+<footer class="public-footer" aria-label="Footer">
+    <div class="public-footer-brand">
+        <i class="ti ti-server text-cyan" aria-hidden="true"></i>
+        <span><?= e(APP_NAME) ?></span>
+    </div>
+    <div class="public-copyright">
+        <span>&copy; <?= e(date('Y')) ?> <?= e(APP_NAME) ?> <span class="public-copyright-separator">&middot;</span> Created with <i class="ti ti-heart text-danger" aria-hidden="true"></i> <strong>Arief</strong></span>
+    </div>
 </footer>
 <?php } ?>
 <?php

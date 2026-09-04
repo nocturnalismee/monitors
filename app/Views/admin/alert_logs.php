@@ -24,9 +24,20 @@
         </div>
     </section>
 
+    <div class="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2">
+        <div class="alert-chip-group">
+            <a href="<?= e(app_url('alerts')) ?>" class="alert-chip-btn <?= ($filterStatus === '' && $filterSeverity === '') ? 'active' : '' ?>">All Alerts</a>
+            <a href="<?= e(app_url('alerts?status=active')) ?>" class="alert-chip-btn <?= ($filterStatus === 'active' && $filterSeverity === '') ? 'active' : '' ?>"><span class="alert-pulsing-dot me-1"></span>Active Incidents</a>
+            <a href="<?= e(app_url('alerts?severity=danger')) ?>" class="alert-chip-btn text-danger <?= $filterSeverity === 'danger' ? 'active' : '' ?>"><i class="ti ti-flame me-1"></i>Danger</a>
+            <a href="<?= e(app_url('alerts?severity=warning')) ?>" class="alert-chip-btn text-warning <?= $filterSeverity === 'warning' ? 'active' : '' ?>"><i class="ti ti-alert-triangle me-1"></i>Warning</a>
+            <a href="<?= e(app_url('alerts?status=acknowledged')) ?>" class="alert-chip-btn <?= $filterStatus === 'acknowledged' ? 'active' : '' ?>">Acknowledged</a>
+            <a href="<?= e(app_url('alerts?status=resolved')) ?>" class="alert-chip-btn <?= $filterStatus === 'resolved' ? 'active' : '' ?>">Resolved</a>
+        </div>
+    </div>
+
     <form method="get" class="card card-neon p-3 alert-filter-card" data-ui-section>
-        <details class="alert-filter-collapse" open>
-            <summary><i class="ti ti-adjustments-horizontal me-1" aria-hidden="true"></i>Filter alerts</summary>
+        <details class="alert-filter-collapse" <?= ($filterType !== '' || $filterServerId > 0) ? 'open' : '' ?>>
+            <summary><i class="ti ti-adjustments-horizontal me-1" aria-hidden="true"></i>Advanced Filter Options</summary>
         <div class="row g-2 align-items-end alert-filter-row mt-2">
             <div class="col-md-4">
                 <label class="form-label">Type</label>

@@ -1,69 +1,110 @@
 <?php
 declare(strict_types=1);
+
+$workerChecks = [
+    [
+        'name' => 'alert_check',
+        'health' => (string) ($alertWorkerHealth['health'] ?? 'unknown'),
+        'last_success' => (string) ($alertWorkerHealth['last_success_at'] ?? 'never'),
+        'cron' => $alertCronCmd,
+    ],
+    [
+        'name' => 'retention_cleanup',
+        'health' => (string) ($retentionWorkerHealth['health'] ?? 'unknown'),
+        'last_success' => (string) ($retentionWorkerHealth['last_success_at'] ?? 'never'),
+        'cron' => $retentionCronCmd,
+    ],
+    [
+        'name' => 'disk_history_rollup',
+        'health' => (string) ($diskRollupWorkerHealth['health'] ?? 'unknown'),
+        'last_success' => (string) ($diskRollupWorkerHealth['last_success_at'] ?? 'never'),
+        'cron' => $diskRollupCronCmd,
+    ],
+    [
+        'name' => 'ping_check',
+        'health' => (string) ($pingWorkerHealth['health'] ?? 'unknown'),
+        'last_success' => (string) ($pingWorkerHealth['last_success_at'] ?? 'never'),
+        'cron' => $pingCronCmd,
+    ],
+    [
+        'name' => 'ip_reputation_check',
+        'health' => (string) ($ipRepWorkerHealth['health'] ?? 'unknown'),
+        'last_success' => (string) ($ipRepWorkerHealth['last_success_at'] ?? 'never'),
+        'cron' => $ipRepCronCmd,
+    ],
+    [
+        'name' => 'rollup_metrics',
+        'health' => (string) ($rollupWorkerHealth['health'] ?? 'unknown'),
+        'last_success' => (string) ($rollupWorkerHealth['last_success_at'] ?? 'never'),
+        'cron' => $rollupCronCmd,
+    ],
+    [
+        'name' => 'disk_retention_cleanup',
+        'health' => (string) ($diskCleanupWorkerHealth['health'] ?? 'unknown'),
+        'last_success' => (string) ($diskCleanupWorkerHealth['last_success_at'] ?? 'never'),
+        'cron' => $diskCleanupCronCmd,
+    ],
+    [
+        'name' => 'partition_maintain',
+        'health' => (string) ($partitionMaintainWorkerHealth['health'] ?? 'unknown'),
+        'last_success' => (string) ($partitionMaintainWorkerHealth['last_success_at'] ?? 'never'),
+        'cron' => $partitionMaintainCronCmd,
+    ],
+];
+
+$unhealthyWorkers = array_values(array_filter($workerChecks, static function (array $w): bool {
+    return $w['health'] !== 'ok';
+}));
+$hasWorkerError = false;
+foreach ($unhealthyWorkers as $uw) {
+    if ($uw['health'] === 'error') {
+        $hasWorkerError = true;
+        break;
+    }
+}
 ?>
 <main id="main-content" class="container py-4 admin-page admin-shell">
-    <?php if (($alertWorkerHealth['health'] ?? 'unknown') !== 'ok'): ?>
-        <div class="alert alert-warning">
-            Worker <code>alert_check</code> is <?= e((string) ($alertWorkerHealth['health'] ?? 'unknown')) ?>.
-            Last success: <?= e((string) ($alertWorkerHealth['last_success_at'] ?? 'never')) ?>.
-            Ensure cron <code><?= e($alertCronCmd) ?></code> is running.
-        </div>
-    <?php endif; ?>
-    <?php if (($retentionWorkerHealth['health'] ?? 'unknown') === 'error'): ?>
-        <div class="alert alert-warning">
-            Worker <code>retention_cleanup</code> reported an error.
-            Last success: <?= e((string) ($retentionWorkerHealth['last_success_at'] ?? 'never')) ?>.
-            Ensure cron <code><?= e($retentionCronCmd) ?></code> is running.
-        </div>
-    <?php endif; ?>
-    <?php if (($diskRollupWorkerHealth['health'] ?? 'unknown') === 'error'): ?>
-        <div class="alert alert-warning">
-            Worker <code>disk_history_rollup</code> reported an error.
-            Last success: <?= e((string) ($diskRollupWorkerHealth['last_success_at'] ?? 'never')) ?>.
-            Ensure cron <code><?= e($diskRollupCronCmd) ?></code> is running.
-        </div>
-    <?php endif; ?>
-    <?php if (($pingWorkerHealth['health'] ?? 'unknown') !== 'ok'): ?>
-        <div class="alert alert-warning">
-            Worker <code>ping_check</code> is <?= e((string) ($pingWorkerHealth['health'] ?? 'unknown')) ?>.
-            Last success: <?= e((string) ($pingWorkerHealth['last_success_at'] ?? 'never')) ?>.
-            Ensure cron <code><?= e($pingCronCmd) ?></code> is running.
-        </div>
-    <?php endif; ?>
-    <?php if (($ipRepWorkerHealth['health'] ?? 'unknown') === 'error'): ?>
-        <div class="alert alert-warning">
-            Worker <code>ip_reputation_check</code> reported an error.
-            Last success: <?= e((string) ($ipRepWorkerHealth['last_success_at'] ?? 'never')) ?>.
-            Ensure cron <code><?= e($ipRepCronCmd) ?></code> is running.
-        </div>
-    <?php endif; ?>
-    <?php if (($rollupWorkerHealth['health'] ?? 'unknown') === 'error'): ?>
-        <div class="alert alert-warning">
-            Worker <code>rollup_metrics</code> reported an error.
-            Last success: <?= e((string) ($rollupWorkerHealth['last_success_at'] ?? 'never')) ?>.
-            Ensure cron <code><?= e($rollupCronCmd) ?></code> is running.
-        </div>
-    <?php endif; ?>
-    <?php if (($diskCleanupWorkerHealth['health'] ?? 'unknown') === 'error'): ?>
-        <div class="alert alert-warning">
-            Worker <code>disk_retention_cleanup</code> reported an error.
-            Last success: <?= e((string) ($diskCleanupWorkerHealth['last_success_at'] ?? 'never')) ?>.
-            Ensure cron <code><?= e($diskCleanupCronCmd) ?></code> is running.
-        </div>
-    <?php endif; ?>
-    <?php if (($partitionMaintainWorkerHealth['health'] ?? 'unknown') === 'error'): ?>
-        <div class="alert alert-warning">
-            Worker <code>partition_maintain</code> reported an error.
-            Last success: <?= e((string) ($partitionMaintainWorkerHealth['last_success_at'] ?? 'never')) ?>.
-            Ensure cron <code><?= e($partitionMaintainCronCmd) ?></code> is running.
+    <?php if (!empty($unhealthyWorkers)): ?>
+        <div class="worker-health-banner <?= $hasWorkerError ? 'has-error' : '' ?>">
+            <div class="worker-health-header">
+                <div class="worker-health-title">
+                    <i class="ti <?= $hasWorkerError ? 'ti-alert-octagon text-danger' : 'ti-alert-triangle text-warning' ?> fs-5" aria-hidden="true"></i>
+                    <span><strong><?= count($unhealthyWorkers) ?> background worker<?= count($unhealthyWorkers) > 1 ? 's' : '' ?></strong> need attention</span>
+                    <span class="badge <?= $hasWorkerError ? 'bg-danger' : 'bg-warning text-dark' ?> rounded-pill ms-1">
+                        <?= $hasWorkerError ? 'Action Required' : 'Notice' ?>
+                    </span>
+                </div>
+                <button type="button" class="btn btn-sm btn-soft worker-health-toggle" data-bs-toggle="collapse" data-bs-target="#workerHealthCollapse" aria-expanded="false" aria-controls="workerHealthCollapse">
+                    <i class="ti ti-chevron-down me-1"></i>View Details
+                </button>
+            </div>
+            <div class="collapse worker-health-details" id="workerHealthCollapse">
+                <div class="worker-health-grid">
+                    <?php foreach ($unhealthyWorkers as $uw): ?>
+                        <div class="worker-health-item">
+                            <div class="worker-health-item-head">
+                                <strong><code><?= e($uw['name']) ?></code></strong>
+                                <span class="badge <?= $uw['health'] === 'error' ? 'badge-down' : 'badge-pending' ?> text-uppercase"><?= e($uw['health']) ?></span>
+                            </div>
+                            <div class="text-secondary small">Last success: <?= e($uw['last_success']) ?></div>
+                            <div class="worker-health-cmd">Cron: <code><?= e($uw['cron']) ?></code></div>
+                        </div>
+                    <?php endforeach; ?>
+                </div>
+            </div>
         </div>
     <?php endif; ?>
     <section class="page-header" data-ui-toolbar>
         <div>
             <h1 class="page-title">Dashboard Monitoring</h1>
-            <p class="page-subtitle">Summary of server health and recent alerts.</p>
+            <p class="page-subtitle">Summary of server health, real-time telemetry, and incident alerts.</p>
         </div>
         <div class="toolbar-actions">
+            <div class="dashboard-search-wrap">
+                <i class="ti ti-search" aria-hidden="true"></i>
+                <input class="form-control" type="search" placeholder="Search servers..." aria-label="Search servers" data-dashboard-search autocomplete="off">
+                <button type="button" class="dashboard-search-clear" data-dashboard-search-clear aria-label="Clear search" title="Clear search"><i class="ti ti-x"></i></button>
+            </div>
             <label class="visually-hidden" for="dashboardStatusFilter">Filter server status</label>
             <select class="form-select form-select-sm w-auto" id="dashboardStatusFilter" data-dashboard-filter>
                 <option value="all">All statuses</option>
@@ -96,7 +137,7 @@ declare(strict_types=1);
 
     <section class="row g-3 summary-grid" data-ui-section>
         <div class="col-12 col-sm-6 col-xl-3">
-            <div class="card card-neon summary-card summary-card-total p-3">
+            <div class="card card-neon summary-card summary-card-total is-clickable is-active-filter p-3" data-summary-filter="all" role="button" tabindex="0" aria-label="Show all servers">
                 <div class="summary-card-head">
                     <span class="summary-card-label">Total Servers</span>
                     <i class="ti ti-server-2 summary-card-icon" aria-hidden="true"></i>
@@ -106,7 +147,7 @@ declare(strict_types=1);
             </div>
         </div>
         <div class="col-12 col-sm-6 col-xl-3">
-            <div class="card card-neon summary-card summary-card-online p-3">
+            <div class="card card-neon summary-card summary-card-online is-clickable p-3" data-summary-filter="online" role="button" tabindex="0" aria-label="Filter online servers">
                 <div class="summary-card-head">
                     <span class="summary-card-label">Online</span>
                     <i class="ti ti-arrow-up-circle summary-card-icon" aria-hidden="true"></i>
@@ -116,7 +157,7 @@ declare(strict_types=1);
             </div>
         </div>
         <div class="col-12 col-sm-6 col-xl-3">
-            <div class="card card-neon summary-card summary-card-down p-3">
+            <div class="card card-neon summary-card summary-card-down is-clickable p-3" data-summary-filter="down" role="button" tabindex="0" aria-label="Filter down servers">
                 <div class="summary-card-head">
                     <span class="summary-card-label">Down</span>
                     <i class="ti ti-alert-triangle summary-card-icon" aria-hidden="true"></i>
@@ -126,7 +167,7 @@ declare(strict_types=1);
             </div>
         </div>
         <div class="col-12 col-sm-6 col-xl-3">
-            <div class="card card-neon summary-card summary-card-pending p-3">
+            <div class="card card-neon summary-card summary-card-pending is-clickable p-3" data-summary-filter="pending" role="button" tabindex="0" aria-label="Filter pending servers">
                 <div class="summary-card-head">
                     <span class="summary-card-label">Pending</span>
                     <i class="ti ti-history summary-card-icon" aria-hidden="true"></i>
@@ -197,6 +238,12 @@ declare(strict_types=1);
                         </div>
                     </td></tr>
                 <?php endif; ?>
+                <tr data-dashboard-filter-empty hidden><td colspan="11" class="table-empty">
+                    <div class="table-empty-inner">
+                        <span>No servers match the selected filter or search query.</span>
+                        <button type="button" class="btn btn-sm btn-outline-light mt-2" data-dashboard-filter-reset><i class="ti ti-refresh me-1" aria-hidden="true"></i>Reset filter</button>
+                    </div>
+                </td></tr>
                 <?php foreach ($rows as $row): ?>
                     <?php
                     $sid = (int) ($row['id'] ?? 0);
@@ -213,8 +260,14 @@ declare(strict_types=1);
                         $serviceDown = $totalServices;
                         $serviceUnknown = 0;
                     }
+                    $searchIndex = strtolower(implode(' ', array_filter([
+                        $row['name'] ?? '',
+                        $row['host'] ?? '',
+                        $row['location'] ?? '',
+                        $row['panel_profile'] ?? '',
+                    ])));
                     ?>
-                    <tr data-server-id="<?= e((string) $sid) ?>" data-detail-url="<?= e(app_url('servers/' . $sid)) ?>" class="dashboard-row-link" tabindex="0" role="link" aria-label="Open details for <?= e((string) $row['name']) ?>">
+                    <tr data-server-id="<?= e((string) $sid) ?>" data-server-status="<?= e($status) ?>" data-server-search="<?= e($searchIndex) ?>" data-detail-url="<?= e(app_url('servers/' . $sid)) ?>" class="dashboard-row-link" tabindex="0" role="link" aria-label="Open details for <?= e((string) $row['name']) ?>">
                         <td>
                             <span class="table-cell-truncate" title="<?= e((string) $row['name']) ?>">
                                 <?= e((string) $row['name']) ?>

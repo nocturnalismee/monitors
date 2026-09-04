@@ -68,10 +68,15 @@ final class ServerDetailController
             [':id' => $id]
         );
 
+        $cpuWarnThreshold = max(0.0, (float) setting_get('threshold_cpu_load'));
+        $cpuCriticalThreshold = max($cpuWarnThreshold, (float) setting_get('threshold_cpu_load_critical'));
+
         $data = [
             'id' => $id,
             'server' => $server,
             'statusOnlineMinutes' => $statusOnlineMinutes,
+            'cpuWarnThreshold' => $cpuWarnThreshold,
+            'cpuCriticalThreshold' => $cpuCriticalThreshold,
             'mailQueueWarnThreshold' => $mailQueueWarnThreshold,
             'mailQueueCriticalThreshold' => $mailQueueCriticalThreshold,
             'status' => $status,

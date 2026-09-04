@@ -42,6 +42,10 @@ if ($brandingLogoRaw !== '') {
         >
             <i class="ti ti-chevron-left" data-sidebar-toggle-icon></i>
         </button>
+
+        <div class="sidebar-section-title">
+            <span class="sidebar-label">MONITORING</span>
+        </div>
         <a class="nav-link <?= $activeNav === 'dashboard' ? 'active' : '' ?>" href="<?= e(app_url('dashboard')) ?>">
             <i class="ti ti-dashboard me-2"></i><span class="sidebar-label">Dashboard</span>
         </a>
@@ -57,6 +61,10 @@ if ($brandingLogoRaw !== '') {
         <a class="nav-link <?= $activeNav === 'ip_reputation' ? 'active' : '' ?>" href="<?= e(app_url('ip-reputation')) ?>">
             <i class="ti ti-shield-lock me-2"></i><span class="sidebar-label">IP Reputation</span>
         </a>
+
+        <div class="sidebar-section-title mt-2">
+            <span class="sidebar-label">INCIDENTS & LOGS</span>
+        </div>
         <a class="nav-link <?= $activeNav === 'alerts' ? 'active' : '' ?>" href="<?= e(app_url('alerts')) ?>">
             <i class="ti ti-bell me-2"></i><span class="sidebar-label">Alert Logs</span><?php if ($activeAlertCount > 0): ?><span class="nav-alert-count" aria-label="<?= e((string) $activeAlertCount) ?> active alerts"><?= e($activeAlertCount > 99 ? '99+' : (string) $activeAlertCount) ?></span><?php endif; ?>
         </a>
@@ -64,6 +72,12 @@ if ($brandingLogoRaw !== '') {
             <a class="nav-link <?= $activeNav === 'audit' ? 'active' : '' ?>" href="<?= e(app_url('audit-logs')) ?>">
                 <i class="ti ti-shield-check me-2"></i><span class="sidebar-label">Audit Logs</span>
             </a>
+        <?php endif; ?>
+
+        <div class="sidebar-section-title mt-2">
+            <span class="sidebar-label">MANAGEMENT</span>
+        </div>
+        <?php if ($isAdminUser): ?>
             <a class="nav-link <?= $activeNav === 'export' ? 'active' : '' ?>" href="<?= e(app_url('export')) ?>">
                 <i class="ti ti-download me-2"></i><span class="sidebar-label">Export</span>
             </a>
@@ -71,8 +85,8 @@ if ($brandingLogoRaw !== '') {
                 <i class="ti ti-settings me-2"></i><span class="sidebar-label">Settings</span>
             </a>
         <?php endif; ?>
-        <a class="nav-link" href="<?= e(app_url('status')) ?>" target="_blank">
-            <i class="ti ti-world me-2"></i><span class="sidebar-label">Public Status</span>
+        <a class="nav-link" href="<?= e(app_url('status')) ?>" target="_blank" rel="noopener">
+            <i class="ti ti-world me-2"></i><span class="sidebar-label d-inline-flex align-items-center justify-content-between flex-fill">Public Status <i class="ti ti-external-link opacity-75" style="font-size: 0.82rem;" aria-hidden="true"></i></span>
         </a>
     </nav>
     <div class="servmon-sidebar-footer">

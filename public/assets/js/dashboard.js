@@ -178,6 +178,7 @@ function syncAdminTableRows(tableBody, servers) {
     );
     row.classList.add("dashboard-row-link");
     row.dataset.serverStatus = String(s.status || "pending");
+    row.dataset.serverSearch = `${s.name || ""} ${s.host || ""} ${s.location || ""} ${s.panel_profile || ""}`.toLowerCase();
     row.setAttribute("tabindex", "0");
     row.setAttribute("role", "link");
     row.setAttribute(
@@ -220,12 +221,45 @@ function syncAdminTableRows(tableBody, servers) {
 
 function applyDashboardStatusFilter() {
   const filter = document.querySelector("[data-dashboard-filter]");
+  const searchInput = document.querySelector("[data-dashboard-search]");
   const tableBody = document.querySelector("[data-server-table]");
-  if (!filter || !tableBody) return;
-  const selected = String(filter.value || "all");
-  tableBody.querySelectorAll("tr[data-server-id]").forEach((row) => {
-    row.hidden = selected !== "all" && row.dataset.serverStatus !== selected;
+  const emptyFilterRow = document.querySelector("[data-dashboard-filter-empty]");
+  if (!tableBody) return;
+
+  const selectedStatus = String(filter?.value || "all");
+  const searchQuery = String(searchInput?.value || "").trim().toLowerCase();
+
+  // Update active state on summary cards
+  document.querySelectorAll("[data-summary-filter]").forEach((card) => {
+    const cardStatus = card.getAttribute("data-summary-filter") || "all";
+    const isActive = cardStatus === selectedStatus;
+    card.classList.toggle("is-active-filter", isActive);
+    card.setAttribute("aria-pressed", String(isActive));
   });
+
+  const clearBtn = document.querySelector("[data-dashboard-search-clear]");
+  if (clearBtn) {
+    clearBtn.classList.toggle("is-visible", searchQuery.length > 0);
+  }
+
+  let visibleCount = 0;
+  const rows = tableBody.querySelectorAll("tr[data-server-id]");
+  rows.forEach((row) => {
+    const matchesStatus =
+      selectedStatus === "all" || row.dataset.serverStatus === selectedStatus;
+    const searchData =
+      row.dataset.serverSearch || row.textContent.toLowerCase();
+    const matchesSearch =
+      searchQuery === "" || searchData.includes(searchQuery);
+
+    const isVisible = matchesStatus && matchesSearch;
+    row.hidden = !isVisible;
+    if (isVisible) visibleCount += 1;
+  });
+
+  if (emptyFilterRow) {
+    emptyFilterRow.hidden = visibleCount > 0 || rows.length === 0;
+  }
 }
 
 function getSortValue(s, key) {
@@ -542,5 +576,59 @@ if (dashboardFilter) {
     updateDashboardFilterUrl();
   });
 }
+
+// Wire interactive KPI Summary Cards
+document.querySelectorAll("[data-summary-filter]").forEach((card) => {
+  const triggerFilter = () => {
+    const targetStatus = card.getAttribute("data-summary-filter") || "all";
+    if (dashboardFilter) {
+      // Toggle back to "all" if clicking the currently active non-all filter
+      if (dashboardFilter.value === targetStatus && targetStatus !== "all") {
+        dashboardFilter.value = "all";
+      } else {
+        dashboardFilter.value = targetStatus;
+      }
+      applyDashboardStatusFilter();
+      updateDashboardFilterUrl();
+    }
+  };
+
+  card.addEventListener("click", triggerFilter);
+  card.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      triggerFilter();
+    }
+  });
+});
+
+// Wire Instant Search & Clear Button
+const dashboardSearch = document.querySelector("[data-dashboard-search]");
+const dashboardSearchClear = document.querySelector("[data-dashboard-search-clear]");
+if (dashboardSearch) {
+  dashboardSearch.addEventListener("input", () => {
+    applyDashboardStatusFilter();
+  });
+}
+if (dashboardSearchClear) {
+  dashboardSearchClear.addEventListener("click", () => {
+    if (dashboardSearch) {
+      dashboardSearch.value = "";
+      dashboardSearch.focus();
+    }
+    applyDashboardStatusFilter();
+  });
+}
+
+// Wire Reset Filter Button on empty state
+document.addEventListener("click", (event) => {
+  const resetBtn = event.target.closest("[data-dashboard-filter-reset]");
+  if (!resetBtn) return;
+  if (dashboardFilter) dashboardFilter.value = "all";
+  if (dashboardSearch) dashboardSearch.value = "";
+  applyDashboardStatusFilter();
+  updateDashboardFilterUrl();
+});
+
 ensurePollerActive();
 startLiveStream();

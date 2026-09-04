@@ -16,9 +16,10 @@
                 <span class="detail-live-dot" aria-hidden="true"></span>Live
             </span>
             <span class="badge <?= e('badge-' . $status) ?> text-uppercase"><?= e($status) ?></span>
-            <a class="btn btn-outline-info btn-sm" href="<?= e(app_url('disk-health/' . (int) $server['id'])) ?>">Disk Health</a>
+            <a class="btn btn-outline-info btn-sm" href="<?= e(app_url('disk-health/' . (int) $server['id'])) ?>"><i class="ti ti-disc me-1"></i>Disk Health</a>
             <?php if (has_role('admin')): ?>
-                <a class="btn btn-soft btn-sm" href="<?= e(app_url('servers/' . (int) $server['id'] . '/edit')) ?>">Edit</a>
+                <a class="btn btn-outline-light btn-sm" href="<?= e(app_url('servers/' . (int) $server['id'] . '/setup')) ?>" title="Agent setup instructions"><i class="ti ti-terminal me-1"></i>Setup</a>
+                <a class="btn btn-soft btn-sm" href="<?= e(app_url('servers/' . (int) $server['id'] . '/edit')) ?>"><i class="ti ti-edit me-1"></i>Edit</a>
             <?php endif; ?>
         </div>
     </section>
@@ -246,6 +247,7 @@
 <script>
 window.SERVMON_HISTORY_BOOTSTRAP = <?= json_encode($historyBootstrap, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;
 window.SERVMON_SERVER_STATUS_ENDPOINT = <?= json_encode(app_url('api/status?id=' . $id), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;
+window.SERVMON_CPU_THRESHOLDS = <?= json_encode(['warn' => (float) ($cpuWarnThreshold ?? 2), 'critical' => (float) ($cpuCriticalThreshold ?? 4)]) ?>;
 </script>
 <script src="<?= e(asset_url('assets/js/detail.js')) ?>"></script>
   <script>
