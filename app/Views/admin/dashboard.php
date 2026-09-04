@@ -98,6 +98,10 @@ foreach ($unhealthyWorkers as $uw) {
     <div class="queue-badge" data-queue-depth data-queue-delivery="<?= e((string)($qd['alert_delivery_queue'] ?? 0)) ?>" data-queue-export="<?= e((string)($qd['export_jobs_queued'] ?? 0)) ?>" data-queue-running="<?= e((string)($qd['export_jobs_running'] ?? 0)) ?>">
         Queue: delivery <?= e((string)($qd['alert_delivery_queue'] ?? 0)) ?> | export <?= e((string)($qd['export_jobs_queued'] ?? 0)) ?> | running <?= e((string)($qd['export_jobs_running'] ?? 0)) ?>
     </div>
+    <?php $slo7v = $slo7 ?? ['availability_pct'=>'n/a','burn_rate'=>'n/a','budget_remaining_pct'=>'n/a']; $slo30v = $slo30 ?? ['availability_pct'=>'n/a','burn_rate'=>'n/a','budget_remaining_pct'=>'n/a']; $lagv = $lag ?? ['p95_ms'=>null]; $partsv = $parts ?? ['lag_days'=>null]; ?>
+    <div class="card-neon slo-card" data-slo-card>
+      <div class="card-header">SLO 99.9% (7d: <?=e((string)($slo7v['availability_pct']??'n/a'))?>% | 30d: <?=e((string)($slo30v['availability_pct']??'n/a'))?>%) Burn: <?=e((string)($slo30v['burn_rate']??'n/a'))?> Budget rem: <?=e((string)($slo30v['budget_remaining_pct']??'n/a'))?>% p95: <?=e((string)($lagv['p95_ms']??'n/a'))?>ms Partition lag: <?=e((string)($partsv['lag_days']??'n/a'))?>d</div>
+    </div>
     <section class="page-header" data-ui-toolbar>
         <div>
             <h1 class="page-title">Dashboard Monitoring</h1>

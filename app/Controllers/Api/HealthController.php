@@ -95,6 +95,15 @@ final class HealthController
 
         $queue = (new \App\Services\Reliability\QueueDepthService())->collect();
         $checks['queue_depth'] = $queue;
+        $threshold=max(1,(int)setting_get('alert_down_minutes','5'));
+        $slo30=(new \App\Services\Slo\SloService())->availability(30,$threshold);
+        $slo7=(new \App\Services\Slo\SloService())->availability(7,$threshold);
+        $lag=(new \App\Services\Slo\IngestLagService())->percentiles(1);
+        $parts=(new \App\Services\Settings\StorageStatsService())->collect();
+        $parts['lag_days']= isset($parts['newest_partition']) && $parts['newest_partition'] ? (int)floor((time()-strtotime($parts['newest_partition']))/86400) : null;
+        $checks['slo']=['7d'=>$slo7,'30d'=>$slo30];
+        $checks['ingest_lag']=$lag;
+        $checks['partitions']=$parts;
 
         return Response::json([
             'status' => $status,

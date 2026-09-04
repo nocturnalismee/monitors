@@ -3790,3 +3790,27 @@ body.sidebar-collapsed .sidebar-section-title .sidebar-label {
   line-height: 1;
 }
 
+.slo-card {
+  display: block;
+  border: 1px solid color-mix(in srgb, var(--sv-border) 75%, transparent);
+  border-radius: 0.55rem;
+  background: color-mix(in srgb, var(--sv-surface) 96%, transparent);
+  box-shadow: none;
+}
+
+.slo-card .card-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.6rem 0.85rem;
+  background: transparent;
+  border: 0;
+  color: var(--sv-text);
+  font-size: 0.84rem;
+  font-weight: 500;
+  line-height: 1.4;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+

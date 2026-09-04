@@ -66,6 +66,12 @@ namespace App\Controllers\Admin {
                 }
             }
             $queueDepth = (new \App\Services\Reliability\QueueDepthService())->collect();
+            $threshold=max(1,(int)setting_get('alert_down_minutes','5'));
+            $slo30=(new \App\Services\Slo\SloService())->availability(30,$threshold);
+            $slo7=(new \App\Services\Slo\SloService())->availability(7,$threshold);
+            $lag=(new \App\Services\Slo\IngestLagService())->percentiles(1);
+            $parts=(new \App\Services\Settings\StorageStatsService())->collect();
+            $parts['lag_days']= isset($parts['newest_partition']) && $parts['newest_partition'] ? (int)floor((time()-strtotime($parts['newest_partition']))/86400) : null;
             $alertWorkerHealth = worker_health_status('alert_check', \App\Services\Settings\CronWorkerService::TTL['alert_check']);
             $pingWorkerHealth = worker_health_status('ping_check', \App\Services\Settings\CronWorkerService::TTL['ping_check']);
             $diskRollupWorkerHealth = worker_health_status('disk_history_rollup', \App\Services\Settings\CronWorkerService::TTL['disk_history_rollup']);
@@ -115,6 +121,10 @@ namespace App\Controllers\Admin {
                 'down' => $down,
                 'pending' => $pending,
                 'queueDepth' => $queueDepth,
+                'slo7' => $slo7,
+                'slo30' => $slo30,
+                'lag' => $lag,
+                'parts' => $parts,
                 'alertWorkerHealth' => $alertWorkerHealth,
                 'pingWorkerHealth' => $pingWorkerHealth,
                 'diskRollupWorkerHealth' => $diskRollupWorkerHealth,
