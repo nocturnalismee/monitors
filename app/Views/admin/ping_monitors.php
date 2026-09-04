@@ -50,7 +50,16 @@
             <form method="get" class="row g-2 align-items-end">
                 <div class="col-md-4 col-lg-3">
                     <label class="form-label" for="filter-search">Search</label>
-                    <input class="form-control" name="q" id="filter-search" placeholder="name or target" value="<?= e($q) ?>">
+                    <?php
+                    $mode = 'inline';
+                    $name = 'q';
+                    $value = (string) ($q ?? '');
+                    $placeholder = 'name or target';
+                    $inputId = 'filter-search';
+                    $inputAttrs = '';
+                    $wrapClass = 'admin-search-wrap';
+                    require SERVMON_BASE_DIR . '/app/Views/partials/admin_filter_bar.php';
+                    ?>
                 </div>
                 <div class="col-md-3 col-lg-2">
                     <label class="form-label" for="filter-status">Status</label>

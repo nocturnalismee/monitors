@@ -35,19 +35,20 @@
             <a href="<?= e(app_url('alerts?status=acknowledged' . $qSuffix)) ?>" class="alert-chip-btn <?= $filterStatus === 'acknowledged' ? 'active' : '' ?>">Acknowledged</a>
             <a href="<?= e(app_url('alerts?status=resolved' . $qSuffix)) ?>" class="alert-chip-btn <?= $filterStatus === 'resolved' ? 'active' : '' ?>">Resolved</a>
         </div>
-        <form method="get" class="alert-search-form" role="search" aria-label="Search alerts">
-            <?php if ($filterType !== ''): ?><input type="hidden" name="type" value="<?= e($filterType) ?>"><?php endif; ?>
-            <?php if ($filterSeverity !== ''): ?><input type="hidden" name="severity" value="<?= e($filterSeverity) ?>"><?php endif; ?>
-            <?php if ($filterStatus !== ''): ?><input type="hidden" name="status" value="<?= e($filterStatus) ?>"><?php endif; ?>
-            <?php if ($filterServerId > 0): ?><input type="hidden" name="server_id" value="<?= e((string) $filterServerId) ?>"><?php endif; ?>
-            <div class="alert-search-wrap">
-                <i class="ti ti-search alert-search-icon" aria-hidden="true"></i>
-                <input type="search" name="q" value="<?= e($filterSearchVal) ?>" placeholder="Search title, server, type..." class="form-control form-control-sm alert-search-input" aria-label="Search alerts">
-                <?php if ($filterSearchVal !== ''): ?>
-                    <a href="<?= e(app_url('alerts?' . http_build_query(array_filter(['type' => $filterType, 'severity' => $filterSeverity, 'status' => $filterStatus, 'server_id' => $filterServerId ?: null])))) ?>" class="alert-search-clear" aria-label="Clear search"><i class="ti ti-x"></i></a>
-                <?php endif; ?>
-            </div>
-        </form>
+        <?php
+        $mode = 'get';
+        $action = app_url('alerts');
+        $name = 'q';
+        $value = $filterSearchVal;
+        $placeholder = 'Search title, server, type...';
+        $inputId = 'filter-alerts';
+        $inputAttrs = 'aria-label="Search alerts"';
+        $preserve = ['type' => $filterType, 'severity' => $filterSeverity, 'status' => $filterStatus, 'server_id' => $filterServerId ?: ''];
+        $resetUrl = app_url('alerts?' . http_build_query(array_filter(['type' => $filterType, 'severity' => $filterSeverity, 'status' => $filterStatus, 'server_id' => $filterServerId ?: null])));
+        $wrapClass = 'alert-search-form';
+        $showSubmit = false;
+        require SERVMON_BASE_DIR . '/app/Views/partials/admin_filter_bar.php';
+        ?>
     </div>
 
     <section class="card card-neon" data-ui-section>

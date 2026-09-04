@@ -20,10 +20,16 @@
             <span class="text-secondary small" data-server-result-count></span>
         </div>
         <div class="server-list-toolbar" role="search">
-            <div class="server-list-search">
-                <i class="ti ti-search" aria-hidden="true"></i>
-                <input class="form-control" type="search" placeholder="Search name, host, location, provider..." aria-label="Search servers" data-server-search>
-            </div>
+            <?php
+            $mode = 'client';
+            $name = 'q';
+            $value = '';
+            $placeholder = 'Search name, host, location, provider...';
+            $inputId = 'filter-servers';
+            $inputAttrs = 'aria-label="Search servers" data-server-search';
+            $wrapClass = 'server-list-search';
+            require SERVMON_BASE_DIR . '/app/Views/partials/admin_filter_bar.php';
+            ?>
             <select class="form-select server-status-filter" aria-label="Filter server status" data-server-status-filter>
                 <option value="all">All statuses</option>
                 <option value="online">Online</option>

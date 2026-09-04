@@ -16,30 +16,18 @@
         <div class="card-body">
             <form method="post" action="<?= e(app_url('servers/add')) ?>" class="row g-3">
                 <?= csrf_input() ?>
-                <div class="col-md-6">
-                    <label class="form-label" for="server-name">Name</label>
-                    <input class="form-control" name="name" id="server-name" value="<?= e(old('name')) ?>" required>
-                </div>
-                <div class="col-md-6">
-                    <label class="form-label" for="server-location">Location</label>
-                    <input class="form-control" name="location" id="server-location" value="<?= e(old('location')) ?>">
-                </div>
-                <div class="col-md-6">
-                    <label class="form-label" for="server-host">Host/IP</label>
-                    <input class="form-control" name="host" id="server-host" value="<?= e(old('host')) ?>">
-                </div>
-                <div class="col-md-6">
-                    <label class="form-label" for="server-type">Type</label>
-                    <input class="form-control" name="type" id="server-type" value="<?= e(old('type')) ?>">
-                </div>
-                <div class="col-md-6">
-                    <label class="form-label" for="server-provider">Provider (optional)</label>
-                    <input class="form-control" name="provider" id="server-provider" value="<?= e(old('provider')) ?>" placeholder="DigitalOcean, Hetzner, AWS, etc.">
-                </div>
-                <div class="col-md-6">
-                    <label class="form-label" for="server-label">Label (optional)</label>
-                    <input class="form-control" name="label" id="server-label" value="<?= e(old('label')) ?>" placeholder="Production, Staging, Core API, etc.">
-                </div>
+                <?php
+                $values = [
+                    'name' => (string) old('name'),
+                    'location' => (string) old('location'),
+                    'host' => (string) old('host'),
+                    'type' => (string) old('type'),
+                    'provider' => (string) old('provider'),
+                    'label' => (string) old('label'),
+                ];
+                $idPrefix = 'server';
+                require SERVMON_BASE_DIR . '/app/Views/partials/server_identity_form.php';
+                ?>
                 <div class="col-12 settings-actions d-flex flex-wrap gap-2">
                     <button class="btn btn-info" type="submit" data-submit-loading data-loading-text="Saving...">Save</button>
                     <a class="btn btn-soft" href="<?= e(app_url('servers')) ?>">Cancel</a>

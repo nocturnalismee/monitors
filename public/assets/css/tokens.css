@@ -1,0 +1,78 @@
+:root {
+  --sv-font-sans:
+    "Inter", "Plus Jakarta Sans", "Segoe UI", Roboto, "Helvetica Neue", Arial,
+    sans-serif;
+  --sv-font-mono:
+    "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+    "Liberation Mono", "Courier New", monospace;
+  --sv-bg: #141414;
+  --sv-surface: #1b1b1b;
+  --sv-surface-2: #232323;
+  --sv-surface-3: #2b2b2b;
+  --sv-border: #333333;
+  --sv-text: #e9e9e9;
+  --sv-muted: #9a9a9a;
+  --sv-accent: #2dd4bf;
+  --sv-success: #22c55e;
+  --sv-warning: #f59e0b;
+  --sv-danger: #ef4444;
+  --sv-info: #38bdf8;
+  --sv-chart-1: #2dd4bf;
+  --sv-chart-2: #f59e0b;
+  --sv-chart-3: #ef4444;
+  --sv-chart-4: #22c55e;
+  --sv-chart-5: #38bdf8;
+  --sv-radius-sm: 0.5rem;
+  --sv-radius-md: 0.8rem;
+  --sv-radius-lg: 1rem;
+  --sv-space-1: 0.375rem;
+  --sv-space-2: 0.75rem;
+  --sv-space-3: 1rem;
+  --sv-space-4: 1.25rem;
+  --sv-space-5: 1.5rem;
+  --sv-space-6: 2rem;
+  --sv-shadow-1: 0 2px 8px rgba(2, 6, 23, 0.18);
+  --sv-shadow-2: 0 6px 16px rgba(2, 6, 23, 0.22);
+  --sv-shadow-soft: 0 10px 30px rgba(2, 6, 23, 0.2);
+  --sv-stroke-soft: color-mix(in srgb, var(--sv-border) 82%, transparent);
+  --sv-stroke-strong: color-mix(in srgb, var(--sv-border) 95%, transparent);
+  --sv-surface-glass: color-mix(in srgb, var(--sv-surface) 90%, transparent);
+  --sv-card-bg: var(--sv-surface-glass);
+  --sv-card-header-bg: color-mix(in srgb, var(--sv-surface-2) 88%, transparent);
+  --sv-focus-ring: 0 0 0 0.22rem rgba(45, 212, 191, 0.28);
+  --sv-cyan: var(--sv-accent);
+  --sv-green: var(--sv-success);
+  --sv-yellow: var(--sv-warning);
+  --sv-red: var(--sv-danger);
+}
+
+:root[data-bs-theme="light"] {
+  --sv-bg: #f8fafc;
+  --sv-surface: #ffffff;
+  --sv-surface-2: #f1f5f9;
+  --sv-surface-3: #e2e8f0;
+  --sv-border: #cbd5e1;
+  --sv-text: #0f172a;
+  --sv-muted: #475569;
+  --sv-accent: #0284c7;
+  --sv-success: #15803d;
+  --sv-warning: #b45309;
+  --sv-danger: #b91c1c;
+  --sv-info: #1d4ed8;
+  --sv-chart-1: #0284c7;
+  --sv-chart-2: #b45309;
+  --sv-chart-3: #b91c1c;
+  --sv-chart-4: #15803d;
+  --sv-chart-5: #7c3aed;
+  --sv-shadow-soft: 0 10px 24px rgba(15, 23, 42, 0.08);
+  --sv-stroke-soft: color-mix(in srgb, var(--sv-border) 90%, transparent);
+  --sv-stroke-strong: color-mix(in srgb, var(--sv-border) 100%, transparent);
+  --sv-surface-glass: color-mix(in srgb, var(--sv-surface) 98%, transparent);
+  --sv-card-bg: #ffffff;
+  --sv-card-header-bg: #f8fafc;
+  --sv-focus-ring: 0 0 0 0.22rem rgba(2, 132, 199, 0.2);
+  --sv-cyan: var(--sv-accent);
+  --sv-green: var(--sv-success);
+  --sv-yellow: var(--sv-warning);
+  --sv-red: var(--sv-danger);
+}

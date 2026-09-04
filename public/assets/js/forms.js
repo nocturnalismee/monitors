@@ -73,6 +73,22 @@
     }
   });
 
+  /* --- Server token reveal toggle (extracted from inline script) --- */
+  function toggleToken() {
+    var display = document.getElementById("server-token-display");
+    var full = document.getElementById("server-token-full");
+    var btn = document.getElementById("server-token-toggle");
+    if (!display || !full || !btn) return;
+    var isHidden = display.classList.contains("d-none") === false;
+    display.classList.toggle("d-none", !isHidden);
+    full.classList.toggle("d-none", isHidden);
+    btn.textContent = isHidden ? "Hide Token" : "Reveal Token";
+  }
+  window.toggleToken = toggleToken;
+  document.addEventListener("click", function (event) {
+    if (event.target.closest("#server-token-toggle")) toggleToken();
+  });
+
   /* --- Submit-button loading state --- */
   document.addEventListener("submit", function (event) {
     var form = event.target;
