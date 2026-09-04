@@ -318,23 +318,29 @@ samp,
   position: fixed;
   inset: 0 auto 0 0;
   width: 260px;
+  height: 100vh;
+  height: 100dvh;
   background: var(--sv-surface);
   border-right: 1px solid var(--sv-border);
   display: flex;
   flex-direction: column;
   z-index: 1000;
+  overflow: hidden;
   transition:
-    width 0.2s ease,
-    transform 0.2s ease;
+    width 0.22s cubic-bezier(0.2, 0, 0, 1),
+    transform 0.22s cubic-bezier(0.2, 0, 0, 1);
 }
 
 .servmon-sidebar-brand {
-  padding: 0.85rem 0.9rem 0.85rem 1rem;
+  height: 56px;
+  min-height: 56px;
+  padding: 0 0.75rem;
   border-bottom: 1px solid var(--sv-border);
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 0.5rem;
+  flex-shrink: 0;
 }
 
 .servmon-brand-link {
@@ -343,10 +349,14 @@ samp,
   align-items: center;
   gap: 0.55rem;
   line-height: 1;
+  min-width: 0;
+  flex: 1 1 auto;
+  text-decoration: none;
 }
 
 .servmon-brand-link i {
   margin-right: 0 !important;
+  font-size: 1.2rem;
 }
 
 .servmon-brand-logo {
@@ -611,14 +621,18 @@ body:has(.admin-page) #servmon-flash-toast-container .toast {
 }
 
 .sidebar-toggle-btn {
-  width: 32px;
-  height: 32px;
+  width: 30px;
+  height: 30px;
+  min-width: 30px;
+  min-height: 30px;
   padding: 0;
   align-items: center;
   justify-content: center;
+  border-radius: 0.5rem;
   border-color: color-mix(in srgb, var(--sv-border) 85%, transparent);
   color: var(--sv-muted);
   background: color-mix(in srgb, var(--sv-surface-2) 72%, transparent);
+  flex-shrink: 0;
 }
 
 .sidebar-toggle-btn:hover,
@@ -629,19 +643,22 @@ body:has(.admin-page) #servmon-flash-toast-container .toast {
 }
 
 .servmon-sidebar-nav {
-  position: relative;
+  flex: 1 1 auto;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 0.75rem 0.75rem 1rem;
+  gap: 0.28rem !important;
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in srgb, var(--sv-border) 70%, transparent) transparent;
 }
 
-.sidebar-nav-toggle {
-  position: absolute;
-  top: 50%;
-  right: -16px;
-  z-index: 2;
-  transform: translateY(-50%);
-  border-radius: 0 0.55rem 0.55rem 0;
-  border-left-color: var(--sv-border);
-  background: var(--sv-surface-2);
-  box-shadow: 0 0.2rem 0.65rem rgb(0 0 0 / 16%);
+.servmon-sidebar-nav::-webkit-scrollbar {
+  width: 4px;
+}
+
+.servmon-sidebar-nav::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--sv-border) 70%, transparent);
+  border-radius: 999px;
 }
 
 .servmon-brand-link:hover,
@@ -650,15 +667,46 @@ body:has(.admin-page) #servmon-flash-toast-container .toast {
 }
 
 .servmon-sidebar .nav-link {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
   color: var(--sv-muted);
-  border-radius: 0.5rem;
-  padding: 0.62rem 0.82rem;
+  border-radius: 0.55rem;
+  padding: 0.6rem 0.72rem;
+  min-height: 40px;
+  font-size: 0.875rem;
   font-weight: 500;
+  line-height: 1.1;
   border: 1px solid transparent;
+  white-space: nowrap;
+  overflow: hidden;
+  position: relative;
   transition:
     border-color 0.16s ease,
     background-color 0.16s ease,
     color 0.16s ease;
+}
+
+.servmon-sidebar .nav-link i {
+  flex: 0 0 20px;
+  width: 20px;
+  text-align: center;
+  font-size: 1.1rem;
+  line-height: 1;
+}
+
+.servmon-sidebar .nav-link .sidebar-label {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sidebar-external-icon {
+  flex: 0 0 auto;
+  font-size: 0.82rem !important;
+  opacity: 0.65;
+  width: auto !important;
 }
 
 .servmon-sidebar .nav-link.active,
@@ -666,6 +714,10 @@ body:has(.admin-page) #servmon-flash-toast-container .toast {
   color: var(--sv-text);
   background: color-mix(in srgb, var(--sv-accent) 14%, transparent);
   border-color: color-mix(in srgb, var(--sv-accent) 32%, var(--sv-border));
+}
+
+.servmon-sidebar .nav-link.active {
+  font-weight: 600;
 }
 
 .servmon-sidebar-footer {
@@ -741,8 +793,12 @@ body:has(.admin-page) #servmon-flash-toast-container .toast {
   width: calc(100% - 260px);
   max-width: calc(100% - 260px);
   margin-left: 260px;
-  transition: margin-left 0.2s ease;
-  overflow-x: hidden;
+  transition:
+    margin-left 0.22s cubic-bezier(0.2, 0, 0, 1),
+    width 0.22s cubic-bezier(0.2, 0, 0, 1),
+    max-width 0.22s cubic-bezier(0.2, 0, 0, 1);
+  overflow-x: clip;
+  min-width: 0;
 }
 
 .admin-page.container,
@@ -751,34 +807,30 @@ body:has(.admin-page) #servmon-flash-toast-container .toast {
 }
 
 body.sidebar-collapsed .servmon-sidebar {
-  width: 82px;
+  width: 72px;
 }
 
 body.sidebar-collapsed .admin-page {
-  width: calc(100% - 82px);
-  max-width: calc(100% - 82px);
-  margin-left: 82px;
+  width: calc(100% - 72px);
+  max-width: calc(100% - 72px);
+  margin-left: 72px;
 }
 
-body.sidebar-collapsed .sidebar-label {
-  display: none;
-}
-
-body.sidebar-collapsed .servmon-sidebar .nav-link {
-  text-align: center;
-}
-
-body.sidebar-collapsed .servmon-sidebar .nav-link i {
-  margin-right: 0 !important;
+/* Force-hide labels even when Bootstrap d-* utilities use !important */
+body.sidebar-collapsed .sidebar-label,
+body.sidebar-collapsed .sidebar-external-icon {
+  display: none !important;
 }
 
 body.sidebar-collapsed .servmon-sidebar-brand {
-  padding: 0.65rem 0.45rem;
+  padding: 0 0.35rem;
   justify-content: center;
+  gap: 0.35rem;
 }
 
 body.sidebar-collapsed .servmon-brand-link {
-  width: 100%;
+  flex: 0 0 auto;
+  width: auto;
   justify-content: center;
 }
 
@@ -787,14 +839,48 @@ body.sidebar-collapsed .servmon-brand-logo {
   height: 20px;
 }
 
-body.sidebar-collapsed .sidebar-nav-toggle {
-  width: 28px;
-  height: 28px;
+body.sidebar-collapsed .servmon-sidebar-nav {
+  padding: 0.6rem 0.45rem 0.75rem;
+  align-items: center;
+}
+
+body.sidebar-collapsed .servmon-sidebar .nav-link {
+  justify-content: center;
+  padding: 0;
+  width: 42px;
+  height: 42px;
+  min-height: 42px;
+  gap: 0;
+  margin: 0 auto;
+}
+
+body.sidebar-collapsed .servmon-sidebar .nav-link i {
+  margin: 0 !important;
+  flex: 0 0 auto;
+  width: auto;
+  font-size: 1.15rem;
+}
+
+body.sidebar-collapsed .nav-alert-count {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  min-width: 0;
+  width: 8px;
+  height: 8px;
+  padding: 0;
+  border-radius: 50%;
+  font-size: 0;
+  line-height: 0;
+  border-width: 1.5px;
+  background: var(--sv-danger);
+  border-color: var(--sv-surface);
+  color: transparent;
+  overflow: hidden;
 }
 
 body.sidebar-collapsed .servmon-sidebar-footer {
-  padding-left: 0.5rem;
-  padding-right: 0.5rem;
+  padding: 0.65rem 0.4rem;
 }
 
 body.sidebar-collapsed .sidebar-user-meta {
@@ -809,16 +895,26 @@ body.sidebar-collapsed .sidebar-user-row {
 }
 
 body.sidebar-collapsed .sidebar-user-meta i {
-  font-size: 1.1rem;
+  font-size: 1.15rem;
 }
 
 body.sidebar-collapsed .sidebar-user-actions {
-  display: none;
+  display: none !important;
 }
 
 body.sidebar-collapsed .servmon-sidebar-footer .btn {
   padding-left: 0;
   padding-right: 0;
+}
+
+body.sidebar-collapsed .sidebar-section-title {
+  padding: 0.65rem 0 0.2rem;
+  justify-content: center;
+}
+
+body.sidebar-collapsed .sidebar-section-title::after {
+  width: 22px;
+  flex: 0 0 22px;
 }
 
 .card-transparent {
@@ -961,6 +1057,12 @@ body.sidebar-collapsed .servmon-sidebar-footer .btn {
 
 .table-shell .table-responsive {
   border-radius: inherit;
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
+/* When both classes are on the same element (e.g. dashboard), allow scroll. */
+.table-shell.table-responsive {
   overflow-x: auto;
   overflow-y: hidden;
 }
@@ -1773,8 +1875,9 @@ th.is-sorted .sort-icon {
 }
 
 .table.servmon-table.dashboard-summary-table {
-  table-layout: fixed;
+  table-layout: auto;
   width: 100%;
+  min-width: 900px;
 }
 
 .table.servmon-table.dashboard-summary-table th,
@@ -3135,16 +3238,95 @@ th.is-sorted .sort-icon {
     inset: 0 auto 0 0;
     width: 100%;
     max-width: 280px;
+    height: 100vh;
+    height: 100dvh;
     border-right: 0;
     border-bottom: 1px solid var(--sv-border);
     transform: translateX(-100%);
     z-index: 999;
   }
 
+  /* On mobile, ignore desktop collapsed state — sidebar is overlay, always expanded */
+  body.sidebar-collapsed .servmon-sidebar {
+    width: 100%;
+    max-width: 280px;
+  }
+
+  body.sidebar-collapsed .servmon-sidebar-nav {
+    padding: 0.75rem 0.75rem 1rem;
+    align-items: stretch;
+  }
+
+  body.sidebar-collapsed .servmon-sidebar .nav-link {
+    width: auto;
+    height: auto;
+    min-height: 40px;
+    padding: 0.6rem 0.72rem;
+    justify-content: flex-start;
+    gap: 0.65rem;
+  }
+
+  body.sidebar-collapsed .servmon-sidebar .nav-link i {
+    font-size: 1.1rem;
+  }
+
+  body.sidebar-collapsed .sidebar-label,
+  body.sidebar-collapsed .sidebar-external-icon {
+    display: inline !important;
+  }
+
+  body.sidebar-collapsed .sidebar-label {
+    display: inline-flex !important;
+  }
+
+  body.sidebar-collapsed .nav-alert-count {
+    position: static;
+    width: auto;
+    height: 1.25rem;
+    min-width: 1.25rem;
+    padding: 0 0.3rem;
+    border-radius: 999px;
+    font-size: 0.65rem;
+    background: color-mix(in srgb, var(--sv-danger) 18%, transparent);
+    color: var(--sv-danger);
+    border: 1px solid color-mix(in srgb, var(--sv-danger) 45%, transparent);
+  }
+
+  body.sidebar-collapsed .servmon-sidebar-brand {
+    padding: 0 0.75rem;
+    justify-content: space-between;
+  }
+
+  body.sidebar-collapsed .servmon-brand-link {
+    flex: 1 1 auto;
+    width: auto;
+    justify-content: flex-start;
+  }
+
+  body.sidebar-collapsed .servmon-sidebar-footer,
+  body.sidebar-collapsed .sidebar-user-meta,
+  body.sidebar-collapsed .sidebar-user-row {
+    justify-content: flex-start;
+  }
+
+  body.sidebar-collapsed .sidebar-user-actions {
+    display: flex !important;
+  }
+
+  body.sidebar-collapsed .sidebar-section-title {
+    justify-content: flex-start;
+    padding: 0.9rem 0.35rem 0.28rem;
+  }
+
+  body.sidebar-collapsed .sidebar-section-title::after {
+    flex: 1;
+    width: auto;
+  }
+
   .admin-page {
     width: 100%;
     max-width: 100%;
-    margin-left: 0;
+    margin-left: 0 !important;
   }
 
   body.sidebar-open-mobile .servmon-sidebar {
@@ -3384,37 +3566,30 @@ th.is-sorted .sort-icon {
 
 /* 4. Sidebar Section Headers */
 .sidebar-section-title {
-  padding: 0.85rem 0.82rem 0.25rem;
-  font-size: 0.65rem;
+  padding: 0.9rem 0.35rem 0.28rem;
+  margin: 0;
+  font-size: 0.62rem;
   font-weight: 700;
   letter-spacing: 0.09em;
   text-transform: uppercase;
-  color: color-mix(in srgb, var(--sv-muted) 85%, var(--sv-text));
+  color: color-mix(in srgb, var(--sv-muted) 82%, var(--sv-text));
   display: flex;
   align-items: center;
   gap: 0.5rem;
   user-select: none;
+  white-space: nowrap;
 }
 
 .sidebar-section-title::after {
   content: "";
   flex: 1;
   height: 1px;
-  background: color-mix(in srgb, var(--sv-border) 60%, transparent);
+  background: color-mix(in srgb, var(--sv-border) 55%, transparent);
 }
 
-body.sidebar-collapsed .sidebar-section-title {
-  padding: 0.6rem 0.5rem 0.2rem;
-  justify-content: center;
-}
-
+/* collapsed variant already defined above; keep fallback */
 body.sidebar-collapsed .sidebar-section-title .sidebar-label {
-  display: none;
-}
-
-body.sidebar-collapsed .sidebar-section-title::after {
-  width: 1.5rem;
-  flex: 0 0 auto;
+  display: none !important;
 }
 
 /* 5. Server Detail Action Toolbar */

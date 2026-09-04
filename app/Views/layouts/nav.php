@@ -31,46 +31,45 @@ if ($brandingLogoRaw !== '') {
             <?php endif; ?>
             <span class="sidebar-label"><?= e(APP_NAME) ?></span>
         </a>
-    </div>
-    <nav class="nav flex-column p-3 gap-1 servmon-sidebar-nav">
         <button
             type="button"
-            class="btn btn-sm btn-outline-secondary d-none d-md-inline-flex sidebar-toggle-btn sidebar-nav-toggle"
+            class="btn btn-sm btn-outline-secondary d-none d-md-inline-flex align-items-center justify-content-center sidebar-toggle-btn"
             data-sidebar-toggle-desktop
             title="Collapse sidebar"
             aria-label="Collapse sidebar"
         >
             <i class="ti ti-chevron-left" data-sidebar-toggle-icon></i>
         </button>
-
+    </div>
+    <nav class="nav flex-column servmon-sidebar-nav">
         <div class="sidebar-section-title">
             <span class="sidebar-label">MONITORING</span>
         </div>
-        <a class="nav-link <?= $activeNav === 'dashboard' ? 'active' : '' ?>" href="<?= e(app_url('dashboard')) ?>">
-            <i class="ti ti-dashboard me-2"></i><span class="sidebar-label">Dashboard</span>
+        <a class="nav-link <?= $activeNav === 'dashboard' ? 'active' : '' ?>" href="<?= e(app_url('dashboard')) ?>" title="Dashboard">
+            <i class="ti ti-dashboard"></i><span class="sidebar-label">Dashboard</span>
         </a>
-        <a class="nav-link <?= $activeNav === 'servers' ? 'active' : '' ?>" href="<?= e(app_url('servers')) ?>">
-            <i class="ti ti-server me-2"></i><span class="sidebar-label">Servers</span>
+        <a class="nav-link <?= $activeNav === 'servers' ? 'active' : '' ?>" href="<?= e(app_url('servers')) ?>" title="Servers">
+            <i class="ti ti-server"></i><span class="sidebar-label">Servers</span>
         </a>
-        <a class="nav-link <?= $activeNav === 'disk_health' ? 'active' : '' ?>" href="<?= e(app_url('disk-health')) ?>">
-            <i class="ti ti-device-desktop-analytics me-2"></i><span class="sidebar-label">Disk Health</span>
+        <a class="nav-link <?= $activeNav === 'disk_health' ? 'active' : '' ?>" href="<?= e(app_url('disk-health')) ?>" title="Disk Health">
+            <i class="ti ti-device-desktop-analytics"></i><span class="sidebar-label">Disk Health</span>
         </a>
-        <a class="nav-link <?= $activeNav === 'ping' ? 'active' : '' ?>" href="<?= e(app_url('ping')) ?>">
-            <i class="ti ti-radar me-2"></i><span class="sidebar-label">Ping Monitor</span>
+        <a class="nav-link <?= $activeNav === 'ping' ? 'active' : '' ?>" href="<?= e(app_url('ping')) ?>" title="Ping Monitor">
+            <i class="ti ti-radar"></i><span class="sidebar-label">Ping Monitor</span>
         </a>
-        <a class="nav-link <?= $activeNav === 'ip_reputation' ? 'active' : '' ?>" href="<?= e(app_url('ip-reputation')) ?>">
-            <i class="ti ti-shield-lock me-2"></i><span class="sidebar-label">IP Reputation</span>
+        <a class="nav-link <?= $activeNav === 'ip_reputation' ? 'active' : '' ?>" href="<?= e(app_url('ip-reputation')) ?>" title="IP Reputation">
+            <i class="ti ti-shield-lock"></i><span class="sidebar-label">IP Reputation</span>
         </a>
 
         <div class="sidebar-section-title mt-2">
             <span class="sidebar-label">INCIDENTS & LOGS</span>
         </div>
-        <a class="nav-link <?= $activeNav === 'alerts' ? 'active' : '' ?>" href="<?= e(app_url('alerts')) ?>">
-            <i class="ti ti-bell me-2"></i><span class="sidebar-label">Alert Logs</span><?php if ($activeAlertCount > 0): ?><span class="nav-alert-count" aria-label="<?= e((string) $activeAlertCount) ?> active alerts"><?= e($activeAlertCount > 99 ? '99+' : (string) $activeAlertCount) ?></span><?php endif; ?>
+        <a class="nav-link <?= $activeNav === 'alerts' ? 'active' : '' ?>" href="<?= e(app_url('alerts')) ?>" title="Alert Logs">
+            <i class="ti ti-bell"></i><span class="sidebar-label">Alert Logs</span><?php if ($activeAlertCount > 0): ?><span class="nav-alert-count" aria-label="<?= e((string) $activeAlertCount) ?> active alerts"><?= e($activeAlertCount > 99 ? '99+' : (string) $activeAlertCount) ?></span><?php endif; ?>
         </a>
         <?php if ($isAdminUser): ?>
-            <a class="nav-link <?= $activeNav === 'audit' ? 'active' : '' ?>" href="<?= e(app_url('audit-logs')) ?>">
-                <i class="ti ti-shield-check me-2"></i><span class="sidebar-label">Audit Logs</span>
+            <a class="nav-link <?= $activeNav === 'audit' ? 'active' : '' ?>" href="<?= e(app_url('audit-logs')) ?>" title="Audit Logs">
+                <i class="ti ti-shield-check"></i><span class="sidebar-label">Audit Logs</span>
             </a>
         <?php endif; ?>
 
@@ -78,15 +77,15 @@ if ($brandingLogoRaw !== '') {
             <span class="sidebar-label">MANAGEMENT</span>
         </div>
         <?php if ($isAdminUser): ?>
-            <a class="nav-link <?= $activeNav === 'export' ? 'active' : '' ?>" href="<?= e(app_url('export')) ?>">
-                <i class="ti ti-download me-2"></i><span class="sidebar-label">Export</span>
+            <a class="nav-link <?= $activeNav === 'export' ? 'active' : '' ?>" href="<?= e(app_url('export')) ?>" title="Export">
+                <i class="ti ti-download"></i><span class="sidebar-label">Export</span>
             </a>
-            <a class="nav-link <?= $activeNav === 'settings' ? 'active' : '' ?>" href="<?= e(app_url('settings')) ?>">
-                <i class="ti ti-settings me-2"></i><span class="sidebar-label">Settings</span>
+            <a class="nav-link <?= $activeNav === 'settings' ? 'active' : '' ?>" href="<?= e(app_url('settings')) ?>" title="Settings">
+                <i class="ti ti-settings"></i><span class="sidebar-label">Settings</span>
             </a>
         <?php endif; ?>
-        <a class="nav-link" href="<?= e(app_url('status')) ?>" target="_blank" rel="noopener">
-            <i class="ti ti-world me-2"></i><span class="sidebar-label d-inline-flex align-items-center justify-content-between flex-fill">Public Status <i class="ti ti-external-link opacity-75" style="font-size: 0.82rem;" aria-hidden="true"></i></span>
+        <a class="nav-link" href="<?= e(app_url('status')) ?>" target="_blank" rel="noopener" title="Public Status">
+            <i class="ti ti-world"></i><span class="sidebar-label sidebar-label-public">Public Status</span><i class="ti ti-external-link sidebar-external-icon" aria-hidden="true"></i>
         </a>
     </nav>
     <div class="servmon-sidebar-footer">
