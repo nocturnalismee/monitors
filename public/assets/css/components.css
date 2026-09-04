@@ -3814,3 +3814,394 @@ body.sidebar-collapsed .sidebar-section-title .sidebar-label {
   text-overflow: ellipsis;
 }
 
+/* ==========================================================================
+   Login split-screen (Kirrimdev-inspired, monitors branding)
+   Left: clean sign-in form. Right: dotted showcase panel.
+   All colors via --sv-* tokens so light/dark mode follows automatically.
+   ========================================================================== */
+
+.auth-shell.login-split-root {
+  display: block;
+  padding: 0;
+  place-items: stretch;
+  background-image: none;
+  background-color: var(--sv-surface);
+}
+
+.login-split {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+
+/* ---- Left: form column ---- */
+
+.login-split-form {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  background: var(--sv-surface);
+}
+
+.login-split-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.5rem 2rem 0;
+}
+
+.login-split-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  color: var(--sv-text);
+  text-decoration: none;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+
+.login-split-brand:hover {
+  color: var(--sv-text);
+}
+
+.login-split-brand-mark {
+  display: grid;
+  width: 2rem;
+  height: 2rem;
+  place-items: center;
+  border-radius: 0.5rem;
+  background: var(--sv-success);
+  color: #fff;
+  font-size: 1.15rem;
+  line-height: 1;
+  overflow: hidden;
+  flex: 0 0 auto;
+}
+
+.login-split-brand-mark img {
+  width: 1.25rem;
+  height: 1.25rem;
+  object-fit: contain;
+}
+
+.login-split-brand-name {
+  font-size: 0.95rem;
+}
+
+.login-split-theme-toggle.auth-theme-toggle {
+  position: static;
+  width: 2.5rem;
+  height: 2.5rem;
+  cursor: pointer;
+  transition: border-color 0.2s ease, color 0.2s ease;
+}
+
+.login-split-form-inner {
+  width: min(100%, 25rem);
+  margin: auto;
+  padding: 2.5rem 2rem;
+}
+
+.login-split-kicker.auth-kicker {
+  color: var(--sv-success);
+  font-size: 0.72rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.login-split-title {
+  margin: 0;
+  color: var(--sv-text);
+  font-size: clamp(1.5rem, 2.4vw, 1.8rem);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+}
+
+.login-split-subtitle {
+  margin: 0.55rem 0 1.75rem;
+  color: var(--sv-muted);
+  font-size: 0.92rem;
+  line-height: 1.55;
+}
+
+.login-split-form-fields .cf-turnstile {
+  display: flex;
+  justify-content: flex-start;
+}
+
+.login-split-turnstile {
+  margin: 0.25rem 0 1rem;
+}
+
+.login-split-field {
+  margin-bottom: 1.1rem;
+}
+
+.login-split-field .form-label {
+  margin-bottom: 0.4rem;
+  color: var(--sv-text);
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.login-split-input-wrap {
+  position: relative;
+}
+
+.login-split-input.form-control {
+  min-height: 2.9rem;
+  padding-right: 2.75rem;
+  border-radius: 0.35rem;
+  border-color: var(--sv-border);
+  background: var(--sv-surface);
+  color: var(--sv-text);
+  font-size: 0.92rem;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.login-split-input.form-control::placeholder {
+  color: var(--sv-muted);
+  opacity: 0.75;
+}
+
+.login-split-input.form-control:focus {
+  border-color: var(--sv-accent);
+  box-shadow: var(--sv-focus-ring);
+}
+
+.login-split-input-trailing {
+  position: absolute;
+  top: 50%;
+  right: 0.9rem;
+  color: var(--sv-muted);
+  font-size: 1rem;
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+
+.login-split-eye {
+  position: absolute;
+  top: 50%;
+  right: 0.4rem;
+  display: grid;
+  width: 2.1rem;
+  height: 2.1rem;
+  place-items: center;
+  border: 0;
+  border-radius: 0.4rem;
+  background: transparent;
+  color: var(--sv-muted);
+  font-size: 1rem;
+  cursor: pointer;
+  transform: translateY(-50%);
+  transition: color 0.2s ease, background-color 0.2s ease;
+}
+
+.login-split-eye:hover {
+  background: color-mix(in srgb, var(--sv-surface-2) 80%, transparent);
+  color: var(--sv-text);
+}
+
+.login-split-submit.auth-submit-btn {
+  min-height: 2.9rem;
+  border-radius: 0.35rem;
+  background: var(--sv-success);
+  color: #fff;
+  font-size: 0.92rem;
+  box-shadow: none;
+  cursor: pointer;
+  transition: filter 0.2s ease, background-color 0.2s ease;
+}
+
+.login-split-submit.auth-submit-btn:hover {
+  background: var(--sv-success);
+  color: #fff;
+  filter: brightness(1.07);
+}
+
+:root[data-bs-theme="dark"] .login-split-submit.auth-submit-btn,
+:root[data-bs-theme="dark"] .login-split-submit.auth-submit-btn:hover {
+  color: #052e16;
+}
+
+.login-split-note.auth-note {
+  text-align: left;
+  margin-top: 1.25rem;
+}
+
+/* ---- Right: showcase column ---- */
+
+.login-split-showcase {
+  position: relative;
+  display: grid;
+  place-items: center;
+  min-width: 0;
+  overflow: hidden;
+  padding: 3rem;
+  border-left: 1px solid var(--sv-border);
+  background-color: color-mix(in srgb, var(--sv-surface-2) 55%, var(--sv-surface));
+  background-image: radial-gradient(
+    color-mix(in srgb, var(--sv-border) 65%, transparent) 1px,
+    transparent 1px
+  );
+  background-size: 22px 22px;
+}
+
+.login-split-showcase-inner {
+  position: relative;
+  z-index: 1;
+  width: min(100%, 26rem);
+}
+
+.login-split-hero-mark {
+  display: grid;
+  width: clamp(6rem, 9vw, 7.5rem);
+  height: clamp(6rem, 9vw, 7.5rem);
+  place-items: center;
+  margin-bottom: 3.5rem;
+  background: var(--sv-success);
+  color: #fff;
+  font-size: 3rem;
+  line-height: 1;
+  overflow: hidden;
+}
+
+.login-split-hero-mark img {
+  width: 55%;
+  height: 55%;
+  object-fit: contain;
+}
+
+.login-split-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0 0 1rem;
+  padding: 0.4rem 0.75rem;
+  border: 1px solid var(--sv-border);
+  border-radius: 0.25rem;
+  background: var(--sv-surface);
+  color: var(--sv-muted);
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+}
+
+.login-split-badge-dot {
+  width: 0.45rem;
+  height: 0.45rem;
+  flex: 0 0 auto;
+  background: var(--sv-success);
+}
+
+.login-split-headline {
+  margin: 0 0 0.75rem;
+  color: var(--sv-text);
+  font-size: clamp(1.6rem, 2.6vw, 2rem);
+  font-weight: 800;
+  letter-spacing: -0.025em;
+  line-height: 1.15;
+}
+
+.login-split-desc {
+  margin: 0 0 1.75rem;
+  color: var(--sv-muted);
+  font-size: 0.92rem;
+  line-height: 1.65;
+}
+
+.login-split-points {
+  display: grid;
+  gap: 0.7rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.login-split-points li {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  color: var(--sv-text);
+  font-size: 0.88rem;
+  font-weight: 500;
+}
+
+.login-split-points i {
+  display: grid;
+  width: 2rem;
+  height: 2rem;
+  flex: 0 0 auto;
+  place-items: center;
+  border: 1px solid color-mix(in srgb, var(--sv-success) 30%, var(--sv-border));
+  border-radius: 0.5rem;
+  background: color-mix(in srgb, var(--sv-success) 12%, transparent);
+  color: var(--sv-success);
+  font-size: 1rem;
+}
+
+.login-split-plus {
+  position: absolute;
+  top: 38%;
+  right: 26%;
+  color: var(--sv-success);
+  font-size: 1.5rem;
+  font-weight: 300;
+  line-height: 1;
+  user-select: none;
+}
+
+.login-split-float {
+  position: absolute;
+  z-index: 1;
+  display: grid;
+  width: 3rem;
+  height: 3rem;
+  place-items: center;
+  font-size: 1.2rem;
+  line-height: 1;
+}
+
+.login-split-float-users {
+  top: 21%;
+  right: 0;
+  background: #9a3412;
+  color: #fff;
+}
+
+.login-split-float-tag {
+  right: 4.5rem;
+  bottom: 22%;
+  background: var(--sv-success);
+  color: #fff;
+}
+
+@media (max-width: 991.98px) {
+  .login-split {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .login-split-showcase {
+    display: none;
+  }
+
+  .login-split-topbar {
+    padding: 1.1rem 1.25rem 0;
+  }
+
+  .login-split-form-inner {
+    padding: 2rem 1.25rem 2.5rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .login-split-submit.auth-submit-btn,
+  .login-split-eye,
+  .login-split-theme-toggle.auth-theme-toggle {
+    transition: none;
+  }
+}
+
