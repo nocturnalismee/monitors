@@ -78,6 +78,7 @@ final class AlertLogsController
         $filterSeverity = trim((string) ($request->query('severity') ?? ''));
         $filterStatus = trim((string) ($request->query('status') ?? ''));
         $filterServerId = (int) ($request->query('server_id') ?? 0);
+        $filterSearch = trim((string) ($request->query('q') ?? $request->query('search') ?? ''));
 
         $where = [];
         $params = [];
@@ -97,6 +98,10 @@ final class AlertLogsController
         if ($filterServerId > 0) {
             $where[] = 'a.server_id = :server_id';
             $params[':server_id'] = $filterServerId;
+        }
+        if ($filterSearch !== '') {
+            $where[] = '(a.title LIKE :search OR a.message LIKE :search OR a.alert_type LIKE :search OR s.name LIKE :search)';
+            $params[':search'] = '%' . $filterSearch . '%';
         }
 
         $whereSql = $where ? ('WHERE ' . implode(' AND ', $where)) : '';
@@ -124,6 +129,7 @@ final class AlertLogsController
             'severity' => $filterSeverity,
             'status' => $filterStatus,
             'server_id' => $filterServerId,
+            'q' => $filterSearch,
         ], JSON_UNESCAPED_SLASHES));
         $cached = cache_get($cacheKey);
 
@@ -158,6 +164,7 @@ final class AlertLogsController
             'filterSeverity' => $filterSeverity,
             'filterStatus' => $filterStatus,
             'filterServerId' => $filterServerId,
+            'filterSearch' => $filterSearch,
             'servers' => $servers,
             'types' => $types,
             'severities' => $severities,

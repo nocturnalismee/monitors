@@ -24,65 +24,31 @@
         </div>
     </section>
 
+    <?php $filterSearchVal = (string) ($filterSearch ?? ''); ?>
     <div class="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2">
         <div class="alert-chip-group">
-            <a href="<?= e(app_url('alerts')) ?>" class="alert-chip-btn <?= ($filterStatus === '' && $filterSeverity === '') ? 'active' : '' ?>">All Alerts</a>
-            <a href="<?= e(app_url('alerts?status=active')) ?>" class="alert-chip-btn <?= ($filterStatus === 'active' && $filterSeverity === '') ? 'active' : '' ?>"><span class="alert-pulsing-dot me-1"></span>Active Incidents</a>
-            <a href="<?= e(app_url('alerts?severity=danger')) ?>" class="alert-chip-btn text-danger <?= $filterSeverity === 'danger' ? 'active' : '' ?>"><i class="ti ti-flame me-1"></i>Danger</a>
-            <a href="<?= e(app_url('alerts?severity=warning')) ?>" class="alert-chip-btn text-warning <?= $filterSeverity === 'warning' ? 'active' : '' ?>"><i class="ti ti-alert-triangle me-1"></i>Warning</a>
-            <a href="<?= e(app_url('alerts?status=acknowledged')) ?>" class="alert-chip-btn <?= $filterStatus === 'acknowledged' ? 'active' : '' ?>">Acknowledged</a>
-            <a href="<?= e(app_url('alerts?status=resolved')) ?>" class="alert-chip-btn <?= $filterStatus === 'resolved' ? 'active' : '' ?>">Resolved</a>
+            <?php $qSuffix = $filterSearchVal !== '' ? '&q=' . urlencode($filterSearchVal) : ''; ?>
+            <a href="<?= e(app_url('alerts' . ($filterSearchVal !== '' ? '?q=' . urlencode($filterSearchVal) : ''))) ?>" class="alert-chip-btn <?= ($filterStatus === '' && $filterSeverity === '') ? 'active' : '' ?>">All Alerts</a>
+            <a href="<?= e(app_url('alerts?status=active' . $qSuffix)) ?>" class="alert-chip-btn <?= ($filterStatus === 'active' && $filterSeverity === '') ? 'active' : '' ?>"><span class="alert-pulsing-dot me-1"></span>Active Incidents</a>
+            <a href="<?= e(app_url('alerts?severity=danger' . $qSuffix)) ?>" class="alert-chip-btn text-danger <?= $filterSeverity === 'danger' ? 'active' : '' ?>"><i class="ti ti-flame me-1"></i>Danger</a>
+            <a href="<?= e(app_url('alerts?severity=warning' . $qSuffix)) ?>" class="alert-chip-btn text-warning <?= $filterSeverity === 'warning' ? 'active' : '' ?>"><i class="ti ti-alert-triangle me-1"></i>Warning</a>
+            <a href="<?= e(app_url('alerts?status=acknowledged' . $qSuffix)) ?>" class="alert-chip-btn <?= $filterStatus === 'acknowledged' ? 'active' : '' ?>">Acknowledged</a>
+            <a href="<?= e(app_url('alerts?status=resolved' . $qSuffix)) ?>" class="alert-chip-btn <?= $filterStatus === 'resolved' ? 'active' : '' ?>">Resolved</a>
         </div>
+        <form method="get" class="alert-search-form" role="search" aria-label="Search alerts">
+            <?php if ($filterType !== ''): ?><input type="hidden" name="type" value="<?= e($filterType) ?>"><?php endif; ?>
+            <?php if ($filterSeverity !== ''): ?><input type="hidden" name="severity" value="<?= e($filterSeverity) ?>"><?php endif; ?>
+            <?php if ($filterStatus !== ''): ?><input type="hidden" name="status" value="<?= e($filterStatus) ?>"><?php endif; ?>
+            <?php if ($filterServerId > 0): ?><input type="hidden" name="server_id" value="<?= e((string) $filterServerId) ?>"><?php endif; ?>
+            <div class="alert-search-wrap">
+                <i class="ti ti-search alert-search-icon" aria-hidden="true"></i>
+                <input type="search" name="q" value="<?= e($filterSearchVal) ?>" placeholder="Search title, server, type..." class="form-control form-control-sm alert-search-input" aria-label="Search alerts">
+                <?php if ($filterSearchVal !== ''): ?>
+                    <a href="<?= e(app_url('alerts?' . http_build_query(array_filter(['type' => $filterType, 'severity' => $filterSeverity, 'status' => $filterStatus, 'server_id' => $filterServerId ?: null])))) ?>" class="alert-search-clear" aria-label="Clear search"><i class="ti ti-x"></i></a>
+                <?php endif; ?>
+            </div>
+        </form>
     </div>
-
-    <form method="get" class="card card-neon p-3 alert-filter-card" data-ui-section>
-        <details class="alert-filter-collapse" <?= ($filterType !== '' || $filterServerId > 0) ? 'open' : '' ?>>
-            <summary><i class="ti ti-adjustments-horizontal me-1" aria-hidden="true"></i>Advanced Filter Options</summary>
-        <div class="row g-2 align-items-end alert-filter-row mt-2">
-            <div class="col-md-4">
-                <label class="form-label">Type</label>
-                <select class="form-select" name="type">
-                    <option value="">All</option>
-                    <?php foreach ($types as $type): ?>
-                        <?php $t = (string) $type['alert_type']; ?>
-                        <option value="<?= e($t) ?>" <?= $filterType === $t ? 'selected' : '' ?>><?= e($t) ?></option>
-                    <?php endforeach; ?>
-                </select>
-            </div>
-            <div class="col-md-3">
-                <label class="form-label">Severity</label>
-                <select class="form-select" name="severity">
-                    <option value="">All</option>
-                    <?php foreach ($severities as $sev): ?>
-                        <option value="<?= e($sev) ?>" <?= $filterSeverity === $sev ? 'selected' : '' ?>><?= e($sev) ?></option>
-                    <?php endforeach; ?>
-                </select>
-            </div>
-            <div class="col-md-3">
-                <label class="form-label">Server</label>
-                <select class="form-select" name="server_id">
-                    <option value="0">All</option>
-                    <?php foreach ($servers as $server): ?>
-                        <option value="<?= e((string) $server['id']) ?>" <?= $filterServerId === (int) $server['id'] ? 'selected' : '' ?>><?= e((string) $server['name']) ?></option>
-                    <?php endforeach; ?>
-                </select>
-            </div>
-            <div class="col-md-3">
-                <label class="form-label">Lifecycle</label>
-                <select class="form-select" name="status">
-                    <option value="">All</option>
-                    <?php foreach (['active', 'acknowledged', 'resolved', 'silenced'] as $statusOption): ?>
-                        <option value="<?= e($statusOption) ?>" <?= $filterStatus === $statusOption ? 'selected' : '' ?>><?= e($statusOption === 'silenced' ? 'Snoozed' : ucfirst($statusOption)) ?></option>
-                    <?php endforeach; ?>
-                </select>
-            </div>
-            <div class="col-md-auto d-flex gap-2">
-                <button class="btn btn-info filter-submit" type="submit">Filter</button>
-                <a class="btn btn-outline-light" href="<?= e(app_url('alerts')) ?>">Reset</a>
-            </div>
-        </div>
-        </details>
-    </form>
 
     <section class="card card-neon" data-ui-section>
         <div class="table-responsive table-shell ping-table-shell ping-table-responsive alert-table-shell" data-ui-table>
@@ -217,7 +183,8 @@
             <nav>
                 <ul class="pagination pagination-sm mb-0">
                     <?php
-                    $base = app_url('alerts?type=' . urlencode($filterType) . '&severity=' . urlencode($filterSeverity) . '&status=' . urlencode($filterStatus) . '&server_id=' . $filterServerId . '&page=');
+                    $qParam = isset($filterSearchVal) ? (string) $filterSearchVal : (string) ($filterSearch ?? '');
+                    $base = app_url('alerts?type=' . urlencode($filterType) . '&severity=' . urlencode($filterSeverity) . '&status=' . urlencode($filterStatus) . '&server_id=' . $filterServerId . '&q=' . urlencode($qParam) . '&page=');
                     ?>
                     <li class="page-item <?= $page <= 1 ? 'disabled' : '' ?>">
                         <a class="page-link" href="<?= e($base . max(1, $page - 1)) ?>">Prev</a>

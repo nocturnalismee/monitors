@@ -3580,6 +3580,91 @@ th.is-sorted .sort-icon {
   color: var(--sv-text);
 }
 
+/* Alert Logs search — right side of d-flex chip bar (Image 2) */
+.alert-search-form {
+  flex-shrink: 0;
+  margin-left: auto;
+}
+
+.alert-search-wrap {
+  position: relative;
+  min-width: 240px;
+  max-width: 320px;
+  display: flex;
+  align-items: center;
+}
+
+.alert-search-wrap .alert-search-icon {
+  position: absolute;
+  left: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--sv-muted);
+  pointer-events: none;
+  font-size: 0.92rem;
+}
+
+.alert-search-wrap .alert-search-input {
+  padding-left: 2.1rem;
+  padding-right: 2rem;
+  font-size: 0.83rem;
+  height: calc(1.5em + 0.65rem + 2px);
+  border-radius: var(--sv-radius-sm);
+  background: var(--sv-surface-2);
+  border-color: var(--sv-border);
+}
+
+.alert-search-wrap .alert-search-input::placeholder {
+  color: var(--sv-muted);
+  opacity: 0.9;
+}
+
+.alert-search-wrap .alert-search-input:focus {
+  background: var(--sv-surface);
+  border-color: color-mix(in srgb, var(--sv-info) 45%, var(--sv-border));
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--sv-info) 12%, transparent);
+}
+
+.alert-search-clear {
+  position: absolute;
+  right: 0.55rem;
+  top: 50%;
+  transform: translateY(-50%);
+  background: color-mix(in srgb, var(--sv-surface) 86%, transparent);
+  border: 1px solid var(--sv-border);
+  color: var(--sv-muted);
+  cursor: pointer;
+  width: 1.45rem;
+  height: 1.45rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  text-decoration: none;
+}
+
+.alert-search-clear:hover {
+  color: var(--sv-text);
+  border-color: color-mix(in srgb, var(--sv-muted) 35%, var(--sv-border));
+  background: var(--sv-surface-2);
+}
+
+@media (max-width: 768px) {
+  .alert-search-form {
+    width: 100%;
+    margin-left: 0;
+  }
+  .alert-search-wrap {
+    min-width: 0;
+    max-width: none;
+    width: 100%;
+  }
+  .alert-search-wrap .alert-search-input {
+    width: 100%;
+  }
+}
+
 /* 4. Sidebar Section Headers */
 .sidebar-section-title {
   padding: 0.9rem 0.35rem 0.28rem;
