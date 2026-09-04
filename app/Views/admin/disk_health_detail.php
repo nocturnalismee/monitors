@@ -86,5 +86,5 @@
         </div>
     </section>
 </main>
-<script>window.SERVMON_DISK_AUTO_REFRESH_MS = 30000;</script>
+<script<?= csp_nonce_attr() ?>>window.SERVMON_DISK_AUTO_REFRESH_MS = 30000;</script>
 <script src="<?= e(asset_url('assets/js/disk-refresh.js')) ?>"></script>

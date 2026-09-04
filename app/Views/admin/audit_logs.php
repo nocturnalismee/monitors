@@ -136,7 +136,7 @@
     </div>
 </div>
 
-<script>
+<script<?= csp_nonce_attr() ?>>
   const auditModal = document.getElementById('auditContextModal');
   if (auditModal) {
     auditModal.addEventListener('show.bs.modal', (event) => {

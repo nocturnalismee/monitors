@@ -220,6 +220,6 @@
         </div>
     </div>
 </main>
-<script>window.SERVMON_API_STATUS = <?= json_encode(app_url('api/status'), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;</script>
-<script>window.SERVMON_CPU_THRESHOLDS = <?= json_encode(['warn' => (float) ($cpuWarnThreshold ?? 2), 'critical' => (float) ($cpuCriticalThreshold ?? 4)]) ?>;</script>
+<script<?= csp_nonce_attr() ?>>window.SERVMON_API_STATUS = <?= json_encode(app_url('api/status'), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;</script>
+<script<?= csp_nonce_attr() ?>>window.SERVMON_CPU_THRESHOLDS = <?= json_encode(['warn' => (float) ($cpuWarnThreshold ?? 2), 'critical' => (float) ($cpuCriticalThreshold ?? 4)]) ?>;</script>
 <script src="<?= e(asset_url('assets/js/public.js')) ?>"></script>

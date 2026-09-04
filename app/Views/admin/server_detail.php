@@ -244,13 +244,13 @@
         </div>
     </section>
 </main>
-<script>
+<script<?= csp_nonce_attr() ?>>
 window.SERVMON_HISTORY_BOOTSTRAP = <?= json_encode($historyBootstrap, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;
 window.SERVMON_SERVER_STATUS_ENDPOINT = <?= json_encode(app_url('api/status?id=' . $id), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;
 window.SERVMON_CPU_THRESHOLDS = <?= json_encode(['warn' => (float) ($cpuWarnThreshold ?? 2), 'critical' => (float) ($cpuCriticalThreshold ?? 4)]) ?>;
 </script>
 <script src="<?= e(asset_url('assets/js/detail.js')) ?>"></script>
-  <script>
+  <script<?= csp_nonce_attr() ?>>
   const baseHistoryEndpoint = <?= json_encode(app_url('api/status?id=' . $id . '&points=1200'), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;
   if (typeof bootstrapHistory === 'function' && Array.isArray(window.SERVMON_HISTORY_BOOTSTRAP) && window.SERVMON_HISTORY_BOOTSTRAP.length > 0) {
     bootstrapHistory(window.SERVMON_HISTORY_BOOTSTRAP);

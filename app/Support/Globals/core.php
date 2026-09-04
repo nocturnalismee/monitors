@@ -234,3 +234,12 @@ function json_response(array $payload, int $statusCode = 200): never
     echo json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
     exit;
 }
+
+function csp_nonce_attr(): string
+{
+    $nonce = defined('SERVMON_CSP_NONCE') ? (string) SERVMON_CSP_NONCE : '';
+    if ($nonce === '') {
+        return '';
+    }
+    return ' nonce="' . $nonce . '"';
+}

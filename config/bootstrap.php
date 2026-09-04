@@ -46,6 +46,10 @@ date_default_timezone_set(APP_TZ);
 require_once SERVMON_BASE_DIR . '/app/Support/Autoloader.php';
 \App\Support\Autoloader::register();
 
+if (!defined('SERVMON_CSP_NONCE')) {
+    define('SERVMON_CSP_NONCE', PHP_SAPI !== 'cli' ? bin2hex(random_bytes(16)) : '');
+}
+
 if (PHP_SAPI !== 'cli') {
     $trustedCsv = (string)env('TRUSTED_PROXIES', '127.0.0.1,::1');
     $isHttps = \App\Services\Security\ProxyTrustService::isHttps($_SERVER, $trustedCsv);
@@ -55,7 +59,7 @@ if (PHP_SAPI !== 'cli') {
         header('X-Content-Type-Options: nosniff');
         header('Referrer-Policy: strict-origin-when-cross-origin');
         header('Permissions-Policy: geolocation=(), microphone=(), camera=()');
-        header("Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self' data:; connect-src 'self'; frame-ancestors 'self'");
+        header("Content-Security-Policy: default-src 'self'; script-src 'self' 'nonce-" . SERVMON_CSP_NONCE . "' https://cdn.jsdelivr.net https://challenges.cloudflare.com; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; img-src 'self' data:; font-src 'self' data:; connect-src 'self' https://challenges.cloudflare.com; frame-src https://challenges.cloudflare.com; frame-ancestors 'self'");
         $requestUri = (string)($_SERVER['REQUEST_URI'] ?? '');
         $isAsset = str_starts_with($requestUri, '/assets/');
         if (!$isAsset) {

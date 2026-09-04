@@ -44,9 +44,15 @@ $pushDisk = source_text('app/Controllers/Api/PushDiskController.php');
 assert_architecture(str_contains($pushDisk, 'token_hash'), 'disk push must support hashed server tokens');
 
 $serverAdd = source_text('app/Controllers/Admin/ServerAddController.php');
-assert_architecture(str_contains($serverAdd, "unset(\$params[':token'])"), 'hashed server creation must not pass an unused plaintext token parameter');
+assert_architecture(!str_contains($serverAdd, "':token'"), 'server creation must not reference a plaintext token parameter');
+assert_architecture(str_contains($serverAdd, 'token_hash'), 'server creation must store hashed server tokens');
+assert_architecture(!str_contains($push, 'OR token'), 'push lookup must use token_hash only, no plaintext fallback');
 
 $pushApi = source_text('app/Controllers/Api/PushController.php');
 assert_architecture(str_contains($pushApi, "'cpanel' => ['apache', 'nginx'"), 'cpanel push profile must allow nginx service detection');
+
+$bootstrap = source_text('config/bootstrap.php');
+assert_architecture(str_contains($bootstrap, 'SERVMON_CSP_NONCE'), 'csp nonce must be generated per request');
+assert_architecture(str_contains($bootstrap, "'nonce-"), 'csp header must carry the nonce for inline scripts');
 
 echo "architecture_test passed\n";

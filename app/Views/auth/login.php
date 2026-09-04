@@ -50,7 +50,7 @@
         </section>
     </div>
 </main>
-<script>
+<script<?= csp_nonce_attr() ?>>
 document.querySelectorAll('[data-password-toggle]').forEach(function (button) {
     button.addEventListener('click', function () {
         var input = document.getElementById(button.getAttribute('data-password-toggle'));

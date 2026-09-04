@@ -216,7 +216,7 @@
     </section>
 </main>
 <script src="<?= e(asset_url('assets/js/forms.js')) ?>"></script>
-<script>window.SERVMON_PING_AUTO_REFRESH_MS = 15000;</script>
+<script<?= csp_nonce_attr() ?>>window.SERVMON_PING_AUTO_REFRESH_MS = 15000;</script>
 <script src="<?= e(asset_url('assets/js/ping-refresh.js')) ?>"></script>
 
 <div class="modal fade" id="pingTerminalModal" tabindex="-1" aria-hidden="true">
@@ -239,5 +239,5 @@
     </div>
 </div>
 
-<script>window.SERVMON_CSRF_TOKEN = <?= json_encode(csrf_token(), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;</script>
+<script<?= csp_nonce_attr() ?>>window.SERVMON_CSRF_TOKEN = <?= json_encode(csrf_token(), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;</script>
 <script src="<?= e(asset_url('assets/js/ping-terminal.js')) ?>"></script>

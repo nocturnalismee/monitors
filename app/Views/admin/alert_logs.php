@@ -216,7 +216,7 @@
     </div>
 </div>
 
-<script>
+<script<?= csp_nonce_attr() ?>>
   const modal = document.getElementById('alertDetailModal');
   if (modal) {
     modal.addEventListener('show.bs.modal', (event) => {

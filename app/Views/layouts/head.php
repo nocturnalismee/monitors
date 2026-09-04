@@ -35,7 +35,7 @@ if ($sidebarCollapsedCookie === '1') {
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.34.1/dist/tabler-icons.min.css" rel="stylesheet">
     <link href="<?= e(asset_url('assets/css/app.css')) ?>" rel="stylesheet">
-    <script>
+    <script<?= csp_nonce_attr() ?>>
       (function () {
         try {
           var stored = localStorage.getItem('servmon_theme');

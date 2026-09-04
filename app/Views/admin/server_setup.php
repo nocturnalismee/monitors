@@ -123,7 +123,7 @@ systemctl list-timers --all | grep monitoring-agent-cpanel-email
         </div>
     </section>
 </main>
-<script>
+<script<?= csp_nonce_attr() ?>>
 document.addEventListener("click", async (event) => {
   const btn = event.target.closest("[data-copy-text]");
   if (!btn) return;

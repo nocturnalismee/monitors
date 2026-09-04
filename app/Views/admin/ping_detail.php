@@ -143,8 +143,8 @@
         <?php endif; ?>
     </section>
 </main>
-<script>window.SERVMON_PING_HISTORY = <?= json_encode($chartPayload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;</script>
+<script<?= csp_nonce_attr() ?>>window.SERVMON_PING_HISTORY = <?= json_encode($chartPayload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;</script>
 <script src="<?= e(asset_url('assets/js/ping-detail.js')) ?>"></script>
 <script src="<?= e(asset_url('assets/js/forms.js')) ?>"></script>
-<script>window.SERVMON_PING_AUTO_REFRESH_MS = 15000;</script>
+<script<?= csp_nonce_attr() ?>>window.SERVMON_PING_AUTO_REFRESH_MS = 15000;</script>
 <script src="<?= e(asset_url('assets/js/ping-refresh.js')) ?>"></script>

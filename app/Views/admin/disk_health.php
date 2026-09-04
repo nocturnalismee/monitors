@@ -83,7 +83,7 @@
         </div>
     </section>
 </main>
-<script>
+<script<?= csp_nonce_attr() ?>>
 document.addEventListener("DOMContentLoaded", function () {
   const table = document.querySelector("[data-disk-health-table]");
   if (!table) return;
@@ -111,5 +111,5 @@ document.addEventListener("DOMContentLoaded", function () {
   });
 });
 </script>
-<script>window.SERVMON_DISK_AUTO_REFRESH_MS = 30000;</script>
+<script<?= csp_nonce_attr() ?>>window.SERVMON_DISK_AUTO_REFRESH_MS = 30000;</script>
 <script src="<?= e(asset_url('assets/js/disk-refresh.js')) ?>"></script>
