@@ -43,26 +43,31 @@ if (APP_ENV === 'production') {
 
 date_default_timezone_set(APP_TZ);
 
+require_once SERVMON_BASE_DIR . '/app/Support/Autoloader.php';
+\App\Support\Autoloader::register();
+
 if (PHP_SAPI !== 'cli') {
-    $isHttps = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off');
-    if (!$isHttps && env('TRUST_PROXY_HEADERS', '0') === '1') {
-        $proto = strtolower(trim((string) ($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '')));
-        if ($proto === 'https' || str_contains($proto, 'https')) {
-            $isHttps = true;
-        }
-    }
+    $trustedCsv = (string)env('TRUSTED_PROXIES', '127.0.0.1,::1');
+    $isHttps = \App\Services\Security\ProxyTrustService::isHttps($_SERVER, $trustedCsv);
 
     if (!headers_sent()) {
         header('X-Frame-Options: SAMEORIGIN');
         header('X-Content-Type-Options: nosniff');
         header('Referrer-Policy: strict-origin-when-cross-origin');
         header('Permissions-Policy: geolocation=(), microphone=(), camera=()');
-        header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
-        header('Pragma: no-cache');
+        header("Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self' data:; connect-src 'self'; frame-ancestors 'self'");
+        $requestUri = (string)($_SERVER['REQUEST_URI'] ?? '');
+        $isAsset = str_starts_with($requestUri, '/assets/');
+        if (!$isAsset) {
+            header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
+            header('Pragma: no-cache');
+        }
         if ($isHttps) {
             header('Strict-Transport-Security: max-age=31536000; includeSubDomains');
         }
     }
+
+    ini_set('session.use_strict_mode', '1');
 
     if (session_status() !== PHP_SESSION_ACTIVE) {
         session_set_cookie_params([
@@ -78,6 +83,4 @@ if (PHP_SAPI !== 'cli') {
     }
 }
 
-require_once SERVMON_BASE_DIR . '/app/Support/Autoloader.php';
-\App\Support\Autoloader::register();
 require_once SERVMON_BASE_DIR . '/app/Support/functions.php';

@@ -193,51 +193,9 @@ function get_client_ip(): string
     $remoteAddr = (string) ($_SERVER['REMOTE_ADDR'] ?? '0.0.0.0');
     $remoteValid = filter_var($remoteAddr, FILTER_VALIDATE_IP) !== false ? $remoteAddr : '0.0.0.0';
 
-    $trustProxyHeaders = env('TRUST_PROXY_HEADERS', '0') === '1';
-    $trustedProxies = array_filter(array_map('trim', explode(',', env('TRUSTED_PROXIES', '127.0.0.1,::1'))));
-
-    if (!$trustProxyHeaders) {
-        return $remoteValid;
-    }
-
-    $isTrustedRemote = false;
-    foreach ($trustedProxies as $tp) {
-        $tp = trim($tp);
-        if ($tp === '') {
-            continue;
-        }
-        if (str_contains($tp, '/')) {
-            $parts = explode('/', $tp, 2);
-            $network = $parts[0];
-            $prefix = (int) ($parts[1] ?? 0);
-            $ipBin = @inet_pton($remoteValid);
-            $netBin = @inet_pton($network);
-            if ($ipBin !== false && $netBin !== false && strlen($ipBin) === strlen($netBin)) {
-                $bytes = strlen($ipBin);
-                $fullBits = $bytes * 8;
-                if ($prefix >= 0 && $prefix <= $fullBits) {
-                    if ($prefix === 0) {
-                        $isTrustedRemote = true;
-                        break;
-                    }
-                    $maskBytes = str_repeat("\xff", intdiv($prefix, 8));
-                    if ($prefix % 8 !== 0) {
-                        $maskBytes .= chr(0xFF << (8 - ($prefix % 8)));
-                    }
-                    $maskBytes = str_pad($maskBytes, $bytes, "\x00");
-                    if (($ipBin & $maskBytes) === ($netBin & $maskBytes)) {
-                        $isTrustedRemote = true;
-                        break;
-                    }
-                }
-            }
-        } elseif (strcasecmp($remoteValid, $tp) === 0) {
-            $isTrustedRemote = true;
-            break;
-        }
-    }
-
-    if (!$isTrustedRemote) {
+    $trustedCsv = (string)env('TRUSTED_PROXIES', '127.0.0.1,::1');
+    $trusted = \App\Services\Security\ProxyTrustService::parseTrustedProxies($trustedCsv);
+    if (!\App\Services\Security\ProxyTrustService::isTrustedProxy($_SERVER['REMOTE_ADDR'] ?? '', $trusted)) {
         return $remoteValid;
     }
 
