@@ -458,7 +458,7 @@ $stepStatus = [
 ];
 
 $defaultValues = [
-    'app_name' => 'servmon',
+    'app_name' => 'monitors',
     'app_env' => 'development',
     'app_url' => '',
     'app_tz' => 'Asia/Jakarta',

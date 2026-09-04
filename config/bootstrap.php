@@ -11,7 +11,7 @@ if (!defined('SERVMON_BASE_DIR')) {
     define('SERVMON_BASE_DIR', dirname(__DIR__));
 }
 
-define('APP_NAME', env('APP_NAME', 'servmon'));
+define('APP_NAME', env('APP_NAME', 'monitors'));
 define('APP_ENV', env('APP_ENV', 'development'));
 define('APP_URL', rtrim((string) env('APP_URL', ''), '/'));
 define('APP_TZ', env('APP_TZ', 'Asia/Jakarta'));

@@ -2,7 +2,7 @@
 declare(strict_types=1);
 
 return [
-    'APP_NAME' => 'servmon',
+    'APP_NAME' => 'monitors',
     'APP_ENV' => 'production',
     'APP_URL' => 'http://127.0.0.1:8000',
     'APP_TZ' => 'Asia/Jakarta',
