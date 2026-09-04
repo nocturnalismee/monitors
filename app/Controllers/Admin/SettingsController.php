@@ -290,46 +290,10 @@ final class SettingsController
             }
         }
 
-        $projectRoot = SERVMON_BASE_DIR;
-        if (!is_string($projectRoot) || $projectRoot === '') {
-            $projectRoot = dirname(SERVMON_BASE_DIR);
-        }
-        $phpCron = '/usr/bin/php';
-        $workersRoot = rtrim(str_replace('\\', '/', $projectRoot), '/');
-        $alertWorker = $workersRoot . '/workers/alert-check.php';
-        $alertDeliveryWorker = $workersRoot . '/workers/alert-delivery.php';
-        $exportWorker = $workersRoot . '/workers/export-worker.php';
-        $pingWorker = $workersRoot . '/workers/ping-check.php';
-        $ipRepWorker = $workersRoot . '/workers/ip-reputation-check.php';
-        $retentionWorker = $workersRoot . '/workers/cleanup.php';
-        $diskRetentionWorker = $workersRoot . '/workers/disk-cleanup.php';
-        $rollupWorker = $workersRoot . '/workers/rollup.php';
-        $diskRollupWorker = $workersRoot . '/workers/disk-rollup.php';
-        $partitionMaintainWorker = $workersRoot . '/workers/partition-maintain.php';
-        $recommendedCron = [
-            '* * * * * ' . $phpCron . ' ' . $alertWorker . ' >/dev/null 2>&1',
-            '* * * * * ' . $phpCron . ' ' . $alertDeliveryWorker . ' >/dev/null 2>&1',
-            '* * * * * ' . $phpCron . ' ' . $exportWorker . ' >/dev/null 2>&1',
-            '* * * * * ' . $phpCron . ' ' . $pingWorker . ' >/dev/null 2>&1',
-            '*/5 * * * * ' . $phpCron . ' ' . $ipRepWorker . ' >/dev/null 2>&1',
-            '30 2 * * * ' . $phpCron . ' ' . $diskRetentionWorker . ' >/dev/null 2>&1',
-            '0 2 * * * ' . $phpCron . ' ' . $diskRollupWorker . ' >/dev/null 2>&1',
-            '0 2 * * * ' . $phpCron . ' ' . $rollupWorker . ' >/dev/null 2>&1',
-            '0 3 * * * ' . $phpCron . ' ' . $retentionWorker . ' >/dev/null 2>&1',
-            '30 0 * * * ' . $phpCron . ' ' . $partitionMaintainWorker . ' >/dev/null 2>&1',
-        ];
-        $workerStatuses = [
-            'alert_check' => worker_health_status('alert_check', 180),
-            'alert_delivery' => worker_health_status('alert_delivery', 300),
-            'export_worker' => worker_health_status('export_worker', 300),
-            'ping_check' => worker_health_status('ping_check', 300),
-            'ip_reputation_check' => worker_health_status('ip_reputation_check', 21600),
-            'disk_retention_cleanup' => worker_health_status('disk_retention_cleanup', 129600),
-            'retention_cleanup' => worker_health_status('retention_cleanup', 129600),
-            'rollup_metrics' => worker_health_status('rollup_metrics', 129600),
-            'disk_history_rollup' => worker_health_status('disk_history_rollup', 129600),
-            'partition_maintain' => worker_health_status('partition_maintain', 129600),
-        ];
+        // @see DashboardController for dedup note — cron/worker logic unified here
+        $cronSvc = new \App\Services\Settings\CronWorkerService();
+        $recommendedCron = $cronSvc->recommendedCron(SERVMON_BASE_DIR);
+        $workerStatuses = $cronSvc->workerStatuses();
         $metricsStorage = (new \App\Services\Settings\StorageStatsService())->collect();
 
         $activeSectionLabel = $sections[$activeSection] ?? ucfirst($activeSection);
