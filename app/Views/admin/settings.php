@@ -627,6 +627,38 @@
         </div>
         <div class="col-12">
             <section class="card card-neon" data-ui-section>
+                <div class="card-header bg-surface-2 border-soft"><h2 class="h6 mb-0">Queue &amp; SLO 99.9%</h2></div>
+                <div class="card-body">
+                    <?php $qd = $queueDepth ?? ['alert_delivery_queue' => 0, 'export_jobs_queued' => 0, 'export_jobs_running' => 0]; ?>
+                    <div class="queue-badge mb-3" data-queue-depth role="status" title="Queue depths from health checks">
+                        Queue: delivery <?= e((string) ($qd['alert_delivery_queue'] ?? 0)) ?> | export <?= e((string) ($qd['export_jobs_queued'] ?? 0)) ?> | running <?= e((string) ($qd['export_jobs_running'] ?? 0)) ?>
+                    </div>
+                    <?php
+                    $slo7v = $slo7 ?? []; $slo30v = $slo30 ?? []; $lagv = $ingestLag ?? []; $partsv = $parts ?? [];
+                    $sloNum = static function ($v, int $dec = 1): string { return is_numeric($v) ? number_format((float) $v, $dec) : 'n/a'; };
+                    $slo7Pct = $sloNum($slo7v['availability_pct'] ?? null); $slo30Pct = $sloNum($slo30v['availability_pct'] ?? null);
+                    $sloDown = isset($slo30v['downtime_minutes']) && is_numeric($slo30v['downtime_minutes']) ? formatUptimeCompact((int) $slo30v['downtime_minutes'] * 60) : 'n/a';
+                    $sloBudgetMin = isset($slo30v['error_budget_minutes']) && is_numeric($slo30v['error_budget_minutes']) ? formatUptimeCompact((int) $slo30v['error_budget_minutes'] * 60) : 'n/a';
+                    $sloBudgetRem = $sloNum($slo30v['budget_remaining_pct'] ?? null, 0);
+                    $sloBurn = $sloNum($slo30v['burn_rate'] ?? null, 1);
+                    $sloBuckets = e((string) ($slo30v['online_buckets'] ?? 'n/a')) . ' / ' . e((string) ($slo30v['total_buckets'] ?? 'n/a'));
+                    $sloP95 = isset($lagv['p95_ms']) && is_numeric($lagv['p95_ms']) ? e(number_format((float) $lagv['p95_ms']) . 'ms') : 'n/a';
+                    $sloPart = isset($partsv['lag_days']) && is_numeric($partsv['lag_days']) ? e((string) $partsv['lag_days'] . 'd') : 'n/a';
+                    ?>
+                    <div class="slo-grid px-0" data-slo-card>
+                        <span class="slo-item" title="Persen bucket 5-menit yang ada datanya dalam 7 / 30 hari terakhir">Availability <strong>7d: <?= e($slo7Pct) ?>%</strong> · <strong>30d: <?= e($slo30Pct) ?>%</strong> <small>(target 99.9%)</small></span>
+                        <span class="slo-item" title="Total bucket tanpa data × 5 menit (<?= $sloBuckets ?> online / ekspektasi)">Downtime <strong><?= e($sloDown) ?></strong> <small>(<?= $sloBuckets ?> bucket)</small></span>
+                        <span class="slo-item" title="Sisa toleransi downtime 30 hari (budget total <?= e($sloBudgetMin) ?>). Negatif = budget jebol">Budget rem <strong><?= e($sloBudgetRem) ?>%</strong></span>
+                        <span class="slo-item" title="Kecepatan menghabiskan budget: 1.0× = pas habis dalam 30 hari">Burn <strong><?= e($sloBurn) ?>×</strong></span>
+                        <span class="slo-item" title="Persentil-95 jeda agen→server (butuh agen signed; n/a = belum ada data)">Ingest p95 <strong><?= $sloP95 ?></strong></span>
+                        <span class="slo-item" title="Selisih partisi metrics terbaru vs hari ini">Partition lag <strong><?= $sloPart ?></strong></span>
+                    </div>
+                    <p class="text-muted small mb-0 mt-2">Detail per-worker ada di <code>/api/health</code> (<code>checks.queue_depth</code>, <code>checks.slo</code>, <code>checks.ingest_lag</code>, <code>checks.partitions</code>).</p>
+                </div>
+            </section>
+        </div>
+        <div class="col-12">
+            <section class="card card-neon" data-ui-section>
                 <div class="card-header bg-surface-2 border-soft"><h2 class="h6 mb-0">Metrics Table Storage</h2></div>
                 <div class="card-body">
                     <?php if (!empty($metricsStorage['error'])): ?>

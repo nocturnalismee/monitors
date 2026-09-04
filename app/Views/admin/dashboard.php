@@ -94,35 +94,6 @@ foreach ($unhealthyWorkers as $uw) {
             </div>
         </div>
     <?php endif; ?>
-    <?php $qd = $queueDepth ?? ['alert_delivery_queue'=>0,'export_jobs_queued'=>0,'export_jobs_running'=>0]; ?>
-    <section class="reliability-overview mb-3" aria-label="Reliability overview">
-    <div class="queue-badge" data-queue-depth data-queue-delivery="<?= e((string)($qd['alert_delivery_queue'] ?? 0)) ?>" data-queue-export="<?= e((string)($qd['export_jobs_queued'] ?? 0)) ?>" data-queue-running="<?= e((string)($qd['export_jobs_running'] ?? 0)) ?>" role="status" aria-live="polite" title="Queue depths from health checks">
-        Queue: delivery <?= e((string)($qd['alert_delivery_queue'] ?? 0)) ?> | export <?= e((string)($qd['export_jobs_queued'] ?? 0)) ?> | running <?= e((string)($qd['export_jobs_running'] ?? 0)) ?>
-    </div>
-    <?php $slo7v = $slo7 ?? ['availability_pct'=>'n/a','burn_rate'=>'n/a','budget_remaining_pct'=>'n/a']; $slo30v = $slo30 ?? ['availability_pct'=>'n/a','burn_rate'=>'n/a','budget_remaining_pct'=>'n/a']; $lagv = $lag ?? ['p95_ms'=>null]; $partsv = $parts ?? ['lag_days'=>null]; ?>
-    <div class="card slo-card mt-2" data-slo-card role="status" aria-live="polite">
-      <div class="card-header"><strong>SLO 99.9%</strong><span class="slo-hint">bucket online / total bucket 5-menit yang diharapkan</span></div>
-      <div class="card-body slo-grid">
-        <?php
-        $sloNum = static function ($v, int $dec = 1): string { return is_numeric($v) ? number_format((float) $v, $dec) : 'n/a'; };
-        $slo7Pct = $sloNum($slo7v['availability_pct'] ?? null); $slo30Pct = $sloNum($slo30v['availability_pct'] ?? null);
-        $sloDown = isset($slo30v['downtime_minutes']) && is_numeric($slo30v['downtime_minutes']) ? formatUptimeCompact((int) $slo30v['downtime_minutes'] * 60) : 'n/a';
-        $sloBudgetMin = isset($slo30v['error_budget_minutes']) && is_numeric($slo30v['error_budget_minutes']) ? formatUptimeCompact((int) $slo30v['error_budget_minutes'] * 60) : 'n/a';
-        $sloBudgetRem = $sloNum($slo30v['budget_remaining_pct'] ?? null, 0);
-        $sloBurn = $sloNum($slo30v['burn_rate'] ?? null, 1);
-        $sloBuckets = e((string) ($slo30v['online_buckets'] ?? 'n/a')) . ' / ' . e((string) ($slo30v['total_buckets'] ?? 'n/a'));
-        $sloP95 = isset($lagv['p95_ms']) && is_numeric($lagv['p95_ms']) ? e(number_format((float) $lagv['p95_ms']) . 'ms') : 'n/a';
-        $sloPart = isset($partsv['lag_days']) && is_numeric($partsv['lag_days']) ? e((string) $partsv['lag_days'] . 'd') : 'n/a';
-        ?>
-        <span class="slo-item" title="Persen bucket 5-menit yang ada datanya dalam 7 / 30 hari terakhir">Availability <strong>7d: <?= e($slo7Pct) ?>%</strong> · <strong>30d: <?= e($slo30Pct) ?>%</strong> <small>(target 99.9%)</small></span>
-        <span class="slo-item" title="Total bucket tanpa data × 5 menit. Bucket dihitung dari <?= $sloBuckets ?> (online / ekspektasi)">Downtime <strong><?= e($sloDown) ?></strong> <small>(<?= $sloBuckets ?> bucket)</small></span>
-        <span class="slo-item" title="Sisa toleransi downtime 30 hari (budget total <?= e($sloBudgetMin) ?>). Negatif = budget jebol">Budget rem <strong><?= e($sloBudgetRem) ?>%</strong></span>
-        <span class="slo-item" title="Kecepatan menghabiskan budget: 1.0× = pas habis dalam 30 hari. Di atas 1× = jebol">Burn <strong><?= e($sloBurn) ?>×</strong></span>
-        <span class="slo-item" title="Persentil-95 jeda agen→server saat push (butuh agen signed; n/a = belum ada data)">Ingest p95 <strong><?= $sloP95 ?></strong></span>
-        <span class="slo-item" title="Selisih partisi metrics terbaru vs hari ini">Partition lag <strong><?= $sloPart ?></strong></span>
-      </div>
-    </div>
-    </section>
     <section class="page-header" data-ui-toolbar>
         <div>
             <h1 class="page-title">Dashboard Monitoring</h1>

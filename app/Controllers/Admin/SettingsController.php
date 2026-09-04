@@ -291,6 +291,19 @@ final class SettingsController
         $recommendedCron = $cronSvc->recommendedCron(SERVMON_BASE_DIR);
         $workerStatuses = $cronSvc->workerStatuses();
         $metricsStorage = (new \App\Services\Settings\StorageStatsService())->collect();
+        // Reliability overview (ops tab only — SLO COUNT queries are heavy for other tabs).
+        $queueDepth = ['alert_delivery_queue' => 0, 'export_jobs_queued' => 0, 'export_jobs_running' => 0];
+        $slo7 = ['availability_pct' => null]; $slo30 = ['availability_pct' => null];
+        $ingestLag = ['p95_ms' => null]; $parts = ['lag_days' => null];
+        if ($activeSection === 'ops') {
+            $queueDepth = (new \App\Services\Reliability\QueueDepthService())->collect();
+            $threshold = max(1, (int) setting_get('alert_down_minutes', '5'));
+            $slo30 = (new \App\Services\Slo\SloService())->availability(30, $threshold);
+            $slo7 = (new \App\Services\Slo\SloService())->availability(7, $threshold);
+            $ingestLag = (new \App\Services\Slo\IngestLagService())->percentiles(1);
+            $parts = $metricsStorage;
+            $parts['lag_days'] = isset($parts['newest_partition']) && $parts['newest_partition'] ? (int) floor((time() - strtotime($parts['newest_partition'])) / 86400) : null;
+        }
 
         $activeSectionLabel = $sections[$activeSection] ?? ucfirst($activeSection);
         $sectionActionHints = [
@@ -313,6 +326,11 @@ final class SettingsController
             'recommendedCron' => $recommendedCron,
             'workerStatuses' => $workerStatuses,
             'metricsStorage' => $metricsStorage,
+            'queueDepth' => $queueDepth,
+            'slo7' => $slo7,
+            'slo30' => $slo30,
+            'ingestLag' => $ingestLag,
+            'parts' => $parts,
             'activeSectionLabel' => $activeSectionLabel,
             'activeSectionHint' => $activeSectionHint,
             'title' => APP_NAME . ' - Settings',
