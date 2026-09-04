@@ -484,6 +484,7 @@ $defaultValues = [
     'redis_db' => '0',
     'redis_prefix' => 'servmon:',
     'trust_proxy_headers' => '0',
+    'trusted_proxies' => '127.0.0.1,::1',
     'turnstile_site_key' => '',
     'turnstile_secret_key' => '',
     'admin_password' => '',
@@ -523,6 +524,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !$installed) {
     if (($data['turnstile_site_key'] === '') !== ($data['turnstile_secret_key'] === '')) {
         $errors[] = 'Turnstile keys: provide both Site Key and Secret Key (or leave both empty).';
     }
+    $appUrl = rtrim(trim((string)($data['app_url'] ?? '')), '/');
+    if ($appUrl !== '' && (!filter_var($appUrl, FILTER_VALIDATE_URL) || parse_url($appUrl, PHP_URL_HOST) === null || parse_url($appUrl, PHP_URL_HOST) === '')) {
+        $errors[] = 'APP_URL invalid';
+    }
+    $data['app_url'] = $appUrl;
 
     if (empty($errors)) {
         try {
@@ -604,7 +610,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !$installed) {
             $localConfig = [
                 'APP_NAME' => $data['app_name'],
                 'APP_ENV' => $data['app_env'],
-                'APP_URL' => rtrim($data['app_url'], '/'),
+                'APP_URL' => rtrim(trim((string)($data['app_url'] ?? '')), '/'),
                 'APP_TZ' => $data['app_tz'],
                 'APP_KEY' => bin2hex(random_bytes(32)),
                 'DB_HOST' => $data['db_host'],
@@ -619,6 +625,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !$installed) {
                 'REDIS_DB' => $data['redis_db'],
                 'REDIS_PREFIX' => $data['redis_prefix'],
                 'TRUST_PROXY_HEADERS' => ($data['trust_proxy_headers'] === '1') ? '1' : '0',
+                'TRUSTED_PROXIES' => trim((string)($data['trusted_proxies'] ?? '127.0.0.1,::1')),
                 'TURNSTILE_SITE_KEY' => $data['turnstile_site_key'],
                 'TURNSTILE_SECRET_KEY' => $data['turnstile_secret_key'],
             ];
@@ -975,6 +982,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $installed && ($_POST['action'] ?? 
                                         <option value="0"<?= $data['trust_proxy_headers'] === '0' ? ' selected' : '' ?>>Off (default)</option>
                                         <option value="1"<?= $data['trust_proxy_headers'] === '1' ? ' selected' : '' ?>>On (Cloudflare / Reverse Proxy)</option>
                                     </select>
+                                </div>
+                                <div class="col-12">
+                                    <label class="form-label">TRUSTED_PROXIES (comma-separated)</label>
+                                    <input class="form-control" name="trusted_proxies" placeholder="127.0.0.1, ::1" value="<?= h($data['trusted_proxies']) ?>">
+                                    <div class="form-text">Daftar IP proxy terpercaya untuk X-Forwarded-Proto/For (default: 127.0.0.1,::1).</div>
                                 </div>
                                 <div class="col-12"><div class="form-section-title">Cloudflare Turnstile (opsional)</div></div>
                                 <div class="col-md-6">
