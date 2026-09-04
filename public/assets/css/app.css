@@ -1,5 +1,5 @@
-/* ServMon v2 — shim: preserves single-link contract, splits monolith without reorder.
-   tokens.css must load before components.css (variable order).
+/* ServMon v2 — shim kept for backwards compatibility.
+   tokens.css and components.css are now linked directly (versioned) in
+   app/Views/layouts/head.php so browser caches bust on every change.
+   Keep this file for page-specific rules only; order: tokens, components, app.
 */
-@import url("tokens.css");
-@import url("components.css");
