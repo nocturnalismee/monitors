@@ -3076,7 +3076,6 @@ th.is-sorted .sort-icon {
   position: absolute;
   inset: 0 auto 0 0;
   width: 3px;
-  background: var(--summary-tone);
   opacity: 0.95;
 }
 
@@ -3430,7 +3429,6 @@ th.is-sorted .sort-icon {
 
 .summary-card.is-active-filter::before {
   width: 3px;
-  background: var(--summary-tone);
 }
 
 .summary-card-active-indicator {
