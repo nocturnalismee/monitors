@@ -542,6 +542,7 @@ function bootstrapHistory(payload) {
 }
 
 async function loadHistory(endpoint) {
+  if (document.hidden) return;
   if (!endpoint) return;
 
   if (!areChartsPaused()) {

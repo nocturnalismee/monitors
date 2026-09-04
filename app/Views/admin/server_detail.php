@@ -272,12 +272,11 @@ window.SERVMON_CPU_THRESHOLDS = <?= json_encode(['warn' => (float) ($cpuWarnThre
       loadHistory(initialHistoryEndpoint);
     }
   }, { once: true });
-  if (typeof refreshServerDetailStatus === 'function' && window.ServMon && typeof window.ServMon.startPoller === 'function') {
-    window.ServMon.startPoller(refreshServerDetailStatus, { baseMs: 30000, maxMs: 120000 });
-  }
-  setInterval(() => {
-    if (typeof loadHistory === 'function' && (!areChartsPaused || !areChartsPaused())) {
-      loadHistory(`${baseHistoryEndpoint}&history=${activeRange}`);
-    }
-  }, 30000);
+  const stopDetailHistory = ServMon.startPoller(() => {
+    if (areChartsPaused() || document.hidden) return Promise.resolve();
+    return loadHistory(baseHistoryEndpoint + "&history=" + activeRange);
+  }, {baseMs:30000, maxMs:120000});
+  const stopDetailStatus = ServMon.startPoller(refreshServerDetailStatus, {baseMs:30000, maxMs:120000});
+  window.servmonDetailHistoryStop = stopDetailHistory;
+  window.servmonDetailStatusStop = stopDetailStatus;
 </script>
