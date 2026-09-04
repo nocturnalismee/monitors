@@ -28,7 +28,7 @@ final class StorageStatsService
                 $metricsStorage['partition_count']=count($dates);
                 if ($dates!==[]) {$metricsStorage['oldest_partition']=min($dates); $metricsStorage['newest_partition']=max($dates);}
             } else {
-                $table=db_one("SELECT data_length,index_length FROM information_schema.TABLES WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='metrics'");
+                $table=db_one("SELECT DATA_LENGTH AS data_length, INDEX_LENGTH AS index_length FROM information_schema.TABLES WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='metrics'");
                 if ($table){$metricsStorage['data_size']=(int)$table['data_length']; $metricsStorage['index_size']=(int)$table['index_length']; $metricsStorage['table_size']=$metricsStorage['data_size']+$metricsStorage['index_size'];}
             }
         } catch (\Throwable $e) {$metricsStorage['error']=$e->getMessage();}
