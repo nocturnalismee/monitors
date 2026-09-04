@@ -94,6 +94,10 @@ foreach ($unhealthyWorkers as $uw) {
             </div>
         </div>
     <?php endif; ?>
+    <?php $qd = $queueDepth ?? ['alert_delivery_queue'=>0,'export_jobs_queued'=>0,'export_jobs_running'=>0]; ?>
+    <div class="queue-badge" data-queue-depth data-queue-delivery="<?= e((string)($qd['alert_delivery_queue'] ?? 0)) ?>" data-queue-export="<?= e((string)($qd['export_jobs_queued'] ?? 0)) ?>" data-queue-running="<?= e((string)($qd['export_jobs_running'] ?? 0)) ?>">
+        Queue: delivery <?= e((string)($qd['alert_delivery_queue'] ?? 0)) ?> | export <?= e((string)($qd['export_jobs_queued'] ?? 0)) ?> | running <?= e((string)($qd['export_jobs_running'] ?? 0)) ?>
+    </div>
     <section class="page-header" data-ui-toolbar>
         <div>
             <h1 class="page-title">Dashboard Monitoring</h1>

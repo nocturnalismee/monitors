@@ -5,6 +5,7 @@ namespace App\Controllers\Api;
 
 use App\Http\Request;
 use App\Http\Response;
+use App\Services\Settings\CronWorkerService;
 use Throwable;
 
 final class HealthController
@@ -44,16 +45,16 @@ final class HealthController
             }
         }
 
-        $alertWorker = worker_health_status('alert_check', 180);
-        $pingWorker = worker_health_status('ping_check', 300);
-        $retentionWorker = worker_health_status('retention_cleanup', 129600);
-        $rollupWorker = worker_health_status('rollup_metrics', 7200);
-        $diskRollupWorker = worker_health_status('disk_history_rollup', 129600);
-        $diskCleanupWorker = worker_health_status('disk_retention_cleanup', 129600);
-        $ipRepWorker = worker_health_status('ip_reputation_check', 21600);
-        $alertDeliveryWorker = worker_health_status('alert_delivery', 300);
-        $exportWorker = worker_health_status('export_worker', 300);
-        $partitionWorker = worker_health_status('partition_maintain', 129600);
+        $alertWorker = worker_health_status('alert_check', CronWorkerService::TTL['alert_check']);
+        $pingWorker = worker_health_status('ping_check', CronWorkerService::TTL['ping_check']);
+        $retentionWorker = worker_health_status('retention_cleanup', CronWorkerService::TTL['retention_cleanup']);
+        $rollupWorker = worker_health_status('rollup_metrics', CronWorkerService::TTL['rollup_metrics']);
+        $diskRollupWorker = worker_health_status('disk_history_rollup', CronWorkerService::TTL['disk_history_rollup']);
+        $diskCleanupWorker = worker_health_status('disk_retention_cleanup', CronWorkerService::TTL['disk_retention_cleanup']);
+        $ipRepWorker = worker_health_status('ip_reputation_check', CronWorkerService::TTL['ip_reputation_check']);
+        $alertDeliveryWorker = worker_health_status('alert_delivery', CronWorkerService::TTL['alert_delivery']);
+        $exportWorker = worker_health_status('export_worker', CronWorkerService::TTL['export_worker']);
+        $partitionWorker = worker_health_status('partition_maintain', CronWorkerService::TTL['partition_maintain']);
         $checks['workers'] = [
             'alert_check' => $alertWorker,
             'ping_check' => $pingWorker,
@@ -91,6 +92,9 @@ final class HealthController
         if (($alertDeliveryWorker['health'] ?? 'unknown') === 'error') {
             $status = 'degraded';
         }
+
+        $queue = (new \App\Services\Reliability\QueueDepthService())->collect();
+        $checks['queue_depth'] = $queue;
 
         return Response::json([
             'status' => $status,

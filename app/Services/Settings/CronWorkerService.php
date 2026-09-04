@@ -27,19 +27,32 @@ final class CronWorkerService
         ];
     }
 
+    public const TTL = [
+        'alert_check' => 180,
+        'alert_delivery' => 300,
+        'export_worker' => 300,
+        'ping_check' => 300,
+        'ip_reputation_check' => 21600,
+        'disk_retention_cleanup' => 129600,
+        'retention_cleanup' => 129600,
+        'rollup_metrics' => 129600,
+        'disk_history_rollup' => 129600,
+        'partition_maintain' => 129600,
+    ];
+
     public function workerStatuses(): array
     {
         return [
-            'alert_check' => worker_health_status('alert_check', 180),
-            'alert_delivery' => worker_health_status('alert_delivery', 300),
-            'export_worker' => worker_health_status('export_worker', 300),
-            'ping_check' => worker_health_status('ping_check', 300),
-            'ip_reputation_check' => worker_health_status('ip_reputation_check', 21600),
-            'disk_retention_cleanup' => worker_health_status('disk_retention_cleanup', 129600),
-            'retention_cleanup' => worker_health_status('retention_cleanup', 129600),
-            'rollup_metrics' => worker_health_status('rollup_metrics', 129600),
-            'disk_history_rollup' => worker_health_status('disk_history_rollup', 129600),
-            'partition_maintain' => worker_health_status('partition_maintain', 129600),
+            'alert_check' => worker_health_status('alert_check', self::TTL['alert_check']),
+            'alert_delivery' => worker_health_status('alert_delivery', self::TTL['alert_delivery']),
+            'export_worker' => worker_health_status('export_worker', self::TTL['export_worker']),
+            'ping_check' => worker_health_status('ping_check', self::TTL['ping_check']),
+            'ip_reputation_check' => worker_health_status('ip_reputation_check', self::TTL['ip_reputation_check']),
+            'disk_retention_cleanup' => worker_health_status('disk_retention_cleanup', self::TTL['disk_retention_cleanup']),
+            'retention_cleanup' => worker_health_status('retention_cleanup', self::TTL['retention_cleanup']),
+            'rollup_metrics' => worker_health_status('rollup_metrics', self::TTL['rollup_metrics']),
+            'disk_history_rollup' => worker_health_status('disk_history_rollup', self::TTL['disk_history_rollup']),
+            'partition_maintain' => worker_health_status('partition_maintain', self::TTL['partition_maintain']),
         ];
     }
 }

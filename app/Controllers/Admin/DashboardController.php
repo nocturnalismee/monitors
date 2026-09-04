@@ -65,14 +65,15 @@ namespace App\Controllers\Admin {
                     ];
                 }
             }
-            $alertWorkerHealth = worker_health_status('alert_check', 180);
-            $pingWorkerHealth = worker_health_status('ping_check', 300);
-            $diskRollupWorkerHealth = worker_health_status('disk_history_rollup', 129600);
-            $retentionWorkerHealth = worker_health_status('retention_cleanup', 129600);
-            $ipRepWorkerHealth = worker_health_status('ip_reputation_check', 21600);
-            $rollupWorkerHealth = worker_health_status('rollup_metrics', 129600);
-            $diskCleanupWorkerHealth = worker_health_status('disk_retention_cleanup', 129600);
-            $partitionMaintainWorkerHealth = worker_health_status('partition_maintain', 129600);
+            $queueDepth = (new \App\Services\Reliability\QueueDepthService())->collect();
+            $alertWorkerHealth = worker_health_status('alert_check', \App\Services\Settings\CronWorkerService::TTL['alert_check']);
+            $pingWorkerHealth = worker_health_status('ping_check', \App\Services\Settings\CronWorkerService::TTL['ping_check']);
+            $diskRollupWorkerHealth = worker_health_status('disk_history_rollup', \App\Services\Settings\CronWorkerService::TTL['disk_history_rollup']);
+            $retentionWorkerHealth = worker_health_status('retention_cleanup', \App\Services\Settings\CronWorkerService::TTL['retention_cleanup']);
+            $ipRepWorkerHealth = worker_health_status('ip_reputation_check', \App\Services\Settings\CronWorkerService::TTL['ip_reputation_check']);
+            $rollupWorkerHealth = worker_health_status('rollup_metrics', \App\Services\Settings\CronWorkerService::TTL['rollup_metrics']);
+            $diskCleanupWorkerHealth = worker_health_status('disk_retention_cleanup', \App\Services\Settings\CronWorkerService::TTL['disk_retention_cleanup']);
+            $partitionMaintainWorkerHealth = worker_health_status('partition_maintain', \App\Services\Settings\CronWorkerService::TTL['partition_maintain']);
             $projectRoot = realpath(SERVMON_BASE_DIR);
             if (!is_string($projectRoot) || $projectRoot === '') {
                 $projectRoot = dirname(SERVMON_BASE_DIR);
@@ -113,6 +114,7 @@ namespace App\Controllers\Admin {
                 'online' => $online,
                 'down' => $down,
                 'pending' => $pending,
+                'queueDepth' => $queueDepth,
                 'alertWorkerHealth' => $alertWorkerHealth,
                 'pingWorkerHealth' => $pingWorkerHealth,
                 'diskRollupWorkerHealth' => $diskRollupWorkerHealth,

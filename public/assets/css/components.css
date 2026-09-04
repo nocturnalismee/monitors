@@ -3776,3 +3776,17 @@ body.sidebar-collapsed .sidebar-section-title .sidebar-label {
   font-family: ui-monospace, Consolas, monospace;
 }
 
+.queue-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.45rem 0.75rem;
+  border: 1px solid color-mix(in srgb, var(--sv-border) 70%, transparent);
+  border-radius: 0.5rem;
+  background: color-mix(in srgb, var(--sv-surface-2) 55%, transparent);
+  color: var(--sv-text);
+  font-size: 0.85rem;
+  font-weight: 500;
+  line-height: 1;
+}
+
