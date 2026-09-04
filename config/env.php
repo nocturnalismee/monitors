@@ -14,11 +14,17 @@ if (!defined('SERVMON_BOOTSTRAPPED')) {
 /** @var array<string, string> $SERVMON_LOCAL_CONFIG */
 $GLOBALS['SERVMON_LOCAL_CONFIG'] = [];
 $localConfigFile = __DIR__ . '/local.php';
-if (is_file($localConfigFile)) {
-    $loaded = require $localConfigFile;
-    if (is_array($loaded)) {
-        $GLOBALS['SERVMON_LOCAL_CONFIG'] = array_map(static fn ($v): string => (string) $v, $loaded);
+if (is_readable($localConfigFile)) {
+    try {
+        $loaded = require $localConfigFile;
+        if (is_array($loaded)) {
+            $GLOBALS['SERVMON_LOCAL_CONFIG'] = array_map(static fn ($v): string => (string) $v, $loaded);
+        }
+    } catch (\Throwable $e) {
+        error_log('Warning: Failed to load config/local.php: ' . $e->getMessage());
     }
+} elseif (is_file($localConfigFile)) {
+    error_log('Warning: config/local.php exists but is not readable (permission denied): ' . $localConfigFile . '. Using environment variables only. Fix with: chmod 644 ' . $localConfigFile);
 }
 
 function env(string $key, ?string $default = null): ?string

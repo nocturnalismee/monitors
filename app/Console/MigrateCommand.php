@@ -20,8 +20,17 @@ final class MigrateCommand
             fwrite(STDERR, "Error: config/local.php not found. Run install.php first.\n");
             return 1;
         }
+        if (!is_readable($localPath)) {
+            fwrite(STDERR, "Error: config/local.php exists but is not readable (permission denied). Fix with: chmod 644 {$localPath} && chown www:www {$localPath} (adjust user as needed)\n");
+            return 1;
+        }
 
-        $config = require $localPath;
+        try {
+            $config = require $localPath;
+        } catch (\Throwable $e) {
+            fwrite(STDERR, "Error: Failed to load config/local.php: " . $e->getMessage() . "\n");
+            return 1;
+        }
         if (!is_array($config)) {
             fwrite(STDERR, "Error: config/local.php is invalid.\n");
             return 1;

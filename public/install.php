@@ -405,7 +405,14 @@ function writeLocalConfig(array $config): void
     if ($bytes === false) {
         throw new RuntimeException('Failed to write config/local.php (check permissions).');
     }
-    @chmod($localPath, 0600);
+    // Use 0644 for compatibility with AaPanel/BT where web (www) and CLI (root) run as different users.
+    // 0600 would cause "Permission denied" when CLI tries to read file created by web and vice versa.
+    if (!@chmod($localPath, 0644)) {
+        @chmod($localPath, 0640);
+    }
+    if (!is_readable($localPath)) {
+        throw new RuntimeException('config/local.php written but not readable (permission denied). Run: chmod 644 ' . $localPath);
+    }
 }
 
 function loadLocalConfig(): array
@@ -413,6 +420,9 @@ function loadLocalConfig(): array
     $path = SERVMON_BASE_DIR . '/config/local.php';
     if (!is_file($path)) {
         throw new RuntimeException('config/local.php not found.');
+    }
+    if (!is_readable($path)) {
+        throw new RuntimeException('config/local.php exists but is not readable (permission denied). Fix with: chmod 644 ' . $path);
     }
     $config = require $path;
     if (!is_array($config)) {
