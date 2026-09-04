@@ -97,13 +97,9 @@ final class ServerEditController
                     redirect('servers/' . $id . '/edit');
                 }
             }
-            if ($pushAllowedIps !== '') {
-                $ipsError = self::validatePushAllowedIps($pushAllowedIps);
-                if ($ipsError !== null) {
-                    flash_set('danger', $ipsError);
-                    redirect('servers/' . $id . '/edit');
-                }
-            }
+            $v = \App\Services\Security\PushAllowlistValidator::validate((string)($pushAllowedIps ?? ''));
+            if (!$v['valid']) { flash_set('danger', $v['error']); redirect('servers/'.$id.'/edit'); }
+            $pushAllowedIps = $v['normalized'] ?? '';
 
             db_exec(
                 'UPDATE servers
@@ -156,30 +152,5 @@ final class ServerEditController
             'activeNav' => 'servers',
         ];
         return Response::html(View::render('admin/server_edit', $data, 'admin'));
-    }
-
-    private static function validatePushAllowedIps(string $allowlist): ?string
-    {
-        $entries = preg_split('/[\s,]+/', trim($allowlist)) ?: [];
-        foreach ($entries as $entry) {
-            $candidate = trim((string) $entry);
-            if ($candidate === '') {
-                continue;
-            }
-            if (str_contains($candidate, '/')) {
-                [$network, $prefix] = explode('/', $candidate, 2) + ['', ''];
-                if (filter_var($network, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4) === false) {
-                    return 'Push Allowed IPs: invalid IPv4 network "' . $candidate . '".';
-                }
-                if (!ctype_digit((string) $prefix) || (int) $prefix < 0 || (int) $prefix > 32) {
-                    return 'Push Allowed IPs: invalid CIDR prefix "' . $candidate . '". Use 0-32.';
-                }
-                continue;
-            }
-            if (filter_var($candidate, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4) === false) {
-                return 'Push Allowed IPs: invalid IPv4 "' . $candidate . '". Support exact IPv4 or IPv4 CIDR.';
-            }
-        }
-        return null;
     }
 }

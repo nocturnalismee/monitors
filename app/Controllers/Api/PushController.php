@@ -540,32 +540,71 @@ final class PushController
             return false;
         }
         [$network, $prefix] = explode('/', $cidr, 2);
-        if (filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4) === false || filter_var($network, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4) === false) {
+        $network = trim((string)$network);
+        $prefix = trim((string)$prefix);
+        if ($network === '' || $prefix === '' || !ctype_digit($prefix)) {
             return false;
         }
-        $prefixInt = (int) $prefix;
-        if ($prefixInt < 0 || $prefixInt > 32) {
+        $prefixInt = (int)$prefix;
+        $ipBin = @inet_pton($ip);
+        $netBin = @inet_pton($network);
+        if ($ipBin === false || $netBin === false) {
             return false;
         }
-        $ipLong = ip2long($ip);
-        $netLong = ip2long($network);
-        if ($ipLong === false || $netLong === false) {
+        if (strlen($ipBin) !== strlen($netBin)) {
             return false;
         }
-        $mask = $prefixInt === 0 ? 0 : (-1 << (32 - $prefixInt));
-        return (($ipLong & $mask) === ($netLong & $mask));
+        $max = strlen($ipBin) * 8;
+        if ($prefixInt < 0 || $prefixInt > $max) {
+            return false;
+        }
+        if ($prefixInt === 0) {
+            return true;
+        }
+        $bytes = intdiv($prefixInt, 8);
+        $bits = $prefixInt % 8;
+        if ($bytes > 0 && substr($ipBin, 0, $bytes) !== substr($netBin, 0, $bytes)) {
+            return false;
+        }
+        if ($bits !== 0) {
+            $mask = (0xFF << (8 - $bits)) & 0xFF;
+            $ipByte = ord($ipBin[$bytes]);
+            $netByte = ord($netBin[$bytes]);
+            if (($ipByte & $mask) !== ($netByte & $mask)) {
+                return false;
+            }
+        }
+        return true;
     }
 
     private static function ipInAllowlist(string $ip, string $allowlist): bool
     {
-        $entries = preg_split('/[\s,]+/', trim($allowlist)) ?: [];
+        $trim = trim($allowlist);
+        if ($trim === '') {
+            return true;
+        }
+        if (!filter_var($ip, FILTER_VALIDATE_IP)) {
+            return false;
+        }
+        $entries = preg_split('/[\s,]+/', $trim) ?: [];
         foreach ($entries as $entry) {
-            $candidate = trim($entry);
+            $candidate = trim((string)$entry);
             if ($candidate === '') {
                 continue;
             }
             if (str_contains($candidate, '/')) {
                 if (self::ipMatchesCidr($ip, $candidate)) {
+                    return true;
+                }
+                continue;
+            }
+            if (!filter_var($candidate, FILTER_VALIDATE_IP)) {
+                continue;
+            }
+            $ipBin = @inet_pton($ip);
+            $candBin = @inet_pton($candidate);
+            if ($ipBin !== false && $candBin !== false) {
+                if ($ipBin === $candBin) {
                     return true;
                 }
                 continue;
