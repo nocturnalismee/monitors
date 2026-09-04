@@ -14,11 +14,7 @@ final class ServerAddController
         require_role('admin');
 
         if (is_post()) {
-            if (!csrf_validate($request->input('_csrf_token'))) {
-                flash_set('danger', 'Invalid CSRF token.');
-                redirect('servers/add');
-            }
-
+            // CSRF single-guard: enforced by csrf middleware (routes/web_servers.php).
             $name = trim((string) ($request->input('name') ?? ''));
             $location = trim((string) ($request->input('location') ?? ''));
             $host = trim((string) ($request->input('host') ?? ''));
@@ -55,8 +51,6 @@ final class ServerAddController
                 redirect('servers/add');
             }
             $token = bin2hex(random_bytes(32));
-            $serverColumns = 'name, url, location, host, type, provider, label, agent_mode, token, active, created_at';
-            $serverValues = ':name, :url, :location, :host, :type, :provider, :label, :agent_mode, :token, 1, NOW()';
             $params = [
                 ':name' => $name, ':url' => null,
                 ':location' => $location !== '' ? $location : null,
@@ -64,15 +58,10 @@ final class ServerAddController
                 ':type' => $type !== '' ? $type : null,
                 ':provider' => $provider !== '' ? $provider : null,
                 ':label' => $label !== '' ? $label : null,
-                ':agent_mode' => 'push', ':token' => $token,
+                ':agent_mode' => 'push',
+                ':token_hash' => hash('sha256', $token),
             ];
-            if (db_column_exists('servers', 'token_hash')) {
-                $serverColumns = 'name, url, location, host, type, provider, label, agent_mode, token, token_hash, active, created_at';
-                $serverValues = ':name, :url, :location, :host, :type, :provider, :label, :agent_mode, NULL, :token_hash, 1, NOW()';
-                unset($params[':token']);
-                $params[':token_hash'] = hash('sha256', $token);
-            }
-            db_exec('INSERT INTO servers (' . $serverColumns . ') VALUES (' . $serverValues . ')', $params);
+            db_exec('INSERT INTO servers (name, url, location, host, type, provider, label, agent_mode, token_hash, active, created_at) VALUES (:name, :url, :location, :host, :type, :provider, :label, :agent_mode, :token_hash, 1, NOW())', $params);
 
             $id = (int) db()->lastInsertId();
             $_SESSION['servmon_new_server_token_' . $id] = $token;

@@ -14,16 +14,13 @@ final class ServerSetupController
         require_role('admin');
 
         $id = (int) ($request->params['id'] ?? 0);
-        $server = db_one('SELECT id, name, token, token_hash FROM servers WHERE id = :id LIMIT 1', [':id' => $id]);
+        $server = db_one('SELECT id, name FROM servers WHERE id = :id LIMIT 1', [':id' => $id]);
         if ($server === null) {
             flash_set('danger', 'Server not found.');
             redirect('servers');
         }
         $sessionTokenKey = 'servmon_new_server_token_' . $id;
-        $displayToken = trim((string) ($server['token'] ?? ''));
-        if ($displayToken === '') {
-            $displayToken = trim((string) ($_SESSION[$sessionTokenKey] ?? ''));
-        }
+        $displayToken = trim((string) ($_SESSION[$sessionTokenKey] ?? ''));
 
         $pushEndpoint = app_url('api/push');
         $agentUrl = app_url('agents/monitoring-agent.sh');
@@ -51,6 +48,8 @@ final class ServerSetupController
             'title' => APP_NAME . ' - Agent Instructions',
             'activeNav' => 'servers',
         ];
-        return Response::html(View::render('admin/server_setup', $data, 'admin'));
+        $html = View::render('admin/server_setup', $data, 'admin');
+        unset($_SESSION[$sessionTokenKey]);
+        return Response::html($html);
     }
 }

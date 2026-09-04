@@ -1,6 +1,6 @@
 USE servmon;
 
-INSERT INTO servers (id, name, url, location, host, type, agent_mode, token, notify_email, active)
+INSERT INTO servers (id, name, url, location, host, type, agent_mode, token_hash, notify_email, active)
 VALUES
 (
     1,
@@ -10,7 +10,7 @@ VALUES
     '10.10.10.11',
     'Nginx',
     'push',
-    'a4fbb8ef2d5ad6cff4edc2eb2a0b53a1d4cd1c3f9b8fbe1c1134cb60225d11f0',
+    SHA2('a4fbb8ef2d5ad6cff4edc2eb2a0b53a1d4cd1c3f9b8fbe1c1134cb60225d11f0', 256),
     'ops@example.com',
     1
 ),
@@ -22,7 +22,7 @@ VALUES
     '10.10.10.21',
     'Postfix',
     'push',
-    '98f2bd11f74f0ecdf5f86c8423d2f7dd19580e47142988569c4b9567cc1b7dc3',
+    SHA2('98f2bd11f74f0ecdf5f86c8423d2f7dd19580e47142988569c4b9567cc1b7dc3', 256),
     'mailops@example.com',
     1
 )

@@ -48,17 +48,9 @@ final class PushDiskController
 
         try {
             $tokenHash = hash('sha256', $token);
-            $hasTokenHash = db_column_exists('servers', 'token_hash');
-            $tokenLookup = $hasTokenHash
-                ? 'token_hash = :token_hash OR token = :token'
-                : 'token = :token';
-            $tokenParams = [':token' => $token];
-            if ($hasTokenHash) {
-                $tokenParams[':token_hash'] = $tokenHash;
-            }
             $server = db_one(
-                'SELECT id, active FROM servers WHERE (' . $tokenLookup . ') LIMIT 1',
-                $tokenParams
+                'SELECT id, active FROM servers WHERE token_hash = :token_hash LIMIT 1',
+                [':token_hash' => $tokenHash]
             );
         } catch (Throwable $e) {
             error_log('push-disk.php server lookup failed error=' . $e->getMessage());

@@ -21,19 +21,11 @@ final class ServerEditController
         }
 
         if (is_post()) {
-            if (!csrf_validate($request->input('_csrf_token'))) {
-                flash_set('danger', 'Invalid CSRF token.');
-                redirect('servers/' . $id . '/edit');
-            }
-
+            // CSRF single-guard: enforced by csrf middleware (routes/web_servers.php).
             $action = (string) ($request->input('action') ?? 'save');
             if ($action === 'regen_token') {
                 $newToken = bin2hex(random_bytes(32));
-                if (db_column_exists('servers', 'token_hash')) {
-                    db_exec('UPDATE servers SET token = NULL, token_hash = :token_hash WHERE id = :id', [':token_hash' => hash('sha256', $newToken), ':id' => $id]);
-                } else {
-                    db_exec('UPDATE servers SET token = :token WHERE id = :id', [':token' => $newToken, ':id' => $id]);
-                }
+                db_exec('UPDATE servers SET token_hash = :token_hash WHERE id = :id', [':token_hash' => hash('sha256', $newToken), ':id' => $id]);
                 $_SESSION['servmon_new_server_token_' . $id] = $newToken;
                 invalidate_status_cache($id);
                 audit_log('server_regen_token', 'Regenerated server token', 'server', $id);
@@ -139,10 +131,7 @@ final class ServerEditController
         }
 
         $sessionTokenKey = 'servmon_new_server_token_' . $id;
-        $displayToken = trim((string) ($server['token'] ?? ''));
-        if ($displayToken === '') {
-            $displayToken = trim((string) ($_SESSION[$sessionTokenKey] ?? ''));
-        }
+        $displayToken = trim((string) ($_SESSION[$sessionTokenKey] ?? ''));
 
         $data = [
             'id' => $id,
