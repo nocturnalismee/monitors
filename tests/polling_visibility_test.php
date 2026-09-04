@@ -12,4 +12,7 @@ if (strpos($detail, 'ServMon.startPoller') === false) {
 if (strpos($js, 'document.hidden') === false) {
     echo "FAIL: detail.js loadHistory must guard document.hidden\n"; $ok = false;
 } else { echo "PASS: detail.js guards hidden\n"; }
+$notif = file_get_contents(__DIR__ . '/../public/assets/js/notification-center.js');
+if (strpos($notif, 'setInterval(load') !== false) { echo "FAIL: notification-center still raw setInterval\n"; $ok=false; }
+else { echo "PASS: notification-center uses startPoller\n"; }
 exit($ok ? 0 : 1);

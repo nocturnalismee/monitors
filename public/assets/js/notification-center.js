@@ -150,5 +150,6 @@
   });
 
   load();
-  window.setInterval(load, 30000);
+  const stopNotif = ServMon.startPoller(load, {baseMs:30000, maxMs:120000});
+  window.servmonNotificationStop = stopNotif;
 })();
