@@ -16,6 +16,12 @@ final class RateLimiter
 
     public static function api_rate_check(string $endpoint, string $ip, int $maxPerMinute = 60): bool
     {
+        if ($maxPerMinute <= 0) {
+            return false;
+        }
+        if ($maxPerMinute > 10000) {
+            $maxPerMinute = 10000;
+        }
         $key = md5($endpoint . ':' . $ip);
         $file = self::api_rate_limit_dir() . DIRECTORY_SEPARATOR . $key . '.dat';
         $now = time();
@@ -23,11 +29,13 @@ final class RateLimiter
 
         $fp = @fopen($file, 'c+');
         if ($fp === false) {
-            return true;
+            error_log("RateLimiter fopen fail $file");
+            return false;
         }
         if (!flock($fp, LOCK_EX)) {
             fclose($fp);
-            return true;
+            error_log("RateLimiter flock fail");
+            return false;
         }
 
         $timestamps = [];
