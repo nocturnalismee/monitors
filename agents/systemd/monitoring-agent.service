@@ -1,0 +1,39 @@
+[Unit]
+Description=Monitoring Server Agent (daemon real-time, deadband)
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=simple
+User=root
+Group=root
+EnvironmentFile=-/etc/systemd/monitoring-agent.conf
+Environment=DAEMON_MODE=1
+# PERINGATAN: EnvironmentFile MENIMPA Environment= di atas. Jika
+# /etc/monitoring-agent.conf berisi DAEMON_MODE=0 (default lama di conf.example),
+# agent akan jalan one-shot lalu keluar -> systemd Restart=always = restart-loop.
+# Pastikan DAEMON_MODE=1 di conf saat memakai service daemon ini.
+ExecStart=/usr/local/bin/monitoring-agent.sh
+Restart=always
+RestartSec=5
+TimeoutStartSec=20
+UMask=0077
+# ---------------------------------------------------------------------------
+# CATATAN: direktif sandboxing namespace di bawah ini NONAKTIF secara default.
+# Pada sebagian VPS/container (OpenVZ/LXC/Virtualizor, dll) systemd tidak dapat
+# menyiapkan mount namespace sehingga unit gagal start dengan
+# "status=226/NAMESPACE". Bila server Anda mendukung, aktifkan (hapus tanda #)
+# untuk keamanan tambahan:
+# NoNewPrivileges=true
+# PrivateTmp=true
+# ProtectSystem=full
+# ProtectHome=true
+# ReadWritePaths=/var/lib/monitoring-agent
+# ---------------------------------------------------------------------------
+# Hardening opsional lain untuk server sibuk:
+# Nice=10
+# IOSchedulingClass=idle
+# CPUQuota=30%
+
+[Install]
+WantedBy=multi-user.target

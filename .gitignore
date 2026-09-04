@@ -1,0 +1,42 @@
+# Configuration & Environment
+config/local.php
+config/local.*.php
+!config/local.example.php
+local.php
+.env
+.env.*
+
+# Storage & Runtime Data
+/storage/logs/*
+!/storage/logs/.gitkeep
+/storage/cache/*
+!/storage/cache/.gitkeep
+/storage/exports/*
+!/storage/exports/.gitkeep
+/storage/rate-limit/*
+!/storage/rate-limit/.gitkeep
+
+# Sensitive or dynamic agent scripts
+agent.php
+agents/agent.php
+
+# Operating System & Temp Files
+.DS_Store
+Thumbs.db
+desktop.ini
+*.tmp
+*.bak
+*.swp
+*~
+
+# IDE & Editor Settings
+.idea/
+.vscode/
+*.suo
+*.user
+*.sublime-project
+*.sublime-workspace
+
+# Dependencies (if any)
+/vendor/
+/node_modules/

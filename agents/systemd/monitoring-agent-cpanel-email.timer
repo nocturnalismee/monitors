@@ -1,0 +1,11 @@
+[Unit]
+Description=Run Monitoring Agent every minute (cPanel Email Host)
+
+[Timer]
+OnCalendar=*-*-* *:*:00
+Persistent=true
+RandomizedDelaySec=2
+Unit=monitoring-agent-cpanel-email.service
+
+[Install]
+WantedBy=timers.target

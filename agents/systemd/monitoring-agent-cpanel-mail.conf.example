@@ -1,0 +1,54 @@
+# Monitoring Server Agent (cPanel Email Host) v3 configuration
+# Lokasi: /etc/monitoring-agent-cpanel-mail.conf
+#
+# INI ADALAH TEMPAT SEMUA KONFIGURASI AGENT KHUSUS cPanel EMAIL.
+# Salin file ini ke /etc/monitoring-agent-cpanel-mail.conf, lalu ubah nilainya.
+# Tidak perlu mengubah monitoring-agent-cpanel-mail.sh sama sekali — semua kunci
+# sudah punya default di script, file ini hanya menimpa nilai yang Anda isi.
+#
+# Format: KEY=value per baris. Baris # atau kosong diabaikan.
+# Komentar inline juga aman, misal:  PUSH_INTERVAL=10 # detik
+# Prioritas: environment variable (mis. Environment= di systemd unit)
+#            > file ini > default di script.
+#
+# Cara pakai:
+#   1) sudo cp monitoring-agent-cpanel-mail.conf.example /etc/monitoring-agent-cpanel-mail.conf
+#   2) ubah MASTER_URL, SERVER_TOKEN, SERVER_ID (WAJIB per server)
+#   3) ubah nilai lain sesuai kebutuhan (semuanya opsional)
+#   4) jalankan manual sekali:  /usr/local/bin/monitoring-agent-cpanel-mail.sh
+#      lalu pasang timer:       systemctl enable --now monitoring-agent-cpanel-email.timer
+
+# ─── WAJIB per server (tidak ada default yang aman) ─────────────────────────
+MASTER_URL=https://panel.developers.web.id/api/push
+SERVER_TOKEN=CHANGE_ME_TOKEN
+SERVER_ID=1
+
+# ─── Panel / identitas ───────────────────────────────────────────────────────
+# cpanel_email = server cPanel yang khusus layanan email (kirim panel_profile cpanel_email,
+#                di server web dikenali sebagai cpanel_mail).
+PANEL_PROFILE=cpanel_email
+
+# ─── Signing (HMAC) & time-sync ──────────────────────────────────────────────
+# SIGN_REQUESTS=1 : kirim X-Server-Timestamp + X-Server-Signature (HMAC-SHA256).
+#                    Wajib 1 bila server diset agent_push_signature_required=1.
+# SIGN_REQUESTS=0 : kirim biasa, header X-Server-Token saja.
+SIGN_REQUESTS=1
+TIME_SYNC_ENABLED=1         # 1 : sinkronkan jam agent ke server (koreksi offset)
+TIME_SYNC_URL=              # kosongkan utk auto: {MASTER_URL%/*}/time
+TIME_SYNC_INTERVAL=900      # detik antar sinkronisasi jam
+TIME_OFFSET_FILE=/tmp/monitoring-agent-email-time.offset
+
+# ─── Log & state (semua berukuran tetap/terpotong otomatis) ──────────────────
+LOG_FILE=/var/log/monitoring-agent-cpanel-mail.log  # kosongkan ("LOG_FILE=") utk menonaktifkan file log
+LOG_MAX_BYTES=1048576       # 1 MB; file dipotong otomatis bila lebih besar
+
+# ─── Jaringan & API ──────────────────────────────────────────────────────────
+CURL_TIMEOUT=10             # timeout curl (detik)
+CURL_SSL_OPTIONS=           # flag ekstra curl, mis. --insecure (hati-hati) / --cacert /path
+NET_STATE_FILE=/tmp/monitoring-agent-email-net.state   # state delta network (dibaca ulang tiap run)
+LOCK_FILE=/tmp/monitoring-agent-email.lock   # lock anti-bentrok
+LOCK_WAIT_SECONDS=0         # detik menunggu lock; 0 = langsung skip bila dipakai
+
+# ─── Debug & pengecekan mail ─────────────────────────────────────────────────
+DEBUG_PAYLOAD=0             # 1 : log payload lengkap + respon ke stderr/log
+MAIL_QUEUE_SPOOL_FALLBACK=0 # 1 : fallback hitung antrian via find bila command utama tak ada

@@ -1,0 +1,72 @@
+# ServMon Agent v3 configuration
+# Lokasi: /etc/monitoring-agent.conf
+#
+# INI ADALAH TEMPAT SEMUA KONFIGURASI AGENT.
+# Salin file ini ke /etc/monitoring-agent.conf, lalu ubah nilainya.
+# Tidak perlu mengubah agents/monitoring-agent.sh sama sekali — semua kunci sudah punya
+# default di script, file ini hanya menimpa nilai yang Anda isi.
+#
+# Format: KEY=value per baris. Baris # atau kosong diabaikan.
+# Komentar inline juga aman, misal:  PUSH_INTERVAL=10 # detik
+# Prioritas: environment variable (mis. Environment= di systemd unit)
+#            > file ini > default di script.
+#
+# Cara pakai:
+#   1) sudo cp monitoring-agent.conf.example /etc/monitoring-agent.conf
+#   2) ubah MASTER_URL, SERVER_TOKEN, SERVER_ID (WAJIB per server)
+#   3) ubah nilai lain sesuai kebutuhan (semuanya opsional)
+#   4) sudo systemctl restart monitoring-agent
+
+# ─── WAJIB per server (tidak ada default yang aman) ─────────────────────────
+MASTER_URL=https://panel.developers.web.id/api/push
+SERVER_TOKEN=CHANGE_ME_TOKEN
+SERVER_ID=1
+
+# ─── Mode jalan ──────────────────────────────────────────────────────────────
+# PENTING: EnvironmentFile di unit systemd MENIMPA Environment=. Bila memakai
+# systemd service (monitoring-agent.service), DAEMON_MODE di file ini WAJIB 1 —
+# jika 0, agent jalan one-shot lalu keluar sehingga systemd Restart=always
+# menjadi restart-loop. DAEMON_MODE=0 HANYA untuk mode cron/timer one-shot.
+# Jangan aktifkan timer systemd bersamaan dengan service daemon.
+DAEMON_MODE=1
+
+# ─── Interval & retry ────────────────────────────────────────────────────────
+PUSH_INTERVAL=10            # detik antar tick (min 1)
+FAIL_RETRY_INTERVAL=30      # jeda antar tick bila push gagal (min 1)
+FORCE_INTERVAL=60           # paksa kirim baseline penuh walau tidak ada perubahan
+
+# ─── Deadband (hanya kirim field yang berubah melewati ambang) ───────────────
+# DEADBAND_ENABLED=1 : hemat bandwidth/DB; 0 : selalu kirim penuh tiap tick.
+DEADBAND_ENABLED=1
+DEADBAND_CPU=0.5            # selisih cpu_load >= 0.5 -> kirim field ini
+DEADBAND_NETWORK_BPS=20000  # selisih network in/out >= 20000 bps -> kirim
+DEADBAND_QUEUE=1            # selisih antrian mail >= 1 -> kirim
+
+# ─── Panel / identitas ───────────────────────────────────────────────────────
+PANEL_PROFILE=auto          # auto | cpanel | plesk | directadmin | cyberpanel | aapanel | generic
+
+# ─── Signing (HMAC) & time-sync ──────────────────────────────────────────────
+# SIGN_REQUESTS=1 : kirim X-Server-Timestamp + X-Server-Signature (HMAC-SHA256).
+#                    Wajib 1 bila server diset agent_push_signature_required=1.
+# SIGN_REQUESTS=0 : kirim biasa, header X-Server-Token saja.
+SIGN_REQUESTS=1
+TIME_SYNC_ENABLED=1         # 1 : sinkronkan jam agent ke server (koreksi offset)
+TIME_SYNC_URL=              # kosongkan utk auto: {MASTER_URL%/*}/time
+TIME_SYNC_INTERVAL=900      # detik antar sinkronisasi jam
+TIME_OFFSET_FILE=/var/lib/monitoring-agent/monitoring-agent-time.offset
+
+# ─── Log & state (semua berukuran tetap/terpotong otomatis) ──────────────────
+LOG_FILE=/var/log/monitoring-agent.log   # kosongkan ("LOG_FILE=") utk menonaktifkan file log
+LOG_MAX_BYTES=1048576                 # 1 MB; file dipotong otomatis bila lebih besar
+LAST_VALUES_FILE=/var/lib/monitoring-agent/last-values  # state deadband (selalu 7 baris)
+
+# ─── Jaringan & API ──────────────────────────────────────────────────────────
+CURL_TIMEOUT=10             # timeout curl (detik)
+CURL_SSL_OPTIONS=           # flag ekstra curl, mis. --insecure (hati-hati) / --cacert /path
+NET_STATE_FILE=/var/lib/monitoring-agent/monitoring-agent-net.state   # state delta network (dibaca ulang tiap run)
+LOCK_FILE=/var/lib/monitoring-agent/monitoring-agent.lock    # lock anti-bentrok (cron + daemon)
+LOCK_WAIT_SECONDS=0         # detik menunggu lock; 0 = langsung skip bila dipakai
+
+# ─── Debug & pengecekan mail ─────────────────────────────────────────────────
+DEBUG_PAYLOAD=0             # 1 : log payload lengkap + respon ke stderr/log
+MAIL_QUEUE_SPOOL_FALLBACK=0 # 1 : fallback hitung antrian via find bila command utama tak ada

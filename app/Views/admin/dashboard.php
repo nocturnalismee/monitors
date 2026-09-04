@@ -1,0 +1,298 @@
+<?php
+declare(strict_types=1);
+?>
+<main id="main-content" class="container py-4 admin-page admin-shell">
+    <?php if (($alertWorkerHealth['health'] ?? 'unknown') !== 'ok'): ?>
+        <div class="alert alert-warning">
+            Worker <code>alert_check</code> is <?= e((string) ($alertWorkerHealth['health'] ?? 'unknown')) ?>.
+            Last success: <?= e((string) ($alertWorkerHealth['last_success_at'] ?? 'never')) ?>.
+            Ensure cron <code><?= e($alertCronCmd) ?></code> is running.
+        </div>
+    <?php endif; ?>
+    <?php if (($retentionWorkerHealth['health'] ?? 'unknown') === 'error'): ?>
+        <div class="alert alert-warning">
+            Worker <code>retention_cleanup</code> reported an error.
+            Last success: <?= e((string) ($retentionWorkerHealth['last_success_at'] ?? 'never')) ?>.
+            Ensure cron <code><?= e($retentionCronCmd) ?></code> is running.
+        </div>
+    <?php endif; ?>
+    <?php if (($diskRollupWorkerHealth['health'] ?? 'unknown') === 'error'): ?>
+        <div class="alert alert-warning">
+            Worker <code>disk_history_rollup</code> reported an error.
+            Last success: <?= e((string) ($diskRollupWorkerHealth['last_success_at'] ?? 'never')) ?>.
+            Ensure cron <code><?= e($diskRollupCronCmd) ?></code> is running.
+        </div>
+    <?php endif; ?>
+    <?php if (($pingWorkerHealth['health'] ?? 'unknown') !== 'ok'): ?>
+        <div class="alert alert-warning">
+            Worker <code>ping_check</code> is <?= e((string) ($pingWorkerHealth['health'] ?? 'unknown')) ?>.
+            Last success: <?= e((string) ($pingWorkerHealth['last_success_at'] ?? 'never')) ?>.
+            Ensure cron <code><?= e($pingCronCmd) ?></code> is running.
+        </div>
+    <?php endif; ?>
+    <?php if (($ipRepWorkerHealth['health'] ?? 'unknown') === 'error'): ?>
+        <div class="alert alert-warning">
+            Worker <code>ip_reputation_check</code> reported an error.
+            Last success: <?= e((string) ($ipRepWorkerHealth['last_success_at'] ?? 'never')) ?>.
+            Ensure cron <code><?= e($ipRepCronCmd) ?></code> is running.
+        </div>
+    <?php endif; ?>
+    <?php if (($rollupWorkerHealth['health'] ?? 'unknown') === 'error'): ?>
+        <div class="alert alert-warning">
+            Worker <code>rollup_metrics</code> reported an error.
+            Last success: <?= e((string) ($rollupWorkerHealth['last_success_at'] ?? 'never')) ?>.
+            Ensure cron <code><?= e($rollupCronCmd) ?></code> is running.
+        </div>
+    <?php endif; ?>
+    <?php if (($diskCleanupWorkerHealth['health'] ?? 'unknown') === 'error'): ?>
+        <div class="alert alert-warning">
+            Worker <code>disk_retention_cleanup</code> reported an error.
+            Last success: <?= e((string) ($diskCleanupWorkerHealth['last_success_at'] ?? 'never')) ?>.
+            Ensure cron <code><?= e($diskCleanupCronCmd) ?></code> is running.
+        </div>
+    <?php endif; ?>
+    <?php if (($partitionMaintainWorkerHealth['health'] ?? 'unknown') === 'error'): ?>
+        <div class="alert alert-warning">
+            Worker <code>partition_maintain</code> reported an error.
+            Last success: <?= e((string) ($partitionMaintainWorkerHealth['last_success_at'] ?? 'never')) ?>.
+            Ensure cron <code><?= e($partitionMaintainCronCmd) ?></code> is running.
+        </div>
+    <?php endif; ?>
+    <section class="page-header" data-ui-toolbar>
+        <div>
+            <h1 class="page-title">Dashboard Monitoring</h1>
+            <p class="page-subtitle">Summary of server health and recent alerts.</p>
+        </div>
+        <div class="toolbar-actions">
+            <label class="visually-hidden" for="dashboardStatusFilter">Filter server status</label>
+            <select class="form-select form-select-sm w-auto" id="dashboardStatusFilter" data-dashboard-filter>
+                <option value="all">All statuses</option>
+                <option value="online">Online</option>
+                <option value="down">Down</option>
+                <option value="pending">Pending</option>
+            </select>
+            <div class="notification-center" data-notification-center>
+                <button type="button" class="btn btn-outline-warning notification-toggle" data-notification-toggle aria-expanded="false" aria-controls="notificationPanel" title="Open notifications">
+                    <i class="ti ti-bell" aria-hidden="true"></i>
+                    <span class="visually-hidden">Notifications</span>
+                    <span class="notification-count d-none" data-notification-count aria-live="polite">0</span>
+                </button>
+                <div class="notification-panel d-none" id="notificationPanel" data-notification-panel role="dialog" aria-modal="true" aria-labelledby="notificationPanelTitle" tabindex="-1">
+                    <div class="notification-panel-head">
+                        <div>
+                            <strong id="notificationPanelTitle">Notifications</strong>
+                            <span class="small text-secondary" data-notification-summary>Loading…</span>
+                        </div>
+                        <button type="button" class="btn btn-sm btn-link" data-notification-read-all>Mark all as read</button>
+                    </div>
+                    <div class="notification-list" data-notification-list></div>
+                    <div class="notification-panel-foot">
+                        <a href="<?= e(app_url('alerts')) ?>" class="btn btn-sm btn-outline-info w-100">View all alerts</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="row g-3 summary-grid" data-ui-section>
+        <div class="col-12 col-sm-6 col-xl-3">
+            <div class="card card-neon summary-card summary-card-total p-3">
+                <div class="summary-card-head">
+                    <span class="summary-card-label">Total Servers</span>
+                    <i class="ti ti-server-2 summary-card-icon" aria-hidden="true"></i>
+                </div>
+                <div class="summary-card-value" data-admin-total><?= e((string) ($summary['total_servers'] ?? 0)) ?></div>
+                <div class="summary-card-subtitle">Monitored inventory</div>
+            </div>
+        </div>
+        <div class="col-12 col-sm-6 col-xl-3">
+            <div class="card card-neon summary-card summary-card-online p-3">
+                <div class="summary-card-head">
+                    <span class="summary-card-label">Online</span>
+                    <i class="ti ti-arrow-up-circle summary-card-icon" aria-hidden="true"></i>
+                </div>
+                <div class="summary-card-value" data-admin-online><?= e((string) $online) ?></div>
+                <div class="summary-card-subtitle">Responding now</div>
+            </div>
+        </div>
+        <div class="col-12 col-sm-6 col-xl-3">
+            <div class="card card-neon summary-card summary-card-down p-3">
+                <div class="summary-card-head">
+                    <span class="summary-card-label">Down</span>
+                    <i class="ti ti-alert-triangle summary-card-icon" aria-hidden="true"></i>
+                </div>
+                <div class="summary-card-value" data-admin-down><?= e((string) $down) ?></div>
+                <div class="summary-card-subtitle">Needs action</div>
+            </div>
+        </div>
+        <div class="col-12 col-sm-6 col-xl-3">
+            <div class="card card-neon summary-card summary-card-pending p-3">
+                <div class="summary-card-head">
+                    <span class="summary-card-label">Pending</span>
+                    <i class="ti ti-history summary-card-icon" aria-hidden="true"></i>
+                </div>
+                <div class="summary-card-value" data-admin-pending><?= e((string) $pending) ?></div>
+                <div class="summary-card-subtitle">No recent update</div>
+            </div>
+        </div>
+    </section>
+
+    <section class="card card-neon" data-ui-section>
+        <div class="card-header bg-surface-2 border-soft d-flex justify-content-between align-items-center">
+            <h2 class="h6 mb-0">Monitoring Summary</h2>
+            <div class="dashboard-summary-actions">
+                <span class="dashboard-live-status" data-dashboard-stale aria-live="polite">
+                    <i class="ti ti-circle-filled" aria-hidden="true"></i>
+                    <span data-dashboard-live-label>Live</span><span class="dashboard-live-separator">|</span><time>Loading…</time>
+                </span>
+                <a href="<?= e(app_url('servers')) ?>" class="btn btn-sm btn-outline-info">Manage Servers</a>
+            </div>
+        </div>
+        <div class="table-responsive table-shell" data-ui-table>
+            <div class="table-skeleton-overlay" aria-hidden="true"></div>
+            <table class="table servmon-table dashboard-summary-table mb-0">
+                <colgroup>
+                    <col style="width: 9rem;">
+                    <col style="width: 8.5rem;">
+                    <col style="width: 6rem;">
+                    <col style="width: 6rem;">
+                    <col style="width: 19rem;">
+                    <col style="width: 19rem;">
+                    <col class="dashboard-col-panel" style="width: 6rem;">
+                    <col style="width: 7.5rem;">
+                    <col style="width: 10.5rem;">
+                    <col style="width: 5.5rem;">
+                    <col style="width: 7rem;">
+                </colgroup>
+                <thead>
+                <tr>
+                    <th scope="col">Name</th>
+                    <th scope="col">Location</th>
+                    <th scope="col">Uptime</th>
+                    <th scope="col" data-sort-key="cpu" aria-sort="none">
+                        <button type="button" class="sort-btn" data-sort-trigger="cpu">CPU<i class="ti ti-arrows-sort sort-icon" aria-hidden="true"></i></button>
+                        <span class="sparkline-legend" title="Sparkline color: teal normal, amber high, red critical" aria-hidden="true"><i style="--legend-color: var(--sv-accent)"></i><i style="--legend-color: var(--sv-warning)"></i><i style="--legend-color: var(--sv-danger)"></i></span>
+                    </th>
+                    <th scope="col" data-sort-key="ram" aria-sort="none">
+                        <button type="button" class="sort-btn" data-sort-trigger="ram">RAM<i class="ti ti-arrows-sort sort-icon" aria-hidden="true"></i></button>
+                    </th>
+                    <th scope="col" data-sort-key="disk" aria-sort="none">
+                        <button type="button" class="sort-btn" data-sort-trigger="disk">Disk<i class="ti ti-arrows-sort sort-icon" aria-hidden="true"></i></button>
+                    </th>
+                    <th scope="col" class="d-none d-xl-table-cell">Panel</th>
+                    <th scope="col">Services</th>
+                    <th scope="col">NET</th>
+                    <th scope="col" data-sort-key="queue" aria-sort="none">
+                        <button type="button" class="sort-btn" data-sort-trigger="queue">Queue<i class="ti ti-arrows-sort sort-icon" aria-hidden="true"></i></button>
+                    </th>
+                    <th scope="col">Status</th>
+                </tr>
+                </thead>
+                <tbody data-server-table>
+                <?php if (empty($rows)): ?>
+                    <tr data-server-empty><td colspan="11" class="table-empty">
+                        <div class="table-empty-inner">
+                            <span>No server metrics available yet.</span>
+                            <a href="<?= e(app_url('servers')) ?>" class="btn btn-sm btn-outline-info mt-2">Manage Servers</a>
+                        </div>
+                    </td></tr>
+                <?php endif; ?>
+                <?php foreach ($rows as $row): ?>
+                    <?php
+                    $sid = (int) ($row['id'] ?? 0);
+                    $status = serverStatusFromLastSeen($row['last_seen'] ?? null, (int) ($row['active'] ?? 0) === 1, $statusOnlineMinutes);
+                    $ramPct = calculateUsagePercent((int) ($row['ram_used'] ?? 0), (int) ($row['ram_total'] ?? 0));
+                    $hddPct = calculateUsagePercent((int) ($row['hdd_used'] ?? 0), (int) ($row['hdd_total'] ?? 0));
+                    $serviceSummary = $serviceSummaryByServer[$sid] ?? ['up' => 0, 'down' => 0, 'unknown' => 0];
+                    $serviceUp = max(0, (int) ($serviceSummary['up'] ?? 0));
+                    $serviceDown = max(0, (int) ($serviceSummary['down'] ?? 0));
+                    $serviceUnknown = max(0, (int) ($serviceSummary['unknown'] ?? 0));
+                    $totalServices = $serviceUp + $serviceDown + $serviceUnknown;
+                    if ($status === 'down' && $totalServices > 0) {
+                        $serviceUp = 0;
+                        $serviceDown = $totalServices;
+                        $serviceUnknown = 0;
+                    }
+                    ?>
+                    <tr data-server-id="<?= e((string) $sid) ?>" data-detail-url="<?= e(app_url('servers/' . $sid)) ?>" class="dashboard-row-link" tabindex="0" role="link" aria-label="Open details for <?= e((string) $row['name']) ?>">
+                        <td>
+                            <span class="table-cell-truncate" title="<?= e((string) $row['name']) ?>">
+                                <?= e((string) $row['name']) ?>
+                            </span>
+                        </td>
+                        <td><?= e($row['location'] ?? '-') ?></td>
+                        <td class="font-mono"><?= e(formatUptimeCompact((int) ($row['uptime'] ?? 0))) ?></td>
+                        <td>
+                            <?php $cpuLoadVal = (float) ($row['cpu_load'] ?? 0); ?>
+                            <?php $cpuSevClass = $cpuLoadVal > (float) ($cpuCriticalThreshold ?? 4) ? 'text-danger' : ($cpuLoadVal > (float) ($cpuWarnThreshold ?? 2) ? 'text-warning' : ''); ?>
+                            <div class="cpu-cell">
+                                <div class="cpu-value font-mono <?= e($cpuSevClass) ?>" title="<?= e($cpuSevClass !== '' ? 'CPU load melebihi ambang' : 'CPU load normal') ?>"><?= e(number_format($cpuLoadVal, 2)) ?></div>
+                                <svg class="cpu-sparkline" width="60" height="18"><polyline fill="none" stroke="var(--sv-muted)" stroke-width="1.5" points="0,16.0 60,16.0"/></svg>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="resource-cell">
+                                <div class="resource-label">
+                                    <span><?= e(formatBytes((int) ($row['ram_used'] ?? 0))) ?> / <?= e(formatBytes((int) ($row['ram_total'] ?? 0))) ?></span>
+                                    <span class="font-mono"><?= e(number_format((float) $ramPct, 1)) ?>%</span>
+                                </div>
+                                <div class="progress resource-progress" role="progressbar" aria-label="RAM usage" aria-valuemin="0" aria-valuemax="100" aria-valuenow="<?= e((string) round($ramPct, 1)) ?>">
+                                    <div class="progress-bar resource-progress-bar <?= e($ramPct >= 80 ? 'is-critical' : ($ramPct > 60 ? 'is-warning' : 'is-ok')) ?>" style="<?= e('--target-width:' . number_format((float) $ramPct, 1, '.', '') . '%') ?>"></div>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="resource-cell">
+                                <div class="resource-label">
+                                    <span><?= e(formatBytes((int) ($row['hdd_used'] ?? 0))) ?> / <?= e(formatBytes((int) ($row['hdd_total'] ?? 0))) ?></span>
+                                    <span class="font-mono"><?= e(number_format((float) $hddPct, 1)) ?>%</span>
+                                </div>
+                                <div class="progress resource-progress" role="progressbar" aria-label="Disk usage" aria-valuemin="0" aria-valuemax="100" aria-valuenow="<?= e((string) round($hddPct, 1)) ?>">
+                                    <div class="progress-bar resource-progress-bar <?= e($hddPct >= 80 ? 'is-critical' : ($hddPct > 60 ? 'is-warning' : 'is-ok')) ?>" style="<?= e('--target-width:' . number_format((float) $hddPct, 1, '.', '') . '%') ?>"></div>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="d-none d-xl-table-cell"><code><?= e((string) ($row['panel_profile'] ?? 'generic')) ?></code></td>
+                        <td>
+                            <?php if ($serviceDown > 0 || $serviceUnknown > 0): ?>
+                                <?php if ($serviceDown > 0): ?>
+                                    <span class="text-danger fw-semibold me-2">
+                                        <i class="ti ti-arrow-down-circle me-1" aria-label="down"></i><span class="font-mono"><?= e((string) $serviceDown) ?></span>
+                                    </span>
+                                <?php endif; ?>
+                                <?php if ($serviceUnknown > 0): ?>
+                                    <span class="text-warning fw-semibold">
+                                        <i class="ti ti-help-circle me-1" aria-label="unknown"></i><span class="font-mono"><?= e((string) $serviceUnknown) ?></span>
+                                    </span>
+                                <?php endif; ?>
+                            <?php else: ?>
+                                <span class="text-success fw-semibold">
+                                    <i class="ti ti-arrow-up-circle me-1" aria-label="up"></i><span class="font-mono"><?= e((string) $serviceUp) ?></span>
+                                </span>
+                            <?php endif; ?>
+                        </td>
+                        <td>
+                            <div class="net-line"><i class="ti ti-arrow-down" aria-label="In"></i> <span class="font-mono"><?= e(formatNetworkBps((int) ($row['network_in_bps'] ?? 0))) ?></span></div>
+                            <div class="net-line text-secondary"><i class="ti ti-arrow-up" aria-label="Out"></i> <span class="font-mono"><?= e(formatNetworkBps((int) ($row['network_out_bps'] ?? 0))) ?></span></div>
+                        </td>
+                        <?php $mailQueue = max(0, (int) ($row['mail_queue_total'] ?? 0)); ?>
+                        <td class="font-mono"><?= e((string) $mailQueue) ?></td>
+                        <td><span class="badge <?= e('badge-' . $status) ?> text-uppercase"><?= e($status) ?></span></td>
+                    </tr>
+                <?php endforeach; ?>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+</main>
+<script>
+window.SERVMON_API_STATUS = <?= json_encode(app_url('api/status?include_inactive=1'), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;
+window.SERVMON_SERVERS_LIST = <?= json_encode(app_url('servers'), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;
+window.SERVMON_ADMIN_DETAIL_BASE = <?= json_encode(app_url('servers/'), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;
+window.SERVMON_API_ALERTS = <?= json_encode(app_url('api/alerts'), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;
+window.SERVMON_CSRF_TOKEN = <?= json_encode(csrf_token(), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;
+window.SERVMON_CPU_THRESHOLDS = <?= json_encode(['warn' => (float) ($cpuWarnThreshold ?? 2), 'critical' => (float) ($cpuCriticalThreshold ?? 4)]) ?>;
+</script>
+<script src="<?= e(asset_url('assets/js/dashboard.js')) ?>"></script>
+<script src="<?= e(asset_url('assets/js/notification-center.js')) ?>"></script>

@@ -1,0 +1,29 @@
+[Unit]
+Description=Monitoring Server Agent (cPanel Email Host)
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=oneshot
+User=root
+Group=root
+EnvironmentFile=-/etc/monitoring-agent-cpanel-mail.conf
+ExecStart=/usr/local/bin/monitoring-agent-cpanel-mail.sh
+TimeoutStartSec=20
+# ---------------------------------------------------------------------------
+# CATATAN: direktif sandboxing namespace di bawah ini NONAKTIF secara default.
+# Pada sebagian VPS/container (OpenVZ/LXC/Virtualizor, dll) systemd tidak dapat
+# menyiapkan mount namespace sehingga unit gagal start dengan
+# "status=226/NAMESPACE". Bila server Anda mendukung, aktifkan (hapus tanda #)
+# untuk keamanan tambahan:
+# NoNewPrivileges=true
+# PrivateTmp=true
+# ProtectSystem=full
+# ProtectHome=true
+# ReadWritePaths=/tmp /var/tmp
+# ---------------------------------------------------------------------------
+# Hardening opsional lain untuk server sibuk:
+# Nice=10
+UMask=0077
+StandardOutput=journal
+StandardError=journal
