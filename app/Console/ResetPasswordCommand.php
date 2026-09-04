@@ -20,6 +20,10 @@ final class ResetPasswordCommand
             fwrite(STDERR, "Error: config/local.php not found. Run install.php first.\n");
             return 1;
         }
+        if (!is_readable($localPath)) {
+            fwrite(STDERR, "Error: config/local.php exists but is not readable (permission denied). Fix with: chmod 644 {$localPath}\n");
+            return 1;
+        }
 
         try {
             $pdo = \App\Repositories\Database::connection();
