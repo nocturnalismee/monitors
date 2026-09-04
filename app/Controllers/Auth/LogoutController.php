@@ -15,10 +15,7 @@ final class LogoutController
             redirect('dashboard');
         }
 
-        if (!csrf_validate((string) ($request->input('_csrf_token') ?? null))) {
-            flash_set('danger', 'Invalid CSRF token.');
-            redirect('dashboard');
-        }
+        // CSRF single-guard: enforced by csrf middleware (POST only; GET passes through).
 
         audit_log('auth_logout', 'User logout via secure POST', 'auth');
         logout_user();

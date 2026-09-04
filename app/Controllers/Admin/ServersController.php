@@ -17,11 +17,7 @@ final class ServersController
 
         if (is_post()) {
             require_role('admin');
-            if (!csrf_validate($request->input('_csrf_token'))) {
-                flash_set('danger', 'Invalid CSRF token.');
-                redirect('servers');
-            }
-
+            // CSRF single-guard: enforced by csrf middleware.
             $action = (string) ($request->input('action') ?? '');
             $serverIds = [];
             $serverIdsInput = $request->input('server_ids');

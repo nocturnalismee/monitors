@@ -14,11 +14,7 @@ final class PingAddController
         require_role('admin');
 
         if ($request->isPost()) {
-            if (!csrf_validate($request->input('_csrf_token'))) {
-                flash_set('danger', 'Invalid CSRF token.');
-                redirect('ping/add');
-            }
-
+            // CSRF single-guard: enforced by csrf middleware.
             $name = trim((string) ($request->input('name') ?? ''));
             $target = ping_normalize_target((string) ($request->input('target') ?? ''));
             $targetType = ping_normalize_target_type((string) ($request->input('target_type') ?? 'domain'));

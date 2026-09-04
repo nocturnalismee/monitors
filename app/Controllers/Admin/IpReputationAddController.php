@@ -17,11 +17,7 @@ final class IpReputationAddController
         $servers = db_all('SELECT id, name FROM servers ORDER BY name ASC');
 
         if ($request->isPost()) {
-            if (!csrf_validate($request->input('_csrf_token'))) {
-                flash_set('danger', 'Invalid CSRF token.');
-                redirect('ip-reputation/add');
-            }
-
+            // CSRF single-guard: enforced by csrf middleware.
             $ipAddress = trim((string) ($request->input('ip_address') ?? ''));
             $label     = trim((string) ($request->input('label') ?? ''));
             $serverId  = (int) ($request->input('server_id') ?? 0);

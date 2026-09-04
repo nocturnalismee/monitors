@@ -15,11 +15,7 @@ final class SettingsController
 
         if ($request->isPost()) {
             $section = self::inferSectionFromPost($request->body);
-            if (!csrf_validate($request->input('_csrf_token'))) {
-                flash_set('danger', 'Invalid CSRF token.');
-                redirect(self::settingsUrl($section));
-            }
-
+            // CSRF single-guard: enforced by csrf middleware.
             $action = (string) ($request->input('retention_action') ?? $request->input('action') ?? 'save');
             if ($request->input('run_core_retention') !== null) {
                 $action = 'run_retention';

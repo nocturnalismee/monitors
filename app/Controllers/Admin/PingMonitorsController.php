@@ -16,11 +16,7 @@ final class PingMonitorsController
 
         if ($request->isPost()) {
             require_role('admin');
-            if (!csrf_validate($request->input('_csrf_token'))) {
-                flash_set('danger', 'Invalid CSRF token.');
-                redirect('ping');
-            }
-
+            // CSRF single-guard: enforced by csrf middleware.
             $monitorId = (int) ($request->input('monitor_id') ?? 0);
             $action = (string) ($request->input('action') ?? '');
             if ($monitorId <= 0) {

@@ -14,10 +14,7 @@ final class AlertLogsController
         require_login();
 
         if ($request->isPost()) {
-            if (!csrf_validate($request->input('_csrf_token'))) {
-                flash_set('danger', 'Invalid CSRF token.');
-                redirect('alerts');
-            }
+            // CSRF single-guard: enforced by csrf middleware.
             $action = (string) ($request->input('action') ?? '');
             if ($action === 'acknowledge_all') {
                 $user = current_user();

@@ -20,11 +20,7 @@ final class LoginController
         }
 
         if (is_post()) {
-            if (!csrf_validate((string) ($request->input('_csrf_token') ?? null))) {
-                flash_set('danger', 'Invalid CSRF token.');
-                redirect('login');
-            }
-
+            // CSRF single-guard: enforced by csrf middleware.
             $ip = get_client_ip();
             if (is_ip_rate_limited($ip)) {
                 flash_set('danger', 'Too many login attempts. Please try again in 5 minutes.');

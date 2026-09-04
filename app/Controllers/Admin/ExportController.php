@@ -16,10 +16,7 @@ final class ExportController
         if ($request->isPost()) {
             $action = (string) ($request->input('action') ?? '');
             if ($action === 'queue_export') {
-                if (!csrf_validate($request->input('_csrf_token'))) {
-                    flash_set('danger', 'Invalid security token. Please try again.');
-                    redirect('export');
-                }
+                // CSRF single-guard: enforced by csrf middleware.
                 $jobType = (string) ($request->input('type') ?? '');
                 $jobFormat = (string) ($request->input('format') ?? 'csv');
                 if (!in_array($jobType, ['alerts', 'metrics', 'services', 'audits'], true)) {

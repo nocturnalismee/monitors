@@ -16,11 +16,7 @@ final class IpReputationController
 
         if ($request->isPost()) {
             require_role('admin');
-            if (!csrf_validate($request->input('_csrf_token'))) {
-                flash_set('danger', 'Invalid CSRF token.');
-                redirect('ip-reputation');
-            }
-
+            // CSRF single-guard: enforced by csrf middleware.
             $targetId = (int) ($request->input('target_id') ?? 0);
             $action   = (string) ($request->input('action') ?? '');
             if ($targetId <= 0) {
