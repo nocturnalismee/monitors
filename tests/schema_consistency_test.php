@@ -116,6 +116,12 @@ assertTrue(
     'schema.sql must include server_service_states.idx_server_service_states_status'
 );
 
+// Migration parity: 20260905_add_metrics_ingest_lag.sql
+assertTrue(
+    str_contains($schemaSql, 'ingest_lag_ms int default null'),
+    'schema.sql must include metrics.ingest_lag_ms for persisted ingest lag'
+);
+
 // Migration parity: 20260811_realtime_partitioning.sql
 assertTrue(
     str_contains($schemaSql, "partition pmin values less than ('2026-08-01')"),

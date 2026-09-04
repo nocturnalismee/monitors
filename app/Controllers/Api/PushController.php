@@ -37,22 +37,15 @@ final class PushController
         try {
             $server = null;
             $tokenHash = hash('sha256', $token);
-            $hasTokenHash = db_column_exists('servers', 'token_hash');
-            $tokenLookup = $hasTokenHash
-                ? 'token_hash = :token_hash OR token = :token'
-                : 'token = :token';
-            $tokenParams = [':token' => $token];
-            if ($hasTokenHash) {
-                $tokenParams[':token_hash'] = $tokenHash;
-            }
+            $tokenParams = [':token_hash' => $tokenHash];
             if (db_column_exists('servers', 'push_allowed_ips')) {
                 $server = db_one(
-                    'SELECT id, active, push_allowed_ips FROM servers WHERE (' . $tokenLookup . ') LIMIT 1',
+                    'SELECT id, active, push_allowed_ips FROM servers WHERE token_hash = :token_hash LIMIT 1',
                     $tokenParams
                 );
             } else {
                 $server = db_one(
-                    'SELECT id, active, NULL AS push_allowed_ips FROM servers WHERE (' . $tokenLookup . ') LIMIT 1',
+                    'SELECT id, active, NULL AS push_allowed_ips FROM servers WHERE token_hash = :token_hash LIMIT 1',
                     $tokenParams
                 );
             }
@@ -108,6 +101,9 @@ final class PushController
                 json_response(['error' => 'Invalid request signature'], 403);
             }
         }
+
+        $agentTs = isset($requestTs) ? (int) $requestTs : null;
+        $ingestLagMs = \App\Services\Slo\IngestLagService::computeLagMs(time(), $agentTs);
 
         $data = json_decode((string) $raw, true);
         if (!is_array($data)) {
@@ -245,10 +241,11 @@ final class PushController
             'mail_mta' => $mailMta,
             'mail_queue_total' => max(0, $queueTotal),
             'panel_profile' => $panelProfile,
+            'ingest_lag_ms' => $ingestLagMs,
         ];
 
         $metricColumns = ['server_id', 'uptime', 'ram_total', 'ram_used', 'hdd_total', 'hdd_used', 'cpu_load'];
-        foreach (['network_in_bps', 'network_out_bps', 'mail_mta', 'mail_queue_total', 'panel_profile'] as $col) {
+        foreach (['network_in_bps', 'network_out_bps', 'mail_mta', 'mail_queue_total', 'panel_profile', 'ingest_lag_ms'] as $col) {
             if (db_column_exists('metrics', $col)) {
                 $metricColumns[] = $col;
             }
