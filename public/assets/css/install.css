@@ -1,0 +1,494 @@
+/* ServMon installer — standalone page styles. tokens.css must load first. */
+
+body.servmon-install {
+  font-family: var(--sv-font-sans);
+  background: var(--sv-bg);
+  color: var(--sv-text);
+  min-height: 100vh;
+  background-image: radial-gradient(
+    circle at 8% 0%,
+    color-mix(in srgb, var(--sv-accent) 10%, transparent),
+    transparent 32rem
+  );
+}
+
+.install-shell {
+  max-width: 1180px;
+}
+
+/* ---- Topbar ---- */
+
+.install-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.25rem 0 0;
+}
+
+.install-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  min-width: 0;
+}
+
+.install-brand-mark {
+  display: grid;
+  width: 2.5rem;
+  height: 2.5rem;
+  flex: 0 0 auto;
+  place-items: center;
+  border-radius: 0.8rem;
+  background: var(--sv-accent);
+  color: #06201e;
+  font-size: 1.35rem;
+}
+
+:root[data-bs-theme="light"] .install-brand-mark {
+  color: #fff;
+}
+
+.install-brand-name {
+  font-size: 1.02rem;
+  font-weight: 750;
+  letter-spacing: 0.01em;
+  line-height: 1.2;
+}
+
+.install-brand-note {
+  display: block;
+  color: var(--sv-muted);
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.install-topbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+.install-topbar-actions .btn-outline-secondary {
+  color: var(--sv-muted);
+  border-color: var(--sv-border);
+}
+
+.install-topbar-actions .btn-outline-secondary:hover {
+  color: var(--sv-text);
+  border-color: var(--sv-accent);
+  background: color-mix(in srgb, var(--sv-accent) 12%, transparent);
+}
+
+.install-theme-toggle {
+  display: inline-grid;
+  width: 2.4rem;
+  height: 2.4rem;
+  place-items: center;
+  border: 1px solid var(--sv-border);
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--sv-surface) 86%, transparent);
+  color: var(--sv-muted);
+  font-size: 1.05rem;
+  cursor: pointer;
+  transition: border-color 0.2s ease, color 0.2s ease;
+}
+
+.install-theme-toggle:hover {
+  border-color: var(--sv-accent);
+  color: var(--sv-accent);
+}
+
+/* ---- Stepper ---- */
+
+.install-stepper {
+  display: flex;
+  align-items: flex-start;
+  gap: 0;
+  margin: 1.5rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.install-step {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex: 1 1 0;
+  min-width: 0;
+  color: var(--sv-muted);
+}
+
+.install-step-num {
+  display: grid;
+  width: 1.9rem;
+  height: 1.9rem;
+  flex: 0 0 auto;
+  place-items: center;
+  border: 1px solid var(--sv-border);
+  border-radius: 50%;
+  background: var(--sv-surface);
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.install-step-label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.install-step-connector {
+  flex: 1 1 auto;
+  height: 1px;
+  min-width: 1rem;
+  margin: 0 0.75rem;
+  background: var(--sv-border);
+}
+
+.install-step.is-current {
+  color: var(--sv-text);
+}
+
+.install-step.is-current .install-step-num {
+  border-color: var(--sv-accent);
+  background: color-mix(in srgb, var(--sv-accent) 16%, transparent);
+  color: var(--sv-accent);
+}
+
+.install-step.is-done {
+  color: var(--sv-text);
+}
+
+.install-step.is-done .install-step-num {
+  border-color: var(--sv-success);
+  background: color-mix(in srgb, var(--sv-success) 16%, transparent);
+  color: var(--sv-success);
+}
+
+.install-step.is-done .install-step-connector {
+  background: color-mix(in srgb, var(--sv-success) 55%, var(--sv-border));
+}
+
+/* ---- Cards & headings ---- */
+
+.install-card {
+  background: var(--sv-surface);
+  border: 1px solid var(--sv-border);
+  border-radius: var(--sv-radius-lg);
+  box-shadow: var(--sv-shadow-soft);
+}
+
+.install-title {
+  margin-bottom: 0.3rem;
+  letter-spacing: -0.01em;
+}
+
+.install-lead {
+  color: var(--sv-muted);
+  font-size: 0.93rem;
+  line-height: 1.6;
+}
+
+.install-aside-title {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+/* ---- Form groups ---- */
+
+.install-group {
+  margin: 0 0 1.35rem;
+  padding: 1.1rem 1.15rem 1.25rem;
+  border: 1px solid var(--sv-stroke-soft);
+  border-radius: var(--sv-radius-md);
+  background: color-mix(in srgb, var(--sv-surface-2) 38%, transparent);
+}
+
+.install-group legend {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0 0.5rem;
+  margin-left: -0.25rem;
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.install-group-num {
+  display: inline-grid;
+  width: 1.5rem;
+  height: 1.5rem;
+  place-items: center;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--sv-accent) 16%, transparent);
+  color: var(--sv-accent);
+  font-size: 0.75rem;
+  font-weight: 800;
+}
+
+.install-group .form-label {
+  margin-bottom: 0.35rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+.install-group .form-text {
+  color: var(--sv-muted);
+  font-size: 0.78rem;
+}
+
+.install-form .form-control,
+.install-form .form-select {
+  background: var(--sv-surface);
+  border-color: var(--sv-border);
+  color: var(--sv-text);
+}
+
+.install-form .form-control:focus,
+.install-form .form-select:focus {
+  border-color: var(--sv-accent);
+  box-shadow: var(--sv-focus-ring);
+}
+
+.install-submit-row {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  flex-wrap: wrap;
+  margin-top: 0.25rem;
+}
+
+.install-submit {
+  min-width: 10rem;
+  min-height: 2.75rem;
+  border: 0;
+  border-radius: 0.6rem;
+  background: var(--sv-accent);
+  color: #06201e;
+  font-weight: 700;
+  cursor: pointer;
+  transition: filter 0.2s ease;
+}
+
+.install-submit:hover {
+  color: #06201e;
+  filter: brightness(1.08);
+}
+
+:root[data-bs-theme="light"] .install-submit,
+:root[data-bs-theme="light"] .install-submit:hover {
+  color: #fff;
+}
+
+.install-submit-hint {
+  margin: 0;
+  color: var(--sv-muted);
+  font-size: 0.8rem;
+}
+
+.install-help {
+  margin-top: 1.35rem;
+  padding: 0.85rem 1rem;
+  border: 1px solid color-mix(in srgb, var(--sv-accent) 28%, transparent);
+  border-radius: var(--sv-radius-md);
+  background: color-mix(in srgb, var(--sv-accent) 8%, transparent);
+  color: var(--sv-text);
+  font-size: 0.85rem;
+  line-height: 1.6;
+}
+
+.install-help code {
+  font-family: var(--sv-font-mono);
+  font-size: 0.8em;
+}
+
+/* ---- Aside: requirements, status, log ---- */
+
+.install-aside-section + .install-aside-section {
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--sv-stroke-soft);
+}
+
+.install-aside-desc {
+  margin: 0.35rem 0 0;
+  color: var(--sv-muted);
+  font-size: 0.85rem;
+  line-height: 1.55;
+}
+
+.install-check-list,
+.install-status-list {
+  display: grid;
+  gap: 0.45rem;
+  margin: 0.9rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.install-check-row,
+.install-status-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.5rem 0.7rem;
+  border: 1px solid var(--sv-stroke-soft);
+  border-radius: var(--sv-radius-sm);
+  background: color-mix(in srgb, var(--sv-surface-2) 45%, transparent);
+  font-size: 0.83rem;
+}
+
+.install-check-label {
+  font-weight: 600;
+}
+
+.install-check-state {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.install-check-state.is-pass {
+  color: var(--sv-success);
+}
+
+.install-check-state.is-fail {
+  color: var(--sv-danger);
+}
+
+.install-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.15rem 0.6rem;
+  border: 1px solid var(--sv-border);
+  border-radius: 999px;
+  background: var(--sv-surface-2);
+  color: var(--sv-muted);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.install-pill.is-success {
+  border-color: color-mix(in srgb, var(--sv-success) 48%, transparent);
+  background: color-mix(in srgb, var(--sv-success) 14%, transparent);
+  color: var(--sv-success);
+}
+
+.install-pill.is-error {
+  border-color: color-mix(in srgb, var(--sv-danger) 48%, transparent);
+  background: color-mix(in srgb, var(--sv-danger) 14%, transparent);
+  color: var(--sv-danger);
+}
+
+.install-pill.is-skipped {
+  border-color: color-mix(in srgb, var(--sv-warning) 48%, transparent);
+  background: color-mix(in srgb, var(--sv-warning) 14%, transparent);
+  color: var(--sv-warning);
+}
+
+.install-log-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.install-log-list {
+  max-height: 380px;
+  overflow: auto;
+  margin-top: 0.7rem;
+  border: 1px solid var(--sv-border);
+  border-radius: var(--sv-radius-md);
+  background: color-mix(in srgb, var(--sv-surface-2) 45%, transparent);
+}
+
+.install-log-row {
+  padding: 0.55rem 0.75rem;
+  border-bottom: 1px solid color-mix(in srgb, var(--sv-border) 65%, transparent);
+  font-size: 0.85rem;
+  line-height: 1.5;
+}
+
+.install-log-row:last-child {
+  border-bottom: 0;
+}
+
+.install-log-step {
+  color: var(--sv-muted);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.install-aside-links {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-top: 1.5rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--sv-stroke-soft);
+}
+
+.install-footer-note {
+  padding: 1.5rem 0 0.5rem;
+  color: var(--sv-muted);
+  font-size: 0.78rem;
+  text-align: center;
+}
+
+/* ---- Error summary ---- */
+
+.install-errors {
+  border-radius: var(--sv-radius-md);
+}
+
+.install-errors ul {
+  padding-left: 1.2rem;
+}
+
+/* ---- Responsive ---- */
+
+@media (max-width: 991.98px) {
+  .install-step-label {
+    display: none;
+  }
+
+  .install-step {
+    flex: 0 0 auto;
+  }
+
+  .install-step-connector {
+    min-width: 2rem;
+  }
+
+  .install-log-list {
+    max-height: 260px;
+  }
+}
+
+@media (max-width: 575.98px) {
+  .install-topbar {
+    align-items: flex-start;
+  }
+
+  .install-group {
+    padding: 0.95rem 0.9rem 1.1rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .install-submit,
+  .install-theme-toggle {
+    transition: none;
+  }
+}

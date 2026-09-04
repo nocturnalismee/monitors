@@ -655,239 +655,80 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $installed && ($_POST['action'] ?? 
 }
 ?>
 <!doctype html>
-<html lang="id">
+<html lang="en" data-bs-theme="dark">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Installer servmon</title>
+    <title>monitors Installer</title>
+    <link href="assets/css/fonts.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <style>
-        :root {
-            color-scheme: dark;
-            --sv-bg: #141414;
-            --sv-surface: #1b1b1b;
-            --sv-surface-soft: #232323;
-            --sv-border: #333333;
-            --sv-text: #e9e9e9;
-            --sv-muted: #9a9a9a;
-            --sv-accent: #2dd4bf;
-            --sv-success: #22c55e;
-            --sv-warning: #f59e0b;
-            --sv-danger: #ef4444;
-            --sv-shadow: 0 6px 16px rgba(0, 0, 0, 0.28);
-        }
-        @media (prefers-color-scheme: light) {
-            :root {
-                color-scheme: light;
-                --sv-bg: #f8fafc;
-                --sv-surface: #ffffff;
-                --sv-surface-soft: #f1f5f9;
-                --sv-border: #cbd5e1;
-                --sv-text: #0f172a;
-                --sv-muted: #475569;
-                --sv-accent: #0284c7;
-                --sv-success: #15803d;
-                --sv-warning: #b45309;
-                --sv-danger: #b91c1c;
-                --sv-shadow: 0 6px 14px rgba(15, 23, 42, 0.08);
-            }
-        }
-        body {
-            background: var(--sv-bg);
-            color: var(--sv-text);
-            min-height: 100vh;
-            background-image: radial-gradient(circle at 8% 0%, color-mix(in srgb, var(--sv-accent) 10%, transparent), transparent 32rem);
-        }
-        .install-shell {
-            max-width: 1180px;
-        }
-        .install-card {
-            background: var(--sv-surface);
-            border: 1px solid var(--sv-border);
-            border-radius: 1rem;
-            box-shadow: var(--sv-shadow);
-        }
-        .install-brand {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            margin-bottom: 1.35rem;
-        }
-        .install-brand-mark {
-            width: 2.65rem;
-            height: 2.65rem;
-            display: grid;
-            place-items: center;
-            border-radius: 0.85rem;
-            color: #06201e;
-            background: var(--sv-accent);
-            font-weight: 800;
-            letter-spacing: -0.08em;
-            box-shadow: 0 0 0 5px color-mix(in srgb, var(--sv-accent) 12%, transparent);
-        }
-        .install-brand-name {
-            font-size: 1.05rem;
-            font-weight: 750;
-            letter-spacing: 0.02em;
-        }
-        .install-brand-note {
-            display: block;
-            margin-top: 0.1rem;
-            color: var(--sv-muted);
-            font-size: 0.75rem;
-        }
-        .install-title {
-            letter-spacing: 0.01em;
-            margin-bottom: 0.25rem;
-        }
-        .muted {
-            color: var(--sv-muted);
-        }
-        .form-control,
-        .form-select {
-            background: var(--sv-surface);
-            color: var(--sv-text);
-            border-color: var(--sv-border);
-        }
-        .form-control:focus,
-        .form-select:focus {
-            border-color: var(--sv-accent);
-            box-shadow: 0 0 0 0.2rem color-mix(in srgb, var(--sv-accent) 22%, transparent);
-        }
-        .step-chip {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.35rem;
-            padding: 0.35rem 0.6rem;
-            border-radius: 999px;
-            font-size: 0.78rem;
-            border: 1px solid var(--sv-border);
-            background: var(--sv-surface-soft);
-            color: var(--sv-muted);
-            text-transform: uppercase;
-        }
-        .step-chip.is-success {
-            border-color: color-mix(in srgb, var(--sv-success) 48%, transparent);
-            color: var(--sv-success);
-            background: color-mix(in srgb, var(--sv-success) 14%, transparent);
-        }
-        .step-chip.is-error {
-            border-color: color-mix(in srgb, var(--sv-danger) 48%, transparent);
-            color: var(--sv-danger);
-            background: color-mix(in srgb, var(--sv-danger) 14%, transparent);
-        }
-        .step-chip.is-skipped {
-            border-color: color-mix(in srgb, var(--sv-warning) 48%, transparent);
-            color: var(--sv-warning);
-            background: color-mix(in srgb, var(--sv-warning) 14%, transparent);
-        }
-        .log-list {
-            background: var(--sv-surface-soft);
-            border: 1px solid var(--sv-border);
-            border-radius: 0.75rem;
-            max-height: 380px;
-            overflow: auto;
-        }
-        .log-row {
-            padding: 0.55rem 0.75rem;
-            border-bottom: 1px solid color-mix(in srgb, var(--sv-border) 65%, transparent);
-            font-size: 0.9rem;
-        }
-        .log-row:last-child {
-            border-bottom: 0;
-        }
-        .log-step {
-            color: var(--sv-muted);
-            font-size: 0.74rem;
-            letter-spacing: 0.02em;
-            text-transform: uppercase;
-        }
-        .help-block {
-            background: color-mix(in srgb, var(--sv-accent) 10%, transparent);
-            border: 1px solid color-mix(in srgb, var(--sv-accent) 28%, transparent);
-            border-radius: 0.75rem;
-            padding: 0.75rem;
-            color: var(--sv-text);
-            font-size: 0.9rem;
-        }
-        .form-section-title {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            margin-top: 0.35rem;
-            color: var(--sv-text);
-            font-size: 0.78rem;
-            font-weight: 750;
-            letter-spacing: 0.08em;
-            text-transform: uppercase;
-        }
-        .form-section-title::after {
-            content: "";
-            height: 1px;
-            flex: 1;
-            background: color-mix(in srgb, var(--sv-border) 72%, transparent);
-        }
-        .install-submit {
-            min-width: 9.5rem;
-        }
-        .install-rail-intro {
-            color: var(--sv-muted);
-            font-size: 0.88rem;
-            line-height: 1.55;
-        }
-        .install-log-title {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-        .divider {
-            border-top: 1px dashed color-mix(in srgb, var(--sv-border) 72%, transparent);
-            margin: 1rem 0;
-        }
-        .btn-info {
-            background: var(--sv-accent);
-            border-color: var(--sv-accent);
-            color: #ffffff;
-            font-weight: 600;
-        }
-        .btn-info:hover {
-            background: color-mix(in srgb, var(--sv-accent) 88%, #000000 12%);
-            border-color: color-mix(in srgb, var(--sv-accent) 88%, #000000 12%);
-            color: #ffffff;
-        }
-        .btn-outline-light {
-            color: var(--sv-text);
-            border-color: var(--sv-border);
-        }
-        .btn-outline-light:hover {
-            color: var(--sv-text);
-            border-color: var(--sv-border);
-            background: var(--sv-surface-soft);
-        }
-    </style>
+    <link href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.34.1/dist/tabler-icons.min.css" rel="stylesheet">
+    <link href="assets/css/tokens.css" rel="stylesheet">
+    <link href="assets/css/install.css" rel="stylesheet">
+    <script<?= csp_nonce_attr() ?>>
+      (function () {
+        try {
+          var stored = localStorage.getItem('servmon_theme');
+          var systemDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+          var theme = stored === 'dark' || stored === 'light' ? stored : (systemDark ? 'dark' : 'light');
+          document.documentElement.setAttribute('data-bs-theme', theme);
+        } catch (e) {}
+      })();
+    </script>
 </head>
-<body>
+<body class="servmon-install">
+<a href="#install-main" class="visually-hidden-focusable">Skip to main content</a>
 <div class="container install-shell py-4 py-lg-5">
-    <div class="row g-4">
+    <header class="install-topbar">
+        <div class="install-brand">
+            <span class="install-brand-mark" aria-hidden="true"><i class="ti ti-activity-heartbeat"></i></span>
+            <div>
+                <div class="install-brand-name">monitors</div>
+                <span class="install-brand-note">Instance installer</span>
+            </div>
+        </div>
+        <div class="install-topbar-actions">
+            <a class="btn btn-outline-secondary btn-sm" href="/">Public dashboard</a>
+            <a class="btn btn-outline-secondary btn-sm" href="/login">Admin login</a>
+            <button type="button" class="install-theme-toggle" id="install-theme-toggle" aria-label="Toggle color theme" title="Toggle theme">
+                <i class="ti ti-sun" aria-hidden="true"></i>
+            </button>
+        </div>
+    </header>
+
+    <?php
+    $installAttempted = $_SERVER['REQUEST_METHOD'] === 'POST';
+    $stepperSteps = [
+        ['label' => 'Configure', 'state' => ($success || $mode !== 'install') ? 'is-done' : ($installAttempted ? 'is-done' : 'is-current')],
+        ['label' => 'Install', 'state' => $success ? 'is-done' : ($installAttempted && $mode === 'install' ? 'is-current' : '')],
+        ['label' => 'Done', 'state' => $success ? 'is-current' : ''],
+    ];
+    ?>
+    <ol class="install-stepper" aria-label="Installation progress">
+        <?php foreach ($stepperSteps as $index => $step): ?>
+            <li class="install-step <?= h($step['state']) ?>"<?= $step['state'] === 'is-current' ? ' aria-current="step"' : '' ?>>
+                <span class="install-step-num" aria-hidden="true"><?= $step['state'] === 'is-done' ? '✓' : (string) ($index + 1) ?></span>
+                <span class="install-step-label"><?= h($step['label']) ?></span>
+                <?php if ($index < count($stepperSteps) - 1): ?>
+                    <span class="install-step-connector" aria-hidden="true"></span>
+                <?php endif; ?>
+            </li>
+        <?php endforeach; ?>
+    </ol>
+
+    <main id="install-main" class="row g-4 mt-1">
         <div class="col-lg-7">
-            <div class="install-card shadow h-100">
+            <div class="install-card h-100">
                 <div class="p-4 p-md-5">
-                    <div class="install-brand">
-                        <div class="install-brand-mark" aria-hidden="true">sm</div>
-                        <div>
-                            <div class="install-brand-name">servmon</div>
-                            <span class="install-brand-note">Server monitoring setup</span>
-                        </div>
-                    </div>
                     <h1 class="h3 install-title"><?= $mode === 'install' ? 'Set up your instance' : 'Instance already configured' ?></h1>
-                    <p class="muted">
+                    <p class="install-lead">
                         <?= $mode === 'install'
-                            ? 'Set up database, import schema, run migrations automatically, and write local configuration.'
-                            : 'Application is already installed. Web upgrade is disabled; run pending migrations via CLI (`php migrate.php`).' ?>
+                            ? 'Configure the database, import the schema, apply migrations, and write the local configuration.'
+                            : 'This application is already installed. Web upgrade is disabled; run pending migrations via CLI.' ?>
                     </p>
 
                     <?php if (!empty($errors)): ?>
-                        <div class="alert alert-danger">
+                        <div class="alert alert-danger install-errors" role="alert" tabindex="-1" id="install-errors">
                             <ul class="mb-0">
                                 <?php foreach ($errors as $error): ?>
                                     <li><?= h($error) ?></li>
@@ -897,153 +738,201 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $installed && ($_POST['action'] ?? 
                     <?php endif; ?>
 
                     <?php if ($success): ?>
-                        <div class="alert alert-success">
+                        <div class="alert alert-success" role="status">
                             <?= $lastOperation === 'install' ? 'Installation successful.' : 'Migration upgrade successful (CLI).' ?>
-                            <div class="mt-2">If this is a production server, remove or rename `public/install.php` after setup.</div>
+                            <div class="mt-2">If this is a production server, remove or rename <code>public/install.php</code> after setup.</div>
                         </div>
                     <?php endif; ?>
 
                     <?php if ($mode === 'install'): ?>
-                        <form method="post" novalidate>
+                        <form method="post" novalidate class="install-form">
                             <input type="hidden" name="_install_csrf" value="<?= h($csrfToken) ?>">
-                            <div class="row g-3">
-                                <div class="col-12"><div class="form-section-title">Application</div></div>
+                            <fieldset class="install-group">
+                                <legend><span class="install-group-num" aria-hidden="true">1</span>Application</legend>
+                                <div class="row g-3">
                                 <div class="col-md-6">
-                                    <label class="form-label">APP_NAME</label>
-                                    <input class="form-control" name="app_name" value="<?= h($data['app_name']) ?>" required>
+                                    <label class="form-label" for="install-app-name">Application name</label>
+                                    <input class="form-control" id="install-app-name" name="app_name" value="<?= h($data['app_name']) ?>" required autocomplete="off">
                                 </div>
                                 <div class="col-md-6">
-                                    <label class="form-label">APP_ENV</label>
-                                    <select class="form-select" name="app_env">
-                                        <option value="development"<?= $data['app_env'] === 'development' ? ' selected' : '' ?>>development</option>
-                                        <option value="production"<?= $data['app_env'] === 'production' ? ' selected' : '' ?>>production</option>
+                                    <label class="form-label" for="install-app-env">Environment</label>
+                                    <select class="form-select" id="install-app-env" name="app_env">
+                                        <option value="development"<?= $data['app_env'] === 'development' ? ' selected' : '' ?>>Development</option>
+                                        <option value="production"<?= $data['app_env'] === 'production' ? ' selected' : '' ?>>Production</option>
                                     </select>
                                 </div>
                                 <div class="col-md-6">
-                                    <label class="form-label">APP_URL (opsional)</label>
-                                    <input class="form-control" name="app_url" placeholder="https://status.domain.com" value="<?= h($data['app_url']) ?>">
+                                    <label class="form-label" for="install-app-url">Public URL <span class="text-muted fw-normal">(optional)</span></label>
+                                    <input class="form-control" id="install-app-url" name="app_url" inputmode="url" placeholder="https://status.example.com" value="<?= h($data['app_url']) ?>">
                                 </div>
                                 <div class="col-md-6">
-                                    <label class="form-label">APP_TZ</label>
-                                    <input class="form-control" name="app_tz" value="<?= h($data['app_tz']) ?>">
+                                    <label class="form-label" for="install-app-tz">Timezone</label>
+                                    <input class="form-control" id="install-app-tz" name="app_tz" value="<?= h($data['app_tz']) ?>">
                                 </div>
-                                <div class="col-12"><div class="form-section-title">Database</div></div>
+                                </div>
+                            </fieldset>
+                            <fieldset class="install-group">
+                                <legend><span class="install-group-num" aria-hidden="true">2</span>Database</legend>
+                                <div class="row g-3">
                                 <div class="col-md-4">
-                                    <label class="form-label">DB_HOST</label>
-                                    <input class="form-control" name="db_host" value="<?= h($data['db_host']) ?>" required>
+                                    <label class="form-label" for="install-db-host">Host</label>
+                                    <input class="form-control" id="install-db-host" name="db_host" value="<?= h($data['db_host']) ?>" required autocomplete="off">
                                 </div>
                                 <div class="col-md-4">
-                                    <label class="form-label">DB_PORT</label>
-                                    <input class="form-control" name="db_port" value="<?= h($data['db_port']) ?>" required>
+                                    <label class="form-label" for="install-db-port">Port</label>
+                                    <input class="form-control" id="install-db-port" name="db_port" inputmode="numeric" value="<?= h($data['db_port']) ?>" required autocomplete="off">
                                 </div>
                                 <div class="col-md-4">
-                                    <label class="form-label">DB_NAME</label>
-                                    <input class="form-control" name="db_name" value="<?= h($data['db_name']) ?>" required>
+                                    <label class="form-label" for="install-db-name">Database name</label>
+                                    <input class="form-control" id="install-db-name" name="db_name" value="<?= h($data['db_name']) ?>" required autocomplete="off">
                                 </div>
                                 <div class="col-md-6">
-                                    <label class="form-label">DB_USER</label>
-                                    <input class="form-control" name="db_user" value="<?= h($data['db_user']) ?>" required>
+                                    <label class="form-label" for="install-db-user">Username</label>
+                                    <input class="form-control" id="install-db-user" name="db_user" value="<?= h($data['db_user']) ?>" required autocomplete="off">
                                 </div>
                                 <div class="col-md-6">
-                                    <label class="form-label">DB_PASS</label>
-                                    <input class="form-control" type="password" name="db_pass" autocomplete="off">
+                                    <label class="form-label" for="install-db-pass">Password</label>
+                                    <input class="form-control" id="install-db-pass" type="password" name="db_pass" autocomplete="off">
                                 </div>
-                                <div class="col-12"><div class="form-section-title">Cache &amp; Network</div></div>
+                                </div>
+                            </fieldset>
+                            <fieldset class="install-group">
+                                <legend><span class="install-group-num" aria-hidden="true">3</span>Cache &amp; network</legend>
+                                <div class="row g-3">
                                 <div class="col-12">
-                                    <label class="form-label">Redis Cache</label>
-                                    <select class="form-select" name="redis_enabled">
-                                        <option value="0"<?= $data['redis_enabled'] === '0' ? ' selected' : '' ?>>Nonaktif</option>
-                                        <option value="1"<?= $data['redis_enabled'] === '1' ? ' selected' : '' ?>>Aktif</option>
+                                    <label class="form-label" for="install-redis-enabled">Redis cache</label>
+                                    <select class="form-select" id="install-redis-enabled" name="redis_enabled">
+                                        <option value="0"<?= $data['redis_enabled'] === '0' ? ' selected' : '' ?>>Disabled</option>
+                                        <option value="1"<?= $data['redis_enabled'] === '1' ? ' selected' : '' ?>>Enabled</option>
                                     </select>
                                 </div>
                                 <div class="col-md-4">
-                                    <label class="form-label">REDIS_HOST</label>
-                                    <input class="form-control" name="redis_host" value="<?= h($data['redis_host']) ?>">
+                                    <label class="form-label" for="install-redis-host">Redis host</label>
+                                    <input class="form-control" id="install-redis-host" name="redis_host" value="<?= h($data['redis_host']) ?>" autocomplete="off">
                                 </div>
                                 <div class="col-md-4">
-                                    <label class="form-label">REDIS_PORT</label>
-                                    <input class="form-control" name="redis_port" value="<?= h($data['redis_port']) ?>">
+                                    <label class="form-label" for="install-redis-port">Redis port</label>
+                                    <input class="form-control" id="install-redis-port" name="redis_port" inputmode="numeric" value="<?= h($data['redis_port']) ?>" autocomplete="off">
                                 </div>
                                 <div class="col-md-4">
-                                    <label class="form-label">REDIS_DB</label>
-                                    <input class="form-control" name="redis_db" value="<?= h($data['redis_db']) ?>">
+                                    <label class="form-label" for="install-redis-db">Redis database</label>
+                                    <input class="form-control" id="install-redis-db" name="redis_db" inputmode="numeric" value="<?= h($data['redis_db']) ?>" autocomplete="off">
                                 </div>
                                 <div class="col-md-6">
-                                    <label class="form-label">REDIS_PASSWORD</label>
-                                    <input class="form-control" type="password" name="redis_password" autocomplete="off">
+                                    <label class="form-label" for="install-redis-password">Redis password</label>
+                                    <input class="form-control" id="install-redis-password" type="password" name="redis_password" autocomplete="off">
                                 </div>
                                 <div class="col-md-6">
-                                    <label class="form-label">REDIS_PREFIX</label>
-                                    <input class="form-control" name="redis_prefix" value="<?= h($data['redis_prefix']) ?>">
+                                    <label class="form-label" for="install-redis-prefix">Redis key prefix</label>
+                                    <input class="form-control" id="install-redis-prefix" name="redis_prefix" value="<?= h($data['redis_prefix']) ?>" autocomplete="off">
                                 </div>
                                 <div class="col-md-6">
-                                    <label class="form-label">Trust Proxy Headers</label>
-                                    <select class="form-select" name="trust_proxy_headers">
+                                    <label class="form-label" for="install-trust-proxy">Trust proxy headers</label>
+                                    <select class="form-select" id="install-trust-proxy" name="trust_proxy_headers">
                                         <option value="0"<?= $data['trust_proxy_headers'] === '0' ? ' selected' : '' ?>>Off (default)</option>
-                                        <option value="1"<?= $data['trust_proxy_headers'] === '1' ? ' selected' : '' ?>>On (Cloudflare / Reverse Proxy)</option>
+                                        <option value="1"<?= $data['trust_proxy_headers'] === '1' ? ' selected' : '' ?>>On (Cloudflare / reverse proxy)</option>
                                     </select>
                                 </div>
                                 <div class="col-12">
-                                    <label class="form-label">TRUSTED_PROXIES (comma-separated)</label>
-                                    <input class="form-control" name="trusted_proxies" placeholder="127.0.0.1, ::1" value="<?= h($data['trusted_proxies']) ?>">
-                                    <div class="form-text">Daftar IP proxy terpercaya untuk X-Forwarded-Proto/For (default: 127.0.0.1,::1).</div>
+                                    <label class="form-label" for="install-trusted-proxies">Trusted proxies (comma-separated)</label>
+                                    <input class="form-control" id="install-trusted-proxies" name="trusted_proxies" placeholder="127.0.0.1, ::1" value="<?= h($data['trusted_proxies']) ?>" autocomplete="off">
+                                    <div class="form-text" id="install-trusted-proxies-help">Trusted proxy IPs used for forwarded host and protocol headers. Default: 127.0.0.1, ::1.</div>
                                 </div>
-                                <div class="col-12"><div class="form-section-title">Cloudflare Turnstile (opsional)</div></div>
+                                </div>
+                            </fieldset>
+                            <fieldset class="install-group">
+                                <legend><span class="install-group-num" aria-hidden="true">4</span>Bot protection <span class="text-muted fw-normal">(optional)</span></legend>
+                                <div class="row g-3">
                                 <div class="col-md-6">
-                                    <label class="form-label">TURNSTILE_SITE_KEY (opsional)</label>
-                                    <input class="form-control" name="turnstile_site_key" placeholder="0x4AAAA..." value="<?= h($data['turnstile_site_key']) ?>">
+                                    <label class="form-label" for="install-turnstile-site">Turnstile site key</label>
+                                    <input class="form-control" id="install-turnstile-site" name="turnstile_site_key" placeholder="0x4AAAA..." value="<?= h($data['turnstile_site_key']) ?>" autocomplete="off">
                                 </div>
                                 <div class="col-md-6">
-                                    <label class="form-label">TURNSTILE_SECRET_KEY (opsional)</label>
-                                    <input class="form-control" type="password" name="turnstile_secret_key" autocomplete="off" placeholder="0x4BBBB...">
+                                    <label class="form-label" for="install-turnstile-secret">Turnstile secret key</label>
+                                    <input class="form-control" id="install-turnstile-secret" type="password" name="turnstile_secret_key" autocomplete="off" placeholder="0x4BBBB...">
                                 </div>
-                                <div class="col-12"><div class="form-section-title">Administrator</div></div>
+                                </div>
+                            </fieldset>
+                            <fieldset class="install-group">
+                                <legend><span class="install-group-num" aria-hidden="true">5</span>Administrator</legend>
+                                <div class="row g-3">
                                 <div class="col-12">
-                                    <label class="form-label">Password Admin Awal (`admin`)</label>
-                                    <input class="form-control" type="password" name="admin_password" autocomplete="new-password" required>
+                                    <label class="form-label" for="install-admin-password">Initial admin password <span class="text-muted fw-normal">(user: admin, at least 8 characters)</span></label>
+                                    <input class="form-control" id="install-admin-password" type="password" name="admin_password" autocomplete="new-password" required>
                                 </div>
                                 <div class="col-12">
                                     <div class="form-check">
                                         <input class="form-check-input" type="checkbox" id="import_seed" name="import_seed" value="1"<?= $data['import_seed'] === '1' ? ' checked' : '' ?>>
-                                        <label class="form-check-label" for="import_seed">Import sample seed data (demo/testing)</label>
+                                        <label class="form-check-label" for="import_seed">Import sample seed data (for demos and testing)</label>
                                     </div>
                                 </div>
+                                </div>
+                            </fieldset>
+                            <div class="install-submit-row">
+                                <button class="install-submit" type="submit">Install now <span aria-hidden="true">→</span></button>
+                                <p class="install-submit-hint">Writes <code>config/local.php</code> and imports the schema.</p>
                             </div>
-                            <div class="divider"></div>
-                            <button class="btn btn-info install-submit" type="submit">Install Now <span aria-hidden="true">→</span></button>
                         </form>
                     <?php else: ?>
-                        <div class="alert alert-warning">
-                            Install mode is locked because `config/local.php` already exists.
-                            Web upgrade is disabled. Run pending migrations from CLI:
+                        <div class="alert alert-warning" role="status">
+                            Install mode is locked because <code>config/local.php</code> already exists.
+                            Web upgrade is disabled. Run pending migrations from the CLI:
                             <code>php migrate.php</code>
                         </div>
                     <?php endif; ?>
 
-                    <div class="help-block mt-4">
-                        Tip: migrations are scanned automatically from `database/migrations`, and only pending files are executed.
-                        For uptime checks, run workers:
-                        `workers/alert-check.php`, `workers/ping-check.php`, `workers/disk-rollup.php`, and `workers/cleanup.php` via cron.
-                        After setup is complete, remove or rename `public/install.php` for security.
+                    <div class="install-help">
+                        Migrations are scanned automatically from <code>database/migrations</code>; only pending files run.
+                        For uptime checks, schedule <code>alert-check.php</code>, <code>ping-check.php</code>, <code>disk-rollup.php</code>, and <code>cleanup.php</code> via cron.
+                        After setup, remove or rename <code>public/install.php</code>.
                     </div>
                 </div>
             </div>
         </div>
         <div class="col-lg-5">
-            <div class="install-card shadow h-100">
+            <aside class="install-card h-100" aria-label="Installation status">
                 <div class="p-4 p-md-4">
-                    <h2 class="h5 mb-2">Installation progress</h2>
-                    <p class="install-rail-intro mb-4">The installer prepares the database, applies the schema, and writes the local configuration securely.</p>
-                    <div class="d-flex flex-wrap gap-2 mb-4">
+                    <?php if ($mode === 'install'): ?>
+                    <?php
+                    $requirements = [
+                        'PHP 8.2 or newer' => version_compare(PHP_VERSION, '8.2.0', '>='),
+                        'PDO MySQL driver' => extension_loaded('pdo_mysql'),
+                        'Schema file present' => is_file(SERVMON_BASE_DIR . '/database/schema.sql'),
+                        'config/ directory writable' => is_writable(SERVMON_BASE_DIR . '/config'),
+                    ];
+                    ?>
+                    <section class="install-aside-section" aria-labelledby="install-req-title">
+                        <h2 class="install-aside-title" id="install-req-title">Requirements</h2>
+                        <p class="install-aside-desc">Checked in your browser before anything is installed.</p>
+                        <ul class="install-check-list">
+                            <?php foreach ($requirements as $label => $passed): ?>
+                                <li class="install-check-row">
+                                    <span class="install-check-label"><?= h($label) ?></span>
+                                    <?php if ($passed): ?>
+                                        <span class="install-check-state is-pass"><i class="ti ti-check" aria-hidden="true"></i>Ready</span>
+                                    <?php else: ?>
+                                        <span class="install-check-state is-fail"><i class="ti ti-x" aria-hidden="true"></i>Missing</span>
+                                    <?php endif; ?>
+                                </li>
+                            <?php endforeach; ?>
+                        </ul>
+                    </section>
+                    <?php endif; ?>
+
+                    <section class="install-aside-section" aria-labelledby="install-progress-title">
+                        <h2 class="install-aside-title" id="install-progress-title">Installation progress</h2>
+                        <p class="install-aside-desc">The installer prepares the database, applies the schema, and writes the local configuration.</p>
                         <?php
                         $labels = [
-                            'db' => 'DB Connect',
-                            'schema' => 'Schema',
-                            'seed' => 'Seed',
+                            'db' => 'Database connection',
+                            'schema' => 'Schema import',
+                            'seed' => 'Seed data',
                             'migrations' => 'Migrations',
-                            'config' => 'Config File',
+                            'config' => 'Config file',
                         ];
-                        foreach ($labels as $key => $label):
+                        ?>
+                        <ul class="install-status-list">
+                        <?php foreach ($labels as $key => $label):
                             $status = $stepStatus[$key] ?? 'pending';
                             $class = match ($status) {
                                 'success' => 'is-success',
@@ -1052,37 +941,57 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $installed && ($_POST['action'] ?? 
                                 default => '',
                             };
                         ?>
-                            <span class="step-chip <?= h($class) ?>">
-                                <?= h($label) ?>: <?= h($status) ?>
-                            </span>
+                            <li class="install-status-row">
+                                <span><?= h($label) ?></span>
+                                <span class="install-pill <?= h($class) ?>"><?= h($status) ?></span>
+                            </li>
                         <?php endforeach; ?>
-                    </div>
+                        </ul>
+                    </section>
 
-                    <div class="install-log-title mb-2">
-                        <h2 class="h6 muted mb-0">Execution log</h2>
-                        <span class="muted small">Live result</span>
-                    </div>
-                    <div class="log-list">
-                        <?php if (empty($summary)): ?>
-                            <div class="log-row muted">No execution yet. Run install/upgrade to see step results.</div>
-                        <?php else: ?>
-                            <?php foreach ($summary as $row): ?>
-                                <div class="log-row">
-                                    <div class="log-step"><?= h((string) ($row['step'] ?? 'info')) ?></div>
-                                    <div><?= h((string) ($row['message'] ?? '')) ?></div>
-                                </div>
-                            <?php endforeach; ?>
-                        <?php endif; ?>
-                    </div>
-
-                    <div class="mt-4 d-flex gap-2 flex-wrap">
-                        <a class="btn btn-outline-light btn-sm" href="/">Public Dashboard</a>
-                        <a class="btn btn-outline-light btn-sm" href="/login">Admin Login</a>
-                    </div>
+                    <section class="install-aside-section" aria-labelledby="install-log-title">
+                        <div class="install-log-head">
+                            <h2 class="install-aside-title" id="install-log-title">Execution log</h2>
+                            <span class="install-aside-desc">Live result</span>
+                        </div>
+                        <div class="install-log-list" role="log" aria-label="Installation execution log">
+                            <?php if (empty($summary)): ?>
+                                <div class="install-log-row install-aside-desc">No execution yet. Submit the form to see step results.</div>
+                            <?php else: ?>
+                                <?php foreach ($summary as $row): ?>
+                                    <div class="install-log-row">
+                                        <div class="install-log-step"><?= h((string) ($row['step'] ?? 'info')) ?></div>
+                                        <div><?= h((string) ($row['message'] ?? '')) ?></div>
+                                    </div>
+                                <?php endforeach; ?>
+                            <?php endif; ?>
+                        </div>
+                    </section>
                 </div>
-            </div>
+            </aside>
         </div>
-    </div>
+    </main>
+    <p class="install-footer-note">monitors installer &middot; after setup, remove or rename <code>public/install.php</code>.</p>
 </div>
+<script<?= csp_nonce_attr() ?>>
+(function () {
+    var button = document.getElementById('install-theme-toggle');
+    if (!button) return;
+    function syncIcon() {
+        var theme = document.documentElement.getAttribute('data-bs-theme') === 'light' ? 'light' : 'dark';
+        var icon = button.querySelector('i');
+        if (icon) icon.className = theme === 'light' ? 'ti ti-moon' : 'ti ti-sun';
+        button.setAttribute('aria-label', theme === 'light' ? 'Switch to dark theme' : 'Switch to light theme');
+    }
+    button.addEventListener('click', function () {
+        var current = document.documentElement.getAttribute('data-bs-theme') === 'light' ? 'light' : 'dark';
+        var next = current === 'light' ? 'dark' : 'light';
+        document.documentElement.setAttribute('data-bs-theme', next);
+        try { localStorage.setItem('servmon_theme', next); } catch (e) {}
+        syncIcon();
+    });
+    syncIcon();
+})();
+</script>
 </body>
 </html>
