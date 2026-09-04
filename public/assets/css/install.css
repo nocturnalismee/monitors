@@ -40,13 +40,9 @@ body.servmon-install {
   flex: 0 0 auto;
   place-items: center;
   border-radius: 0.8rem;
-  background: var(--sv-accent);
-  color: #06201e;
-  font-size: 1.35rem;
-}
-
-:root[data-bs-theme="light"] .install-brand-mark {
+  background: var(--sv-accent-fill);
   color: #fff;
+  font-size: 1.35rem;
 }
 
 .install-brand-name {
@@ -267,20 +263,15 @@ body.servmon-install {
   min-height: 2.75rem;
   border: 0;
   border-radius: 0.6rem;
-  background: var(--sv-accent);
-  color: #06201e;
+  background: var(--sv-accent-fill);
+  color: #fff;
   font-weight: 700;
   cursor: pointer;
-  transition: filter 0.2s ease;
+  transition: background-color 0.2s ease;
 }
 
 .install-submit:hover {
-  color: #06201e;
-  filter: brightness(1.08);
-}
-
-:root[data-bs-theme="light"] .install-submit,
-:root[data-bs-theme="light"] .install-submit:hover {
+  background: color-mix(in srgb, var(--sv-accent-fill) 85%, #000000 15%);
   color: #fff;
 }
 

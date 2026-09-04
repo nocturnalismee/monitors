@@ -17,7 +17,7 @@ body.servmon-body {
 html,
 * {
   scrollbar-width: thin;
-  scrollbar-color: color-mix(in srgb, var(--sv-accent) 64%, var(--sv-border))
+  scrollbar-color: color-mix(in srgb, var(--sv-muted) 55%, transparent)
     transparent;
 }
 
@@ -33,12 +33,12 @@ html,
 ::-webkit-scrollbar-thumb {
   border: 2px solid transparent;
   border-radius: 999px;
-  background: color-mix(in srgb, var(--sv-accent) 64%, var(--sv-border));
+  background: color-mix(in srgb, var(--sv-muted) 55%, transparent);
   background-clip: padding-box;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--sv-accent);
+  background: color-mix(in srgb, var(--sv-muted) 80%, transparent);
   background-clip: padding-box;
 }
 
@@ -506,22 +506,14 @@ body:has(.admin-page) #servmon-flash-toast-container .toast {
   min-height: 3.1rem;
   border: 0;
   border-radius: 0.7rem;
-  background: linear-gradient(
-    135deg,
-    var(--sv-accent),
-    color-mix(in srgb, var(--sv-accent) 76%, var(--sv-text))
-  );
-  color: #0f172a;
+  background: var(--sv-accent-fill);
+  color: #fff;
   box-shadow: none;
+  transition: background-color 0.2s ease;
 }
 
 .auth-submit-btn:hover {
-  filter: brightness(1.08);
-  color: #0f172a;
-}
-
-[data-bs-theme="light"] .auth-submit-btn,
-[data-bs-theme="light"] .auth-submit-btn:hover {
+  background: color-mix(in srgb, var(--sv-accent-fill) 85%, #000000 15%);
   color: #fff;
 }
 
@@ -2284,9 +2276,6 @@ th.is-sorted .sort-icon {
 .dashboard-live-status i {
   color: var(--sv-success);
   font-size: 0.5rem;
-  filter: drop-shadow(
-    0 0 0.25rem color-mix(in srgb, var(--sv-success) 70%, transparent)
-  );
 }
 
 .dashboard-live-separator {
@@ -3872,7 +3861,7 @@ body.sidebar-collapsed .sidebar-section-title .sidebar-label {
   height: 2rem;
   place-items: center;
   border-radius: 0.5rem;
-  background: var(--sv-success);
+  background: var(--sv-accent-fill);
   color: #fff;
   font-size: 1.15rem;
   line-height: 1;
@@ -3905,7 +3894,7 @@ body.sidebar-collapsed .sidebar-section-title .sidebar-label {
 }
 
 .login-split-kicker.auth-kicker {
-  color: var(--sv-success);
+  color: var(--sv-accent);
   font-size: 0.72rem;
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -4008,23 +3997,17 @@ body.sidebar-collapsed .sidebar-section-title .sidebar-label {
 .login-split-submit.auth-submit-btn {
   min-height: 2.9rem;
   border-radius: 0.35rem;
-  background: var(--sv-success);
+  background: var(--sv-accent-fill);
   color: #fff;
   font-size: 0.92rem;
   box-shadow: none;
   cursor: pointer;
-  transition: filter 0.2s ease, background-color 0.2s ease;
+  transition: background-color 0.2s ease;
 }
 
 .login-split-submit.auth-submit-btn:hover {
-  background: var(--sv-success);
+  background: color-mix(in srgb, var(--sv-accent-fill) 85%, #000000 15%);
   color: #fff;
-  filter: brightness(1.07);
-}
-
-:root[data-bs-theme="dark"] .login-split-submit.auth-submit-btn,
-:root[data-bs-theme="dark"] .login-split-submit.auth-submit-btn:hover {
-  color: #052e16;
 }
 
 .login-split-note.auth-note {
@@ -4062,7 +4045,7 @@ body.sidebar-collapsed .sidebar-section-title .sidebar-label {
   height: clamp(6rem, 9vw, 7.5rem);
   place-items: center;
   margin-bottom: 3.5rem;
-  background: var(--sv-success);
+  background: var(--sv-accent-fill);
   color: #fff;
   font-size: 3rem;
   line-height: 1;
@@ -4094,7 +4077,7 @@ body.sidebar-collapsed .sidebar-section-title .sidebar-label {
   width: 0.45rem;
   height: 0.45rem;
   flex: 0 0 auto;
-  background: var(--sv-success);
+  background: var(--sv-accent);
 }
 
 .login-split-headline {
@@ -4136,10 +4119,10 @@ body.sidebar-collapsed .sidebar-section-title .sidebar-label {
   height: 2rem;
   flex: 0 0 auto;
   place-items: center;
-  border: 1px solid color-mix(in srgb, var(--sv-success) 30%, var(--sv-border));
+  border: 1px solid color-mix(in srgb, var(--sv-accent) 30%, var(--sv-border));
   border-radius: 0.5rem;
-  background: color-mix(in srgb, var(--sv-success) 12%, transparent);
-  color: var(--sv-success);
+  background: color-mix(in srgb, var(--sv-accent) 12%, transparent);
+  color: var(--sv-accent);
   font-size: 1rem;
 }
 
@@ -4147,7 +4130,7 @@ body.sidebar-collapsed .sidebar-section-title .sidebar-label {
   position: absolute;
   top: 38%;
   right: 26%;
-  color: var(--sv-success);
+  color: var(--sv-muted);
   font-size: 1.5rem;
   font-weight: 300;
   line-height: 1;
@@ -4168,15 +4151,15 @@ body.sidebar-collapsed .sidebar-section-title .sidebar-label {
 .login-split-float-users {
   top: 21%;
   right: 0;
-  background: #9a3412;
+  background: var(--sv-accent-fill);
   color: #fff;
 }
 
 .login-split-float-tag {
   right: 4.5rem;
   bottom: 22%;
-  background: var(--sv-success);
-  color: #fff;
+  background: var(--sv-surface-3);
+  color: var(--sv-accent);
 }
 
 @media (max-width: 991.98px) {
