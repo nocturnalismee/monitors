@@ -40,3 +40,8 @@ desktop.ini
 # Dependencies (if any)
 /vendor/
 /node_modules/
+
+# Local-only artifacts (never push to remote)
+changelog.md
+tests/smoke.ps1
+docs/superpowers/
