@@ -3800,18 +3800,37 @@ body.sidebar-collapsed .sidebar-section-title .sidebar-label {
 
 .slo-card .card-header {
   display: flex;
-  align-items: center;
+  align-items: baseline;
   gap: 0.5rem;
-  padding: 0.6rem 0.85rem;
+  padding: 0.6rem 0.85rem 0;
   background: transparent;
   border: 0;
   color: var(--sv-text);
   font-size: 0.84rem;
   font-weight: 500;
   line-height: 1.4;
+}
+
+.slo-hint {
+  font-weight: 400;
+  font-size: 0.75rem;
+  opacity: 0.65;
+}
+
+.slo-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 1.25rem;
+  padding: 0.5rem 0.85rem 0.7rem;
+  font-size: 0.84rem;
+}
+
+.slo-item {
   white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+}
+
+.slo-item small {
+  opacity: 0.65;
 }
 
 /* ==========================================================================
