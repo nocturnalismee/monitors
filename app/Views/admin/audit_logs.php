@@ -18,41 +18,43 @@
         </div>
     </section>
 
-    <form method="get" class="card card-neon p-3" data-ui-section>
-        <div class="row g-2 align-items-end">
-            <div class="col-md-3">
-                <label class="form-label">Action Type</label>
-                <select class="form-select" name="action_type">
-                    <option value="">All</option>
-                    <?php foreach ($actionTypes as $row): ?>
-                        <?php $action = (string) ($row['action_type'] ?? ''); ?>
-                        <option value="<?= e($action) ?>" <?= $filterAction === $action ? 'selected' : '' ?>><?= e($action) ?></option>
-                    <?php endforeach; ?>
-                </select>
-            </div>
-            <div class="col-md-3">
-                <label class="form-label">User</label>
-                <select class="form-select" name="user_id">
-                    <option value="0">All</option>
-                    <?php foreach ($users as $u): ?>
-                        <option value="<?= e((string) $u['id']) ?>" <?= $filterUserId === (int) $u['id'] ? 'selected' : '' ?>><?= e((string) $u['username']) ?></option>
-                    <?php endforeach; ?>
-                </select>
-            </div>
-            <div class="col-md-2">
-                <label class="form-label">From</label>
-                <input class="form-control" type="date" name="date_from" value="<?= e($filterDateFrom) ?>">
-            </div>
-            <div class="col-md-2">
-                <label class="form-label">To</label>
-                <input class="form-control" type="date" name="date_to" value="<?= e($filterDateTo) ?>">
-            </div>
-            <div class="col-md-2 d-flex gap-2">
-                <button class="btn btn-info w-100" type="submit">Filter</button>
-                <a class="btn btn-outline-light" href="<?= e(app_url('audit-logs')) ?>">Reset</a>
-            </div>
+    <section class="card card-neon" data-ui-section>
+        <div class="card-header bg-surface-2 border-soft">
+            <form method="get" class="row g-2 align-items-end">
+                <div class="col-md-3">
+                    <label class="form-label" for="filter-audit-action">Action Type</label>
+                    <select class="form-select" name="action_type" id="filter-audit-action">
+                        <option value="">All</option>
+                        <?php foreach ($actionTypes as $row): ?>
+                            <?php $action = (string) ($row['action_type'] ?? ''); ?>
+                            <option value="<?= e($action) ?>" <?= $filterAction === $action ? 'selected' : '' ?>><?= e($action) ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label" for="filter-audit-user">User</label>
+                    <select class="form-select" name="user_id" id="filter-audit-user">
+                        <option value="0">All</option>
+                        <?php foreach ($users as $u): ?>
+                            <option value="<?= e((string) $u['id']) ?>" <?= $filterUserId === (int) $u['id'] ? 'selected' : '' ?>><?= e((string) $u['username']) ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label" for="filter-audit-from">From</label>
+                    <input class="form-control" type="date" name="date_from" id="filter-audit-from" value="<?= e($filterDateFrom) ?>">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label" for="filter-audit-to">To</label>
+                    <input class="form-control" type="date" name="date_to" id="filter-audit-to" value="<?= e($filterDateTo) ?>">
+                </div>
+                <div class="col-md-2 d-flex gap-2 align-items-end">
+                    <button class="btn btn-info w-100" type="submit">Filter</button>
+                    <a class="btn btn-outline-light" href="<?= e(app_url('audit-logs')) ?>">Reset</a>
+                </div>
+            </form>
         </div>
-    </form>
+    </section>
 
     <section class="card card-neon" data-ui-section>
         <div class="table-responsive table-shell" data-ui-table>

@@ -63,6 +63,47 @@ final class ServerEditController
                 flash_set('danger', 'Server name is required.');
                 redirect('servers/' . $id . '/edit');
             }
+            if (mb_strlen($name) > 100) {
+                flash_set('danger', 'Server name must not exceed 100 characters.');
+                redirect('servers/' . $id . '/edit');
+            }
+            if (mb_strlen($location) > 100) {
+                flash_set('danger', 'Location must not exceed 100 characters.');
+                redirect('servers/' . $id . '/edit');
+            }
+            if (mb_strlen($host) > 100) {
+                flash_set('danger', 'Host must not exceed 100 characters.');
+                redirect('servers/' . $id . '/edit');
+            }
+            if (mb_strlen($type) > 50) {
+                flash_set('danger', 'Type must not exceed 50 characters.');
+                redirect('servers/' . $id . '/edit');
+            }
+            if (mb_strlen($provider) > 100) {
+                flash_set('danger', 'Provider must not exceed 100 characters.');
+                redirect('servers/' . $id . '/edit');
+            }
+            if (mb_strlen($label) > 100) {
+                flash_set('danger', 'Label must not exceed 100 characters.');
+                redirect('servers/' . $id . '/edit');
+            }
+            if ($notifyEmail !== '') {
+                if (mb_strlen($notifyEmail) > 255) {
+                    flash_set('danger', 'Notify email must not exceed 255 characters.');
+                    redirect('servers/' . $id . '/edit');
+                }
+                if (filter_var($notifyEmail, FILTER_VALIDATE_EMAIL) === false) {
+                    flash_set('danger', 'Notify email is not a valid email address.');
+                    redirect('servers/' . $id . '/edit');
+                }
+            }
+            if ($pushAllowedIps !== '') {
+                $ipsError = self::validatePushAllowedIps($pushAllowedIps);
+                if ($ipsError !== null) {
+                    flash_set('danger', $ipsError);
+                    redirect('servers/' . $id . '/edit');
+                }
+            }
 
             db_exec(
                 'UPDATE servers
@@ -115,5 +156,30 @@ final class ServerEditController
             'activeNav' => 'servers',
         ];
         return Response::html(View::render('admin/server_edit', $data, 'admin'));
+    }
+
+    private static function validatePushAllowedIps(string $allowlist): ?string
+    {
+        $entries = preg_split('/[\s,]+/', trim($allowlist)) ?: [];
+        foreach ($entries as $entry) {
+            $candidate = trim((string) $entry);
+            if ($candidate === '') {
+                continue;
+            }
+            if (str_contains($candidate, '/')) {
+                [$network, $prefix] = explode('/', $candidate, 2) + ['', ''];
+                if (filter_var($network, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4) === false) {
+                    return 'Push Allowed IPs: invalid IPv4 network "' . $candidate . '".';
+                }
+                if (!ctype_digit((string) $prefix) || (int) $prefix < 0 || (int) $prefix > 32) {
+                    return 'Push Allowed IPs: invalid CIDR prefix "' . $candidate . '". Use 0-32.';
+                }
+                continue;
+            }
+            if (filter_var($candidate, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4) === false) {
+                return 'Push Allowed IPs: invalid IPv4 "' . $candidate . '". Support exact IPv4 or IPv4 CIDR.';
+            }
+        }
+        return null;
     }
 }

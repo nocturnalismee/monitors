@@ -30,6 +30,30 @@ final class ServerAddController
                 flash_set('danger', 'Server name is required.');
                 redirect('servers/add');
             }
+            if (mb_strlen($name) > 100) {
+                flash_set('danger', 'Server name must not exceed 100 characters.');
+                redirect('servers/add');
+            }
+            if (mb_strlen($location) > 100) {
+                flash_set('danger', 'Location must not exceed 100 characters.');
+                redirect('servers/add');
+            }
+            if (mb_strlen($host) > 100) {
+                flash_set('danger', 'Host must not exceed 100 characters.');
+                redirect('servers/add');
+            }
+            if (mb_strlen($type) > 50) {
+                flash_set('danger', 'Type must not exceed 50 characters.');
+                redirect('servers/add');
+            }
+            if (mb_strlen($provider) > 100) {
+                flash_set('danger', 'Provider must not exceed 100 characters.');
+                redirect('servers/add');
+            }
+            if (mb_strlen($label) > 100) {
+                flash_set('danger', 'Label must not exceed 100 characters.');
+                redirect('servers/add');
+            }
             $token = bin2hex(random_bytes(32));
             $serverColumns = 'name, url, location, host, type, provider, label, agent_mode, token, active, created_at';
             $serverValues = ':name, :url, :location, :host, :type, :provider, :label, :agent_mode, :token, 1, NOW()';
