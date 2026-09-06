@@ -5,6 +5,7 @@ namespace App\Controllers\Api;
 
 use App\Http\Request;
 use App\Http\Response;
+use Throwable;
 
 final class PushController
 {
@@ -283,13 +284,9 @@ final class PushController
                     ':sid' => $serverId,
                 ]);
             } catch (Throwable $e) {
-                // The column existence check above handles older schemas. If the
-                // update itself fails, keep metric and pointer state atomic.
-                if ($ingestPdo->inTransaction()) {
-                    $ingestPdo->rollBack();
-                }
+                // Best-effort pointer: a contended servers row must not
+                // discard the already-persisted metric sample above.
                 error_log('push.php latest metric update failed server_id=' . $serverId . ' error=' . $e->getMessage());
-                json_response(['error' => 'Failed to update latest metric'], 500);
             }
         }
 

@@ -43,6 +43,24 @@ final class AlertDeliveryWorker
                     continue;
                 }
 
+                // Atomic claim: only the worker whose UPDATE wins (rowCount 1)
+                // owns this row. The 10-minute lease prevents a concurrent
+                // worker on another host from double-sending while we call
+                // the provider. Crash-after-send may still duplicate once
+                // the lease expires — providers are at-least-once.
+                $claimed = db_exec_count(
+                    "UPDATE alert_delivery_queue
+                      SET available_at = DATE_ADD(NOW(), INTERVAL 10 MINUTE),
+                          last_error = 'claimed by delivery worker'
+                      WHERE id = :id
+                        AND delivered_at IS NULL
+                        AND attempts < 5",
+                    [':id' => $queueId]
+                );
+                if ($claimed !== 1) {
+                    continue;
+                }
+
                 $ok = $channel === 'email'
                     ? notify_email($title, $message, $settings)
                     : notify_telegram("<b>{$title}</b>\n" . htmlspecialchars($message, ENT_QUOTES, 'UTF-8'), $settings);

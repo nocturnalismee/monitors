@@ -292,7 +292,7 @@ final class SettingsController
         $workerStatuses = $cronSvc->workerStatuses();
         $metricsStorage = (new \App\Services\Settings\StorageStatsService())->collect();
         // Reliability overview (ops tab only — SLO COUNT queries are heavy for other tabs).
-        $queueDepth = ['alert_delivery_queue' => 0, 'export_jobs_queued' => 0, 'export_jobs_running' => 0];
+        $queueDepth = ['alert_delivery_queue' => 0, 'alert_delivery_dead' => 0, 'export_jobs_queued' => 0, 'export_jobs_running' => 0];
         $slo7 = ['availability_pct' => null]; $slo30 = ['availability_pct' => null];
         $ingestLag = ['p95_ms' => null]; $parts = ['lag_days' => null];
         if ($activeSection === 'ops') {

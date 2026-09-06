@@ -3,6 +3,8 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use Throwable;
+
 final class RetentionService
 {
     public static function retention_allowed_targets(): array

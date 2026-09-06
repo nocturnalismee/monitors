@@ -629,9 +629,9 @@
             <section class="card card-neon" data-ui-section>
                 <div class="card-header bg-surface-2 border-soft"><h2 class="h6 mb-0">Queue &amp; SLO 99.9%</h2></div>
                 <div class="card-body">
-                    <?php $qd = $queueDepth ?? ['alert_delivery_queue' => 0, 'export_jobs_queued' => 0, 'export_jobs_running' => 0]; ?>
+                    <?php $qd = $queueDepth ?? ['alert_delivery_queue' => 0, 'alert_delivery_dead' => 0, 'export_jobs_queued' => 0, 'export_jobs_running' => 0]; ?>
                     <div class="queue-badge mb-3" data-queue-depth role="status" title="Queue depths from health checks">
-                        Queue: delivery <?= e((string) ($qd['alert_delivery_queue'] ?? 0)) ?> | export <?= e((string) ($qd['export_jobs_queued'] ?? 0)) ?> | running <?= e((string) ($qd['export_jobs_running'] ?? 0)) ?>
+                        Queue: delivery <?= e((string) ($qd['alert_delivery_queue'] ?? 0)) ?> | dead <?= e((string) ($qd['alert_delivery_dead'] ?? 0)) ?> | export <?= e((string) ($qd['export_jobs_queued'] ?? 0)) ?> | running <?= e((string) ($qd['export_jobs_running'] ?? 0)) ?>
                     </div>
                     <?php
                     $slo7v = $slo7 ?? []; $slo30v = $slo30 ?? []; $lagv = $ingestLag ?? []; $partsv = $parts ?? [];

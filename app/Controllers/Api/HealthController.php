@@ -55,6 +55,7 @@ final class HealthController
         $alertDeliveryWorker = worker_health_status('alert_delivery', CronWorkerService::TTL['alert_delivery']);
         $exportWorker = worker_health_status('export_worker', CronWorkerService::TTL['export_worker']);
         $partitionWorker = worker_health_status('partition_maintain', CronWorkerService::TTL['partition_maintain']);
+        $backupWorker = worker_health_status('db_backup', CronWorkerService::TTL['db_backup']);
         $checks['workers'] = [
             'alert_check' => $alertWorker,
             'ping_check' => $pingWorker,
@@ -66,6 +67,7 @@ final class HealthController
             'alert_delivery' => $alertDeliveryWorker,
             'export_worker' => $exportWorker,
             'partition_maintain' => $partitionWorker,
+            'db_backup' => $backupWorker,
         ];
 
         if (($alertWorker['health'] ?? 'unknown') !== 'ok') {
@@ -92,9 +94,15 @@ final class HealthController
         if (($alertDeliveryWorker['health'] ?? 'unknown') === 'error') {
             $status = 'degraded';
         }
+        if (($backupWorker['health'] ?? 'unknown') === 'error') {
+            $status = 'degraded';
+        }
 
         $queue = (new \App\Services\Reliability\QueueDepthService())->collect();
         $checks['queue_depth'] = $queue;
+        if (($queue['alert_delivery_dead'] ?? 0) > 0) {
+            $status = 'degraded';
+        }
         $threshold=max(1,(int)setting_get('alert_down_minutes','5'));
         $slo30=(new \App\Services\Slo\SloService())->availability(30,$threshold);
         $slo7=(new \App\Services\Slo\SloService())->availability(7,$threshold);
