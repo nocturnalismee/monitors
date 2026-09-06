@@ -28,11 +28,18 @@ final class LiveStreamController
 
         $serverId = max(0, (int) ($request->query('server_id') ?? 0));
         $sinceId = max(0, (int) ($request->query('since_id') ?? 0));
+        // Native EventSource reconnects send Last-Event-ID when the server
+        // emits `id:` fields (see below). Honor it so a reconnect resumes
+        // from the last delivered row instead of skipping or replaying.
+        $lastEventId = max(0, (int) ($_SERVER['HTTP_LAST_EVENT_ID'] ?? 0));
+        $sinceId = max($sinceId, $lastEventId);
         $limit = max(1, min(500, (int) ($request->query('limit') ?? 50)));
 
         set_time_limit(0);
         ignore_user_abort(true);
 
+        // Snap to MAX only on a genuinely fresh connect (no cursor at all).
+        // A reconnect carrying a cursor must replay from it, not skip ahead.
         if ($sinceId === 0) {
             $latest = db_one('SELECT COALESCE(MAX(id), 0) AS latest_id FROM metrics');
             $sinceId = (int) ($latest['latest_id'] ?? 0);
@@ -87,6 +94,7 @@ final class LiveStreamController
                             }
                             $sinceId = max($sinceId, $rid);
                             $emitted = true;
+                            echo "id: {$rid}\n";
                             echo "event: metric\n";
                             echo 'data: ' . json_encode($row, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) . "\n\n";
                         }
@@ -107,6 +115,7 @@ final class LiveStreamController
                 foreach ($rows as $row) {
                     $sinceId = max($sinceId, (int) $row['id']);
                     $emitted = true;
+                    echo 'id: ' . (int) $row['id'] . "\n";
                     echo "event: metric\n";
                     echo 'data: ' . json_encode($row, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) . "\n\n";
                 }

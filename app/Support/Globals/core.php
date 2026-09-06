@@ -169,7 +169,22 @@ function serverStatusFromLastSeen(?string $lastSeen, bool $isActive = true, ?int
     if (!$isActive) {
         return 'pending';
     }
-    $thresholdMinutes = $onlineThresholdMinutes !== null ? max(1, $onlineThresholdMinutes) : STATUS_ONLINE_MINUTES;
+    if ($onlineThresholdMinutes !== null) {
+        $thresholdMinutes = max(1, $onlineThresholdMinutes);
+    } else {
+        // Single source of truth: alert_down_minutes setting; the
+        // STATUS_ONLINE_MINUTES constant is only a fallback (e.g. DB down).
+        $thresholdMinutes = STATUS_ONLINE_MINUTES;
+        try {
+            $fromSettings = (int) setting_get('alert_down_minutes');
+            if ($fromSettings >= 1) {
+                $thresholdMinutes = $fromSettings;
+            }
+        } catch (Throwable) {
+            // fall through to constant
+        }
+        $thresholdMinutes = max(1, $thresholdMinutes);
+    }
 
     if ($lastSeen === null || trim($lastSeen) === '') {
         return 'pending';

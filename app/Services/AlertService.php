@@ -238,6 +238,7 @@ final class AlertService
         $diskPct = calculateUsagePercent((int) ($metric['hdd_used'] ?? 0), (int) ($metric['hdd_total'] ?? 0));
 
         if ($mailQueue >= $mailCritical) {
+            self::resolveConditionAlerts($serverId, ['mail_queue_high']);
             self::create(
                 $serverId,
                 'mail_queue_critical',
@@ -261,6 +262,7 @@ final class AlertService
         }
 
         if ($cpuLoad >= $cpuCritical) {
+            self::resolveConditionAlerts($serverId, ['cpu_high']);
             self::create(
                 $serverId,
                 'cpu_critical',
@@ -284,6 +286,7 @@ final class AlertService
         }
 
         if ($ramPct >= $ramCritical) {
+            self::resolveConditionAlerts($serverId, ['ram_high']);
             self::create(
                 $serverId,
                 'ram_critical',
@@ -307,6 +310,7 @@ final class AlertService
         }
 
         if ($diskPct >= $diskCritical) {
+            self::resolveConditionAlerts($serverId, ['disk_high']);
             self::create(
                 $serverId,
                 'disk_critical',
@@ -446,6 +450,9 @@ final class AlertService
                      ON DUPLICATE KEY UPDATE is_down = 0',
                     [':id' => $serverId]
                 );
+                // Maintenance suppresses alerting: resolve any pre-maintenance
+                // server_down so it does not stay active forever.
+                self::resolveConditionAlerts($serverId, ['server_down']);
                 continue;
             }
             $isDown = isset($states[$serverId]) && $states[$serverId] === 1;
@@ -724,6 +731,11 @@ final class AlertService
         ];
 
         if ($newStatus === 'listed') {
+            // Linked-server maintenance suppresses new listing alerts, but a
+            // later clean transition still resolves (see below).
+            if ($serverId !== null && is_server_in_maintenance($serverId)) {
+                return;
+            }
             $blacklists = !empty($listedOn) ? ' Blacklists: ' . implode(', ', $listedOn) . '.' : '';
             self::create(
                 $serverId,
@@ -737,6 +749,7 @@ final class AlertService
         }
 
         if ($prevStatus === 'listed' && $newStatus === 'clean') {
+            self::resolveConditionAlerts($serverId, ['ip_rep_listed_' . $targetId]);
             self::create(
                 $serverId,
                 'ip_rep_clean_' . $targetId,
