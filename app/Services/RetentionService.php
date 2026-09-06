@@ -172,6 +172,113 @@ final class RetentionService
         return $totalDeleted;
     }
 
+    public static function purge_ip_reputation_checks(string $cutoff, int $batchSize = 5000): int
+    {
+        if (!self::retention_table_exists('ip_reputation_checks')) {
+            return 0;
+        }
+        $batchSize = max(1, min(5000, $batchSize));
+        $totalDeleted = 0;
+
+        do {
+            $stmt = db()->prepare(
+                "DELETE FROM `ip_reputation_checks`
+                  WHERE `checked_at` < :cutoff
+                  LIMIT {$batchSize}"
+            );
+            $stmt->bindValue(':cutoff', $cutoff, \PDO::PARAM_STR);
+            $stmt->execute();
+            $rowsDeleted = $stmt->rowCount();
+            $totalDeleted += $rowsDeleted;
+
+            if ($rowsDeleted > 0) {
+                usleep(50000);
+            }
+        } while ($rowsDeleted >= $batchSize);
+
+        return $totalDeleted;
+    }
+
+    public static function purge_dead_delivery_queue(string $cutoff, int $batchSize = 5000): int
+    {
+        if (!self::retention_table_exists('alert_delivery_queue')) {
+            return 0;
+        }
+        $batchSize = max(1, min(5000, $batchSize));
+        $totalDeleted = 0;
+
+        do {
+            $stmt = db()->prepare(
+                "DELETE FROM `alert_delivery_queue`
+                  WHERE `delivered_at` IS NULL AND `attempts` >= 5 AND `available_at` < :cutoff
+                  LIMIT {$batchSize}"
+            );
+            $stmt->bindValue(':cutoff', $cutoff, \PDO::PARAM_STR);
+            $stmt->execute();
+            $rowsDeleted = $stmt->rowCount();
+            $totalDeleted += $rowsDeleted;
+
+            if ($rowsDeleted > 0) {
+                usleep(50000);
+            }
+        } while ($rowsDeleted >= $batchSize);
+
+        return $totalDeleted;
+    }
+
+    /**
+     * @return array{rows:int,files:int}
+     */
+    public static function purge_export_jobs(string $cutoff, int $batchSize = 500): array
+    {
+        $purged = ['rows' => 0, 'files' => 0];
+        if (!self::retention_table_exists('export_jobs')) {
+            return $purged;
+        }
+        $batchSize = max(1, min(500, $batchSize));
+        $exportsDir = defined('SERVMON_BASE_DIR') ? realpath(SERVMON_BASE_DIR . '/storage/exports') : false;
+
+        do {
+            $rows = db_all(
+                "SELECT `id`, `file_path` FROM `export_jobs`
+                  WHERE `status` IN ('completed', 'failed', 'expired') AND `created_at` < :cutoff
+                  ORDER BY `id` ASC
+                  LIMIT {$batchSize}",
+                [':cutoff' => $cutoff]
+            );
+            if ($rows === []) {
+                break;
+            }
+            $ids = [];
+            foreach ($rows as $row) {
+                $ids[] = (int) ($row['id'] ?? 0);
+                $path = (string) ($row['file_path'] ?? '');
+                if ($path !== '' && $exportsDir !== false) {
+                    $real = realpath($path);
+                    if (is_string($real) && str_starts_with($real, $exportsDir . DIRECTORY_SEPARATOR) && is_file($real)) {
+                        if (@unlink($real)) {
+                            $purged['files']++;
+                        }
+                    }
+                }
+            }
+            $ids = array_values(array_filter($ids, static fn(int $id): bool => $id > 0));
+            if ($ids === []) {
+                break;
+            }
+            $placeholders = implode(',', array_fill(0, count($ids), '?'));
+            $stmt = db()->prepare("DELETE FROM `export_jobs` WHERE `id` IN ({$placeholders})");
+            foreach ($ids as $i => $id) {
+                $stmt->bindValue($i + 1, $id, \PDO::PARAM_INT);
+            }
+            $stmt->execute();
+            $purged['rows'] += $stmt->rowCount();
+            usleep(50000);
+        } while (count($rows) >= $batchSize);
+
+        return $purged;
+    }
+
     public static function run_core_retention_cleanup(int $days): array
     {
         $days = max(1, $days);
@@ -216,6 +323,12 @@ final class RetentionService
         $attempts = self::retention_batch_delete('login_attempts', 'attempted_at', $cutoff);
         $audits = self::retention_batch_delete('admin_audit_logs', 'created_at', $cutoff);
 
+        // Unbounded auxiliary tables: export jobs (terminal states + files),
+        // per-check IP reputation history, and exhausted delivery-queue rows.
+        $exportPurge = self::purge_export_jobs($cutoff);
+        $ipRepChecks = self::purge_ip_reputation_checks($cutoff);
+        $deadQueue = self::purge_dead_delivery_queue($cutoff);
+
         $result = [
             'cutoff_at' => $cutoff,
             'metrics_cutoff_at' => $metricsCutoff,
@@ -227,6 +340,10 @@ final class RetentionService
             'alerts_deleted' => $alerts,
             'attempts_deleted' => $attempts,
             'audits_deleted' => $audits,
+            'export_jobs_deleted' => $exportPurge['rows'],
+            'export_files_deleted' => $exportPurge['files'],
+            'ip_rep_checks_deleted' => $ipRepChecks,
+            'dead_queue_deleted' => $deadQueue,
         ];
 
         servmon_log_info('Core retention cleanup complete', 'retention', $result);

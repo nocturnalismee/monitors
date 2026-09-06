@@ -644,9 +644,13 @@
                     $sloBuckets = e((string) ($slo30v['online_buckets'] ?? 'n/a')) . ' / ' . e((string) ($slo30v['total_buckets'] ?? 'n/a'));
                     $sloP95 = isset($lagv['p95_ms']) && is_numeric($lagv['p95_ms']) ? e(number_format((float) $lagv['p95_ms']) . 'ms') : 'n/a';
                     $sloPart = isset($partsv['lag_days']) && is_numeric($partsv['lag_days']) ? e((string) $partsv['lag_days'] . 'd') : 'n/a';
+                    $sloTrunc = !empty($slo30v['window_truncated']) && isset($slo30v['effective_days']) && is_numeric($slo30v['effective_days'])
+                        ? ' <small>(dihitung ' . e((string) $slo30v['effective_days']) . ' dari 30 hari)</small>' : '';
+                    $sloMeasured = isset($slo30v['servers_measured']) && is_numeric($slo30v['servers_measured'])
+                        ? ' <small>(' . e((string) $slo30v['servers_measured']) . ' server)</small>' : '';
                     ?>
                     <div class="slo-grid px-0" data-slo-card>
-                        <span class="slo-item" title="Persen bucket 5-menit yang ada datanya dalam 7 / 30 hari terakhir">Availability <strong>7d: <?= e($slo7Pct) ?>%</strong> · <strong>30d: <?= e($slo30Pct) ?>%</strong> <small>(target 99.9%)</small></span>
+                        <span class="slo-item" title="Rata-rata availability per server aktif (1 server sehat tidak menutupi yang down). Target 99.9%">Availability <strong>7d: <?= e($slo7Pct) ?>%</strong> · <strong>30d: <?= e($slo30Pct) ?>%</strong> <small>(target 99.9%)</small><?= $sloTrunc ?><?= $sloMeasured ?></span>
                         <span class="slo-item" title="Total bucket tanpa data × 5 menit (<?= $sloBuckets ?> online / ekspektasi)">Downtime <strong><?= e($sloDown) ?></strong> <small>(<?= $sloBuckets ?> bucket)</small></span>
                         <span class="slo-item" title="Sisa toleransi downtime 30 hari (budget total <?= e($sloBudgetMin) ?>). Negatif = budget jebol">Budget rem <strong><?= e($sloBudgetRem) ?>%</strong></span>
                         <span class="slo-item" title="Kecepatan menghabiskan budget: 1.0× = pas habis dalam 30 hari">Burn <strong><?= e($sloBurn) ?>×</strong></span>

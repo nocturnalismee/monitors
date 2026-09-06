@@ -141,14 +141,20 @@ final class SettingsController
                     + (int) ($result['ping_checks_deleted'] ?? 0)
                     + (int) ($result['alerts_deleted'] ?? 0)
                     + (int) ($result['attempts_deleted'] ?? 0)
-                    + (int) ($result['audits_deleted'] ?? 0);
+                    + (int) ($result['audits_deleted'] ?? 0)
+                    + (int) ($result['export_jobs_deleted'] ?? 0)
+                    + (int) ($result['ip_rep_checks_deleted'] ?? 0)
+                    + (int) ($result['dead_queue_deleted'] ?? 0);
                 $retentionSummary = 'Core retention completed (cutoff: ' . ($result['cutoff_at'] ?? '-') . '). Service Metrics: ' . ($result['service_metrics_deleted'] ?? 0)
                     . ', Metrics: ' . $result['metrics_deleted']
                     . ', Metrics History: ' . ($result['metrics_history_deleted'] ?? 0)
                     . ', Ping Checks: ' . ($result['ping_checks_deleted'] ?? 0)
                     . ', Alerts: ' . $result['alerts_deleted']
                     . ', Login Attempts: ' . $result['attempts_deleted']
-                    . ', Audit Logs: ' . ($result['audits_deleted'] ?? 0);
+                    . ', Audit Logs: ' . ($result['audits_deleted'] ?? 0)
+                    . ', Export Jobs: ' . ($result['export_jobs_deleted'] ?? 0)
+                    . ', IP-Rep Checks: ' . ($result['ip_rep_checks_deleted'] ?? 0)
+                    . ', Dead Queue: ' . ($result['dead_queue_deleted'] ?? 0);
                 if ($deletedTotal === 0) {
                     $retentionSummary .= ' No records older than the selected retention period were found.';
                 }
