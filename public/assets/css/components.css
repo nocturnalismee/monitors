@@ -3404,18 +3404,13 @@ th.is-sorted .sort-icon {
   user-select: none;
   transition:
     border-color 0.16s ease,
-    background-color 0.16s ease,
-    transform 0.16s cubic-bezier(0.22, 1, 0.36, 1);
+    background-color 0.16s ease;
 }
 
+/* Hover keeps a border-only affordance — no background wash or lift, so the
+   card never flashes a pale fade (most visible on the gray-toned Total card). */
 .summary-card.is-clickable:hover {
-  transform: translateY(-1px);
   border-color: color-mix(in srgb, var(--summary-tone) 26%, var(--sv-stroke-soft));
-  background: color-mix(in srgb, var(--summary-tone) 4.5%, var(--sv-card-bg));
-}
-
-.summary-card.is-clickable:active {
-  transform: translateY(0);
 }
 
 .summary-card.is-clickable:focus-visible {
