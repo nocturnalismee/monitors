@@ -459,8 +459,10 @@ body:has(.auth-login-page) #servmon-flash-toast-container .toast {
   margin: 0 !important;
 }
 
-/* Dashboard has a notification button in the same top-right area. */
+/* Dashboard has a notification button in the same top-right area. Keep the toast
+   clear of the viewport top edge (Bootstrap top-0 + p-3 alone sits too tight). */
 body:has(.admin-page) #servmon-flash-toast-container {
+  top: 1.5rem !important;
   right: 4.75rem !important;
   width: min(22rem, calc(100vw - 6rem));
   padding: 0 !important;
