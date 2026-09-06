@@ -186,7 +186,6 @@ foreach ($unhealthyWorkers as $uw) {
                     <i class="ti ti-circle-filled" aria-hidden="true"></i>
                     <span data-dashboard-live-label>Live</span><span class="dashboard-live-separator">|</span><time>Loading…</time>
                 </span>
-                <a href="<?= e(app_url('servers')) ?>" class="btn btn-sm btn-outline-info">Manage Servers</a>
             </div>
         </div>
         <div class="table-responsive table-shell" data-ui-table>
