@@ -1488,6 +1488,23 @@ th.is-sorted .sort-icon {
   background: var(--sv-surface-2);
 }
 
+/* Subtle theme-aware grid backdrop (same family as the login page grid,
+   slightly lighter to stay calm behind dense content). */
+.bg-pattern-grid {
+  background-color: var(--sv-bg);
+  background-image:
+    linear-gradient(
+      color-mix(in srgb, var(--sv-border) 16%, transparent) 1px,
+      transparent 1px
+    ),
+    linear-gradient(
+      90deg,
+      color-mix(in srgb, var(--sv-border) 16%, transparent) 1px,
+      transparent 1px
+    );
+  background-size: 50px 50px, 50px 50px;
+}
+
 .border-soft {
   border: 1px solid var(--sv-stroke-soft);
 }
