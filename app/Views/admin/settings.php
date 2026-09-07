@@ -627,6 +627,38 @@
         </div>
         <div class="col-12">
             <section class="card card-neon" data-ui-section>
+                <div class="card-header bg-surface-2 border-soft"><h2 class="h6 mb-0">Security Posture</h2></div>
+                <div class="card-body">
+                    <?php
+                    $instPresent = $installerPresent ?? installer_still_present();
+                    $instLocked = $installerLocked ?? installer_locked();
+                    $localPerms = $localConfigPerms ?? local_config_perms();
+                    ?>
+                    <ul class="list-unstyled mb-0 small">
+                        <li class="mb-2">
+                            <?php if (!$instPresent): ?>
+                                <i class="ti ti-shield-check text-success me-1" aria-hidden="true"></i>Installer removed (<code>public/install.php</code> not present).
+                            <?php elseif ($instLocked): ?>
+                                <i class="ti ti-shield-check text-success me-1" aria-hidden="true"></i>Installer disabled via <code>config/.installer-locked</code>.
+                            <?php else: ?>
+                                <i class="ti ti-shield-lock text-danger me-1" aria-hidden="true"></i><strong>Installer still accessible</strong> — remove <code>public/install.php</code> or create <code>config/.installer-locked</code>.
+                            <?php endif; ?>
+                        </li>
+                        <li class="mb-0">
+                            <?php if (!($localPerms['exists'] ?? false)): ?>
+                                <i class="ti ti-alert-triangle text-warning me-1" aria-hidden="true"></i><code>config/local.php</code> missing (using env/defaults).
+                            <?php elseif (!empty($localPerms['world_readable'])): ?>
+                                <i class="ti ti-alert-triangle text-warning me-1" aria-hidden="true"></i><code>config/local.php</code> is world-readable (<code><?= e((string) ($localPerms['octal'] ?? '?')) ?></code>). Tighten to <code>0640</code> if web and CLI share a group.
+                            <?php else: ?>
+                                <i class="ti ti-shield-check text-success me-1" aria-hidden="true"></i><code>config/local.php</code> permissions <code><?= e((string) ($localPerms['octal'] ?? '?')) ?></code> (not world-readable).
+                            <?php endif; ?>
+                        </li>
+                    </ul>
+                </div>
+            </section>
+        </div>
+        <div class="col-12">
+            <section class="card card-neon" data-ui-section>
                 <div class="card-header bg-surface-2 border-soft"><h2 class="h6 mb-0">Queue &amp; SLO 99.9%</h2></div>
                 <div class="card-body">
                     <?php $qd = $queueDepth ?? ['alert_delivery_queue' => 0, 'alert_delivery_dead' => 0, 'export_jobs_queued' => 0, 'export_jobs_running' => 0]; ?>

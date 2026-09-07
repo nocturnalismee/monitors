@@ -15,6 +15,8 @@ final class AlertLogsController
 
         if ($request->isPost()) {
             // CSRF single-guard: enforced by csrf middleware.
+            // Alert mutations are admin-only; viewers are read-only.
+            require_role('admin');
             $action = (string) ($request->input('action') ?? '');
             if ($action === 'acknowledge_all') {
                 $user = current_user();

@@ -3,6 +3,14 @@ declare(strict_types=1);
 
 require __DIR__ . '/../config/bootstrap.php';
 
+// Kill-switch: create config/.installer-locked to disable this installer entirely,
+// even if config/local.php is deleted. Prefer removing this file after setup.
+if (is_file(SERVMON_BASE_DIR . '/config/.installer-locked')) {
+    http_response_code(403);
+    echo 'Installer disabled (config/.installer-locked is present). Delete the lock file to re-enable.';
+    exit;
+}
+
 function h(string $value): string
 {
     return htmlspecialchars($value, ENT_QUOTES, 'UTF-8');
@@ -270,6 +278,8 @@ function defaultAppSettings(): array
         'alert_service_flap_suppress_minutes' => '5',
         'cache_ttl_status_list' => '15',
         'cache_ttl_status_single' => '15',
+        'cache_ttl_history_5m' => '5',
+        'cache_ttl_history_30m' => '10',
         'cache_ttl_history_24h' => '30',
         'cache_ttl_history_7d' => '120',
         'cache_ttl_history_30d' => '180',
@@ -299,6 +309,7 @@ function defaultAppSettings(): array
         'retention_days' => '30',
         'disk_retention_days' => '90',
         'agent_push_signature_required' => '1',
+        'service_metrics_store_all' => '0',
         'push_api_rate_per_minute' => '600',
         'realtime_push_interval_s' => '10',
         'deadband_enabled' => '1',
@@ -405,10 +416,10 @@ function writeLocalConfig(array $config): void
     if ($bytes === false) {
         throw new RuntimeException('Failed to write config/local.php (check permissions).');
     }
-    // Use 0644 for compatibility with AaPanel/BT where web (www) and CLI (root) run as different users.
-    // 0600 would cause "Permission denied" when CLI tries to read file created by web and vice versa.
-    if (!@chmod($localPath, 0644)) {
-        @chmod($localPath, 0640);
+    // Prefer 0640 (owner + group only); fall back to 0644 for panels like
+    // AaPanel/BT where web (www) and CLI (root) run as different users.
+    if (!@chmod($localPath, 0640)) {
+        @chmod($localPath, 0644);
     }
     if (!is_readable($localPath)) {
         throw new RuntimeException('config/local.php written but not readable (permission denied). Run: chmod 644 ' . $localPath);
@@ -519,7 +530,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !$installed) {
         $errors[] = 'Database name, database user, and admin password are required.';
     }
     if (strlen($data['admin_password']) < 8) {
-        $errors[] = 'Admin password minimal 8 karakter.';
+        $errors[] = 'Admin password must be at least 8 characters.';
     }
     if (($data['turnstile_site_key'] === '') !== ($data['turnstile_secret_key'] === '')) {
         $errors[] = 'Turnstile keys: provide both Site Key and Secret Key (or leave both empty).';

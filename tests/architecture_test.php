@@ -55,4 +55,15 @@ $bootstrap = source_text('config/bootstrap.php');
 assert_architecture(str_contains($bootstrap, 'SERVMON_CSP_NONCE'), 'csp nonce must be generated per request');
 assert_architecture(str_contains($bootstrap, "'nonce-"), 'csp header must carry the nonce for inline scripts');
 
+$alertLogsAdmin = source_text('app/Controllers/Admin/AlertLogsController.php');
+assert_architecture(str_contains($alertLogsAdmin, "require_role('admin')"), 'alert log mutations must be admin-only (viewers read-only)');
+$alertsApi = source_text('app/Controllers/Api/AlertsApiController.php');
+assert_architecture(str_contains($alertsApi, "require_role('admin')"), 'alert api mutations must be admin-only (viewers read-only)');
+$alertLogsView = source_text('app/Views/admin/alert_logs.php');
+assert_architecture(str_contains($alertLogsView, "has_role('admin')"), 'alert log mutation buttons must be hidden from viewers');
+
+$securityGlobals = source_text('app/Support/Globals/security.php');
+assert_architecture(str_contains($securityGlobals, 'function installer_still_present'), 'installer presence helper must exist');
+assert_architecture(str_contains($securityGlobals, 'function local_config_perms'), 'local config permission helper must exist');
+
 echo "architecture_test passed\n";

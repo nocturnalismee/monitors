@@ -8,7 +8,7 @@
     <section class="card card-neon mb-3" data-ui-section>
         <div class="card-header bg-surface-2 border-soft">Large Export Queue</div>
         <div class="card-body">
-            <p class="text-muted mb-3">Use the queue for large datasets to prevent browser request timeouts. The worker processes up to two jobs per cycle.</p>
+            <p class="text-muted mb-3">Use the queue for large datasets to prevent browser request timeouts. The worker processes up to two jobs per cycle. Queued exports always contain the full dataset (list-page filters are not applied).</p>
             <form method="post" class="row g-2 align-items-end">
                 <?= csrf_input() ?>
                 <input type="hidden" name="action" value="queue_export">

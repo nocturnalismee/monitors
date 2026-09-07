@@ -9,6 +9,10 @@
   const summary = root.querySelector('[data-notification-summary]');
   const readAll = root.querySelector('[data-notification-read-all]');
 
+  // Viewers are read-only: hide mutation controls (server also enforces admin-only).
+  const canMutateAlerts = window.SERVMON_USER_ROLE === 'admin';
+  if (!canMutateAlerts && readAll) readAll.style.display = 'none';
+
   function escapeHtml(value) {
     const node = document.createElement('div');
     node.textContent = value ?? '';
@@ -34,6 +38,9 @@
 
     list.innerHTML = alerts.map((alert) => {
       const severity = severityClass(alert.severity);
+      const ackButton = canMutateAlerts
+        ? `<button type="button" class="btn btn-sm btn-icon notification-dismiss" data-notification-ack="${Number(alert.id)}" title="Mark as read" aria-label="Mark ${escapeHtml(alert.title || 'alert')} as read"><i class="ti ti-check" aria-hidden="true"></i></button>`
+        : '';
       return `<article class="notification-item notification-item-${severity}">
         <div class="notification-item-icon"><i class="ti ti-${severity === 'danger' ? 'alert-triangle' : severity === 'warning' ? 'alert-circle' : 'info-circle'}" aria-hidden="true"></i></div>
         <div class="notification-item-body">
@@ -41,7 +48,7 @@
           <p>${escapeHtml(alert.message || '')}</p>
           <small>${escapeHtml(alert.created_at || '')}</small>
         </div>
-        <button type="button" class="btn btn-sm btn-icon notification-dismiss" data-notification-ack="${Number(alert.id)}" title="Mark as read" aria-label="Mark ${escapeHtml(alert.title || 'alert')} as read"><i class="ti ti-check" aria-hidden="true"></i></button>
+        ${ackButton}
       </article>`;
     }).join('');
   }
