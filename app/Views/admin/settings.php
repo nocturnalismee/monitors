@@ -63,12 +63,12 @@
                     <div class="row g-4">
                         <div class="col-12 col-lg-6">
                             <label class="form-label" for="setting-branding-logo">Brand Logo URL</label>
-                            <input class="form-control" name="branding_logo_url" id="setting-branding-logo" placeholder="/assets/img/logo.svg atau https://..." value="<?= e($settings['branding_logo_url'] ?? '') ?>">
+                            <input class="form-control" name="branding_logo_url" id="setting-branding-logo" placeholder="/assets/img/logo.svg or https://..." value="<?= e($settings['branding_logo_url'] ?? '') ?>">
                             <div class="field-help">Used for the logo in the sidebar and public pages.</div>
                         </div>
                         <div class="col-12 col-lg-6">
                             <label class="form-label" for="setting-branding-favicon">Favicon URL</label>
-                            <input class="form-control" name="branding_favicon_url" id="setting-branding-favicon" placeholder="/assets/img/favicon.ico atau https://..." value="<?= e($settings['branding_favicon_url'] ?? '') ?>">
+                            <input class="form-control" name="branding_favicon_url" id="setting-branding-favicon" placeholder="/assets/img/favicon.ico or https://..." value="<?= e($settings['branding_favicon_url'] ?? '') ?>">
                             <div class="field-help">Supports .ico, .png, .svg, or absolute URLs.</div>
                         </div>
                     </div>
@@ -339,7 +339,7 @@
                     <span class="settings-group-icon"><i class="ti ti-lock" aria-hidden="true"></i></span>
                     <div>
                         <h2 class="settings-group-title">Session Security</h2>
-                        <p class="settings-group-desc">Idle timeout berlaku jika tidak ada aktivitas. Absolute timeout berlaku sejak login.</p>
+                        <p class="settings-group-desc">Idle timeout applies after inactivity. Absolute timeout applies from login.</p>
                     </div>
                 </div>
                 <div class="settings-group-body">
@@ -620,7 +620,7 @@
                 <div class="card-header bg-surface-2 border-soft"><h2 class="h6 mb-0">Operations Runbook</h2></div>
                 <div class="card-body">
                     <h2 class="h6 mb-2">Recommended Cron</h2>
-                    <p class="text-muted small">Export worker hanya memproses job yang sudah dibuat melalui menu Large Export Queue; worker tidak membuat export otomatis.</p>
+                    <p class="text-muted small">The export worker only processes jobs created via the Large Export Queue menu; it does not create exports automatically.</p>
                     <pre class="code-block rounded p-3 mb-0"><code><?= e(implode(PHP_EOL, $recommendedCron)) ?></code></pre>
                 </div>
             </section>
@@ -645,19 +645,19 @@
                     $sloP95 = isset($lagv['p95_ms']) && is_numeric($lagv['p95_ms']) ? e(number_format((float) $lagv['p95_ms']) . 'ms') : 'n/a';
                     $sloPart = isset($partsv['lag_days']) && is_numeric($partsv['lag_days']) ? e((string) $partsv['lag_days'] . 'd') : 'n/a';
                     $sloTrunc = !empty($slo30v['window_truncated']) && isset($slo30v['effective_days']) && is_numeric($slo30v['effective_days'])
-                        ? ' <small>(dihitung ' . e((string) $slo30v['effective_days']) . ' dari 30 hari)</small>' : '';
+                        ? ' <small>(calculated ' . e((string) $slo30v['effective_days']) . ' of 30 days)</small>' : '';
                     $sloMeasured = isset($slo30v['servers_measured']) && is_numeric($slo30v['servers_measured'])
-                        ? ' <small>(' . e((string) $slo30v['servers_measured']) . ' server)</small>' : '';
+                        ? ' <small>(' . e((string) $slo30v['servers_measured']) . ' server(s))</small>' : '';
                     ?>
                     <div class="slo-grid px-0" data-slo-card>
-                        <span class="slo-item" title="Rata-rata availability per server aktif (1 server sehat tidak menutupi yang down). Target 99.9%">Availability <strong>7d: <?= e($slo7Pct) ?>%</strong> · <strong>30d: <?= e($slo30Pct) ?>%</strong> <small>(target 99.9%)</small><?= $sloTrunc ?><?= $sloMeasured ?></span>
-                        <span class="slo-item" title="Total bucket tanpa data × 5 menit (<?= $sloBuckets ?> online / ekspektasi)">Downtime <strong><?= e($sloDown) ?></strong> <small>(<?= $sloBuckets ?> bucket)</small></span>
-                        <span class="slo-item" title="Sisa toleransi downtime 30 hari (budget total <?= e($sloBudgetMin) ?>). Negatif = budget jebol">Budget rem <strong><?= e($sloBudgetRem) ?>%</strong></span>
-                        <span class="slo-item" title="Kecepatan menghabiskan budget: 1.0× = pas habis dalam 30 hari">Burn <strong><?= e($sloBurn) ?>×</strong></span>
-                        <span class="slo-item" title="Persentil-95 jeda agen→server (butuh agen signed; n/a = belum ada data)">Ingest p95 <strong><?= $sloP95 ?></strong></span>
-                        <span class="slo-item" title="Selisih partisi metrics terbaru vs hari ini">Partition lag <strong><?= $sloPart ?></strong></span>
+                        <span class="slo-item" title="Average availability across active servers (one healthy server does not mask servers that are down). Target 99.9%">Availability <strong>7d: <?= e($slo7Pct) ?>%</strong> · <strong>30d: <?= e($slo30Pct) ?>%</strong> <small>(target 99.9%)</small><?= $sloTrunc ?><?= $sloMeasured ?></span>
+                        <span class="slo-item" title="Total data-less buckets × 5 minutes (<?= $sloBuckets ?> online / expected)">Downtime <strong><?= e($sloDown) ?></strong> <small>(<?= $sloBuckets ?> bucket)</small></span>
+                        <span class="slo-item" title="Remaining 30-day downtime allowance (total budget <?= e($sloBudgetMin) ?>). Negative = budget exceeded">Budget rem <strong><?= e($sloBudgetRem) ?>%</strong></span>
+                        <span class="slo-item" title="Budget burn rate: 1.0× = exactly exhausted within 30 days">Burn <strong><?= e($sloBurn) ?>×</strong></span>
+                        <span class="slo-item" title="95th percentile of agent-to-server delay (requires a signed agent; n/a = no data yet)">Ingest p95 <strong><?= $sloP95 ?></strong></span>
+                        <span class="slo-item" title="Newest metrics partition vs today">Partition lag <strong><?= $sloPart ?></strong></span>
                     </div>
-                    <p class="text-muted small mb-0 mt-2">Detail per-worker ada di <code>/api/health</code> (<code>checks.queue_depth</code>, <code>checks.slo</code>, <code>checks.ingest_lag</code>, <code>checks.partitions</code>).</p>
+                    <p class="text-muted small mb-0 mt-2">Per-worker details are available at <code>/api/health</code> (<code>checks.queue_depth</code>, <code>checks.slo</code>, <code>checks.ingest_lag</code>, <code>checks.partitions</code>).</p>
                 </div>
             </section>
         </div>
@@ -666,30 +666,30 @@
                 <div class="card-header bg-surface-2 border-soft"><h2 class="h6 mb-0">Metrics Table Storage</h2></div>
                 <div class="card-body">
                     <?php if (!empty($metricsStorage['error'])): ?>
-                        <p class="text-muted small mb-0">Tidak dapat membaca statistik tabel: <?= e($metricsStorage['error']) ?></p>
+                        <p class="text-muted small mb-0">Unable to read table statistics: <?= e($metricsStorage['error']) ?></p>
                     <?php else: ?>
                         <div class="row g-3">
                             <div class="col-6 col-md-3">
                                 <div class="stat-box">
-                                    <div class="stat-label text-muted small">Ukuran Tabel (data + indeks)</div>
+                                    <div class="stat-label text-muted small">Table Size (data + index)</div>
                                     <div class="stat-value font-mono"><?= e(formatBytes($metricsStorage['table_size'])) ?></div>
                                 </div>
                             </div>
                             <div class="col-6 col-md-3">
                                 <div class="stat-box">
-                                    <div class="stat-label text-muted small">Data / Indeks</div>
+                                    <div class="stat-label text-muted small">Data / Index</div>
                                     <div class="stat-value font-mono"><?= e(formatBytes($metricsStorage['data_size'])) ?> / <?= e(formatBytes($metricsStorage['index_size'])) ?></div>
                                 </div>
                             </div>
                             <div class="col-6 col-md-3">
                                 <div class="stat-box">
-                                    <div class="stat-label text-muted small">Jumlah Partisi Harian</div>
+                                    <div class="stat-label text-muted small">Daily Partition Count</div>
                                     <div class="stat-value font-mono"><?= e((string) $metricsStorage['partition_count']) ?></div>
                                 </div>
                             </div>
                             <div class="col-6 col-md-3">
                                 <div class="stat-box">
-                                    <div class="stat-label text-muted small">Partisi Terkecil / Terbesar</div>
+                                    <div class="stat-label text-muted small">Oldest / Newest Partition</div>
                                     <div class="stat-value font-mono">
                                         <?= $metricsStorage['oldest_partition'] !== null ? e($metricsStorage['oldest_partition']) : '-' ?>
                                         / <?= $metricsStorage['newest_partition'] !== null ? e($metricsStorage['newest_partition']) : '-' ?>
@@ -699,9 +699,9 @@
                         </div>
                         <p class="text-muted small mb-0 mt-3">
                             <?php if ($metricsStorage['is_partitioned']): ?>
-                                Tabel <code>metrics</code> berpartisi. Data raw lebih tua dari <code>metrics_raw_hours</code> (24 jam) akan dihapus otomatis oleh cron <code>cleanup.php</code> (<code>0 3 * * *</code>), dan partisi harian dijaga maju oleh <code>partition-maintain.php</code> (<code>30 0 * * *</code>).
+                                The <code>metrics</code> table is partitioned. Raw data older than <code>metrics_raw_hours</code> (24 hours) is removed automatically by the <code>cleanup.php</code> cron (<code>0 3 * * *</code>), and daily partitions are kept current by <code>partition-maintain.php</code> (<code>30 0 * * *</code>).
                             <?php else: ?>
-                                Tabel <code>metrics</code> belum berpartisi — jalankan <code>php migrate.php</code> lalu pastikan <code>partition-maintain.php</code> aktif.
+                                The <code>metrics</code> table is not partitioned yet — run <code>php migrate.php</code>, then make sure <code>partition-maintain.php</code> is active.
                             <?php endif; ?>
                         </p>
                     <?php endif; ?>
