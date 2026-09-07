@@ -63,7 +63,7 @@ foreach ($unhealthyWorkers as $uw) {
     }
 }
 ?>
-<main id="main-content" class="container py-4 admin-page admin-shell bg-pattern-grid">
+<main id="main-content" class="container py-4 admin-page admin-shell">
     <?php if (!empty($unhealthyWorkers)): ?>
         <div class="worker-health-banner <?= $hasWorkerError ? 'has-error' : '' ?>">
             <div class="worker-health-header">

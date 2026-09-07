@@ -1505,6 +1505,27 @@ th.is-sorted .sort-icon {
   background-size: 50px 50px, 50px 50px;
 }
 
+/* Full-viewport grid for every admin page (dashboard, servers, settings,
+   …). Applied on <body> so the pattern spans the whole layout instead of
+   just the centered .container. Public status page is excluded — its layout
+   has no .admin-page marker. Fixed attachment keeps the grid static while
+   the content scrolls. */
+body:has(.admin-page) {
+  background-color: var(--sv-bg);
+  background-image:
+    linear-gradient(
+      color-mix(in srgb, var(--sv-border) 16%, transparent) 1px,
+      transparent 1px
+    ),
+    linear-gradient(
+      90deg,
+      color-mix(in srgb, var(--sv-border) 16%, transparent) 1px,
+      transparent 1px
+    );
+  background-size: 50px 50px, 50px 50px;
+  background-attachment: fixed;
+}
+
 .border-soft {
   border: 1px solid var(--sv-stroke-soft);
 }
