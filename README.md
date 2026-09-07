@@ -17,9 +17,11 @@ Real-time telemetry, S.M.A.R.T. disk health, ICMP/HTTP ping monitors, IP reputat
 ## 📸 Preview
 
 <p align="center">
-  <img src="docs/screenshots/dashboard.png" alt="Dashboard Monitoring — worker health, KPI fleet cards & live telemetry table" width="100%" />
+  <img src="docs/screenshots/dashboard.png" alt="Dashboard Monitoring" width="100%" />
   <br />
-  <em>Dashboard Monitoring — 8 workers notice, flat KPI cards (Total / Online / Down / Pending) & Monitoring Summary live table</em>
+  <img src="docs/screenshots/monitors-dashboard.png" alt="Dashboard Monitoring 2" width="100%" />
+  <br />
+  <em>Dashboard Monitoring </em>
 </p>
 
 ---
