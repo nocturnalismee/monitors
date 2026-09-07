@@ -85,6 +85,13 @@ final class Database
         return $stmt->execute($params);
     }
 
+    public static function execCount(string $sql, array $params = []): int
+    {
+        $stmt = self::connection()->prepare($sql);
+        $stmt->execute($params);
+        return $stmt->rowCount();
+    }
+
     public static function columnExists(string $table, string $column): bool
     {
         $key = $table . '.' . $column;

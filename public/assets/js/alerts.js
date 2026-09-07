@@ -181,10 +181,14 @@ function startAlertStream() {
       return;
     }
     const delay = ALERT_STREAM_RETRY_MS[retries++];
-    setTimeout(() => {
-      if (document.visibilityState !== "visible") return;
+    const retryAlertStream = () => {
+      if (document.visibilityState !== "visible") {
+        setTimeout(retryAlertStream, delay);
+        return;
+      }
       startAlertStream();
-    }, delay);
+    };
+    setTimeout(retryAlertStream, delay);
   });
 }
 

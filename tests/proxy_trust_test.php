@@ -22,4 +22,14 @@ assert_eq($svc::parseTrustedProxies('127.0.0.1, ::1 ,'), ['127.0.0.1','::1'], 'p
 // isTrusted
 assert_eq($svc::isTrustedProxy('10.0.0.1',['10.0.0.1']), true, 'isTrusted true');
 assert_eq($svc::isTrustedProxy('1.1.1.1',['10.0.0.1']), false, 'isTrusted false');
+// CIDR ranges (Cloudflare edge must match its published ranges)
+assert_eq($svc::isTrustedProxy('104.16.5.6',['104.16.0.0/13']), true, 'cidr /13 true');
+assert_eq($svc::isTrustedProxy('103.21.245.10',['103.21.244.0/22']), true, 'cidr /22 true');
+assert_eq($svc::isTrustedProxy('1.1.1.1',['104.16.0.0/13']), false, 'cidr outside false');
+assert_eq($svc::isTrustedProxy('2001:db8::1',['2001:db8::/32']), true, 'cidr v6 true');
+assert_eq($svc::isTrustedProxy('::1',['127.0.0.1/32']), false, 'cidr family mismatch false');
+assert_eq($svc::isTrustedProxy('10.0.0.1',['10.0.0.0/33']), false, 'cidr bad prefix false');
+// trusted-via-CIDR remote may use forwarded proto
+$server = ['REMOTE_ADDR'=>'104.16.5.6','HTTP_X_FORWARDED_PROTO'=>'https'];
+assert_eq($svc::isHttps($server,'104.16.0.0/13'), true, 'https via cidr true');
 echo "ALL PASS proxy_trust\n";

@@ -119,7 +119,7 @@ function renderAdminRowCells(s) {
     <td class="font-mono">${SM.escapeHtml(formatUptime(s.uptime))}</td>
     <td>
       <div class="cpu-cell">
-        <div class="cpu-value font-mono ${SM.cpuSeverityClass(s.cpu_load)}" title="${SM.cpuLoadSeverity(s.cpu_load) !== 'ok' ? 'CPU load melebihi ambang' : 'CPU load normal'}">${SM.escapeHtml(Number(s.cpu_load || 0).toFixed(2))}</div>
+        <div class="cpu-value font-mono ${SM.cpuSeverityClass(s.cpu_load)}" title="${SM.cpuLoadSeverity(s.cpu_load) !== 'ok' ? 'CPU load exceeds threshold' : 'CPU load normal'}">${SM.escapeHtml(Number(s.cpu_load || 0).toFixed(2))}</div>
         ${SM.getCpuSparkline(s)}
       </div>
     </td>
@@ -471,6 +471,7 @@ function applyLiveMetric(metric) {
 const LIVE_STREAM_RETRY_MS = [2000, 4000, 8000, 16000, 30000, 60000];
 
 let stopPoller = null;
+let liveStreamSinceId = 0;
 
 function ensurePollerActive() {
   if (!stopPoller) {
@@ -495,12 +496,18 @@ function startLiveStream() {
     window.location.origin,
   );
   url.searchParams.set("limit", "50");
+  if (liveStreamSinceId > 0) {
+    url.searchParams.set("since_id", String(liveStreamSinceId));
+  }
   const es = new EventSource(url.toString());
   liveStream = es;
   let retries = 0;
   es.addEventListener("metric", (ev) => {
     try {
-      applyLiveMetric(JSON.parse(ev.data));
+      const payload = JSON.parse(ev.data);
+      const pid = Number(payload.id) || Number(ev.lastEventId) || 0;
+      if (pid > liveStreamSinceId) liveStreamSinceId = pid;
+      applyLiveMetric(payload);
       const tableBody = document.querySelector("[data-server-table]");
       if (!tableBody) return;
       applyDashboardSort(cachedServers);
@@ -524,11 +531,15 @@ function startLiveStream() {
     ensurePollerActive();
     const delay = LIVE_STREAM_RETRY_MS[Math.min(retries++, LIVE_STREAM_RETRY_MS.length - 1)];
     updateStaleHint(`retry in ${Math.round(delay / 1000)}s`, true);
-    setTimeout(() => {
-      if (document.visibilityState !== "visible") return;
+    const retryLiveStream = () => {
       if (liveStream) return;
+      if (document.visibilityState !== "visible") {
+        setTimeout(retryLiveStream, delay);
+        return;
+      }
       startLiveStream();
-    }, delay);
+    };
+    setTimeout(retryLiveStream, delay);
   };
 }
 

@@ -879,7 +879,7 @@ body.sidebar-collapsed .sidebar-section-title::after {
   gap: 0.28rem;
   min-height: 1.55rem;
   padding: 0.16rem 0.44rem;
-  border-radius: 999px;
+/* border-radius: 999px; */
   border: 1px solid color-mix(in srgb, var(--sv-border) 68%, transparent);
   background: color-mix(in srgb, var(--sv-surface-2) 48%, transparent);
   line-height: 1;

@@ -23,6 +23,7 @@ final class CronWorkerService
             "0 2 * * * {$php} {$base}/workers/disk-rollup.php >/dev/null 2>&1",
             "0 2 * * * {$php} {$base}/workers/rollup.php >/dev/null 2>&1",
             "0 3 * * * {$php} {$base}/workers/cleanup.php >/dev/null 2>&1",
+            "15 1 * * * {$php} {$base}/workers/backup.php >/dev/null 2>&1",
             "30 0 * * * {$php} {$base}/workers/partition-maintain.php >/dev/null 2>&1",
         ];
     }
@@ -38,6 +39,7 @@ final class CronWorkerService
         'rollup_metrics' => 129600,
         'disk_history_rollup' => 129600,
         'partition_maintain' => 129600,
+        'db_backup' => 129600,
     ];
 
     public function workerStatuses(): array
@@ -53,6 +55,7 @@ final class CronWorkerService
             'rollup_metrics' => worker_health_status('rollup_metrics', self::TTL['rollup_metrics']),
             'disk_history_rollup' => worker_health_status('disk_history_rollup', self::TTL['disk_history_rollup']),
             'partition_maintain' => worker_health_status('partition_maintain', self::TTL['partition_maintain']),
+            'db_backup' => worker_health_status('db_backup', self::TTL['db_backup']),
         ];
     }
 }

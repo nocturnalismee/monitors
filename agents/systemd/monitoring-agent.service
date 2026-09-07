@@ -1,5 +1,5 @@
 [Unit]
-Description=Monitoring Server Agent (daemon real-time, deadband)
+Description=Monitoring Server Agent
 Wants=network-online.target
 After=network-online.target
 
@@ -9,28 +9,29 @@ User=root
 Group=root
 EnvironmentFile=-/etc/systemd/monitoring-agent.conf
 Environment=DAEMON_MODE=1
-# PERINGATAN: EnvironmentFile MENIMPA Environment= di atas. Jika
-# /etc/monitoring-agent.conf berisi DAEMON_MODE=0 (default lama di conf.example),
-# agent akan jalan one-shot lalu keluar -> systemd Restart=always = restart-loop.
-# Pastikan DAEMON_MODE=1 di conf saat memakai service daemon ini.
+# WARNING: EnvironmentFile overrides the Environment= setting above. If
+# /etc/monitoring-agent.conf contains DAEMON_MODE=0 (the old default in conf.example),
+# the agent will run in one-shot mode and then exit, causing a restart loop
+# due to systemd's Restart=always setting.
+# Ensure DAEMON_MODE=1 is set in the config when using this daemon service.
 ExecStart=/usr/local/bin/monitoring-agent.sh
 Restart=always
 RestartSec=5
 TimeoutStartSec=20
 UMask=0077
 # ---------------------------------------------------------------------------
-# CATATAN: direktif sandboxing namespace di bawah ini NONAKTIF secara default.
-# Pada sebagian VPS/container (OpenVZ/LXC/Virtualizor, dll) systemd tidak dapat
-# menyiapkan mount namespace sehingga unit gagal start dengan
-# "status=226/NAMESPACE". Bila server Anda mendukung, aktifkan (hapus tanda #)
-# untuk keamanan tambahan:
-# NoNewPrivileges=true
-# PrivateTmp=true
-# ProtectSystem=full
-# ProtectHome=true
-# ReadWritePaths=/var/lib/monitoring-agent
+# NOTE: The namespace sandboxing directive below is DISABLED by default.
+# On some VPS/containers (OpenVZ/LXC/Virtualizor, etc.), systemd cannot
+# set up the mount namespace, causing the unit to fail to start with
+# "status=226/NAMESPACE". If your server supports it, enable it (remove the #)
+# for added security:
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+ProtectHome=true
+ReadWritePaths=/var/lib/monitoring-agent
 # ---------------------------------------------------------------------------
-# Hardening opsional lain untuk server sibuk:
+# Another optional hardening measure for busy servers:
 # Nice=10
 # IOSchedulingClass=idle
 # CPUQuota=30%

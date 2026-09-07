@@ -10,7 +10,7 @@ CURL_SSL_OPTIONS=""
 LOG_FILE=""
 SIGN_REQUESTS="1"
 LOCK_FILE="/var/lib/monitoring-agent/monitoring-agent-disk.lock"
-LOCK_WAIT_SECONDS=""
+LOCK_WAIT_SECONDS="${LOCK_WAIT_SECONDS:-0}"
 HDSENTINEL_BIN="/root/hdsentinel-018c-x64"
 
 log() {

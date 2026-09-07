@@ -31,6 +31,8 @@ define('REDIS_DB', (int) env('REDIS_DB', '0'));
 define('REDIS_PREFIX', env('REDIS_PREFIX', 'servmon:'));
 define('LOGIN_MAX_ATTEMPTS', 5);
 define('LOGIN_WINDOW_MINUTES', 5);
+// Fallback only: serverStatusFromLastSeen() prefers the alert_down_minutes
+// setting when no explicit threshold is passed.
 define('STATUS_ONLINE_MINUTES', 2);
 
 if (APP_ENV === 'production') {

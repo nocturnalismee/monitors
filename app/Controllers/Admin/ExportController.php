@@ -29,7 +29,7 @@ final class ExportController
                 $user = current_user();
                 $jobId = export_job_create((int) $user['id'], $jobType, $jobFormat);
                 audit_log('export_queued', 'Large export queued', 'export_job', $jobId, ['type' => $jobType, 'format' => $jobFormat]);
-                flash_set('success', 'Export queued. Jalankan export-worker melalui cron untuk memprosesnya.');
+                flash_set('success', 'Export queued. Run the export-worker via cron to process it.');
                 redirect('export');
             }
         }

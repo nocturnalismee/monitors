@@ -19,6 +19,8 @@ final class AlertsApiController
         require_login();
 
         if ($request->method === 'POST') {
+            // Alert mutations are admin-only; viewers are read-only (403 JSON via requireRole).
+            require_role('admin');
             if (!csrf_validate((string) ($request->input('_csrf_token') ?? ''))) {
                 return Response::json(['error' => 'Invalid CSRF token'], 419);
             }

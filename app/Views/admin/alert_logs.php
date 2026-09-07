@@ -5,12 +5,14 @@
             <p class="page-subtitle">Review incident events, severity, and delivery channel status.</p>
         </div>
         <div class="toolbar-actions">
+            <?php if (has_role('admin')): ?>
             <form method="post" class="d-inline-flex">
                 <?= csrf_input() ?>
                 <button class="btn btn-outline-success btn-sm" type="submit" name="action" value="acknowledge_all" data-submit-loading data-loading-text="Updating...">
                     <i class="ti ti-checks me-1" aria-hidden="true"></i>Mark all as read
                 </button>
             </form>
+            <?php endif; ?>
             <?php
             $q = http_build_query([
                 'alert_type' => $filterType,
@@ -119,7 +121,7 @@
                                             <i class="ti ti-eye me-2" aria-hidden="true"></i>View details
                                         </button>
                                     </li>
-                                    <?php if ($rowStatus !== 'resolved'): ?>
+                                    <?php if ($rowStatus !== 'resolved' && has_role('admin')): ?>
                                         <li><hr class="dropdown-divider"></li>
                                         <li>
                                             <form method="post" class="m-0">

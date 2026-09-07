@@ -130,6 +130,8 @@ namespace App\Controllers\Admin {
                 'rollupCronCmd' => $rollupCronCmd,
                 'diskCleanupCronCmd' => $diskCleanupCronCmd,
                 'partitionMaintainCronCmd' => $partitionMaintainCronCmd,
+                'installerPresent' => installer_still_present(),
+                'installerLocked' => installer_locked(),
             ], 'admin'));
         }
 

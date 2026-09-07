@@ -23,6 +23,11 @@ function db_exec(string $sql, array $params = []): bool
     return Database::exec($sql, $params);
 }
 
+function db_exec_count(string $sql, array $params = []): int
+{
+    return Database::execCount($sql, $params);
+}
+
 function db_column_exists(string $table, string $column): bool
 {
     return Database::columnExists($table, $column);

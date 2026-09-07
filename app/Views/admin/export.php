@@ -8,7 +8,7 @@
     <section class="card card-neon mb-3" data-ui-section>
         <div class="card-header bg-surface-2 border-soft">Large Export Queue</div>
         <div class="card-body">
-            <p class="text-muted mb-3">Use the queue for large datasets to prevent browser request timeouts. The worker processes up to two jobs per cycle.</p>
+            <p class="text-muted mb-3">Use the queue for large datasets to prevent browser request timeouts. The worker processes up to two jobs per cycle. Queued exports always contain the full dataset (list-page filters are not applied).</p>
             <form method="post" class="row g-2 align-items-end">
                 <?= csrf_input() ?>
                 <input type="hidden" name="action" value="queue_export">
@@ -50,7 +50,7 @@
                         <td><?php if ($job['status'] === 'completed'): ?><a class="btn btn-sm btn-outline-info" href="<?= e(app_url('export/download/' . (int) $job['id'])) ?>">Download</a><?php elseif ($job['status'] === 'failed'): ?><?= e((string) ($job['error_message'] ?? 'Failed')) ?><?php else: ?>Waiting for worker<?php endif; ?></td>
                     </tr>
                 <?php endforeach; ?>
-                <?php if (!$exportJobs): ?><tr><td colspan="6" class="text-muted">Belum ada export asynchronous.</td></tr><?php endif; ?>
+                <?php if (!$exportJobs): ?><tr><td colspan="6" class="text-muted">No asynchronous exports yet.</td></tr><?php endif; ?>
                 </tbody>
             </table>
         </div>

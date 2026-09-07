@@ -50,7 +50,13 @@ final class RollupWorker
 
                 $deleteCutoff = date('Y-m-d H:i:s', strtotime($config['cutoff'] . ' - 1 hour'));
                 if ($config['source'] === 'metrics') {
-                    $deleted += retention_batch_delete('metrics', 'recorded_at', $deleteCutoff);
+                    if (function_exists('metrics_is_partitioned') && metrics_is_partitioned()) {
+                        // Partitioned table: raw expiry is owned by retention_drop_metrics_partitions()
+                        // (DROP PARTITION). Row-DELETE here would race it and scan every partition.
+                        servmon_log_info('Skipping metrics row-DELETE (partitioned; retention drops partitions)', 'rollup');
+                    } else {
+                        $deleted += retention_batch_delete('metrics', 'recorded_at', $deleteCutoff);
+                    }
                 } else {
                     $deleted += metrics_history_bucket_delete((int) $config['source_bucket'], $deleteCutoff);
                 }

@@ -109,7 +109,7 @@ final class WorkerService
 
     public static function worker_lock_path(string $lockName): string
     {
-        return sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'monitoring-' . $lockName . '.lock';
+        return sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'monitors-' . $lockName . '.lock';
     }
 
     public static function &worker_lock_registry(): array

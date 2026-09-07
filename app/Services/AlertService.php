@@ -105,42 +105,57 @@ final class AlertService
             return;
         }
 
-        db_exec(
-            'INSERT INTO alert_logs
+        // Outbox: alert row + queue rows commit atomically so a crash
+        // between them can neither lose nor duplicate the notification.
+        $pdo = db();
+        $pdo->beginTransaction();
+        try {
+            db_exec(
+                'INSERT INTO alert_logs
             (server_id, alert_type, severity, title, message, context_json, sent_email, sent_telegram, created_at)
             VALUES
             (:server_id, :alert_type, :severity, :title, :message, :context_json, :sent_email, :sent_telegram, NOW())',
-            [
-                ':server_id' => $serverId,
-                ':alert_type' => $alertType,
-                ':severity' => $severity,
-                ':title' => $title,
-                ':message' => $message,
-                ':context_json' => json_encode($context, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
-                ':sent_email' => 0,
-                ':sent_telegram' => 0,
-            ]
-        );
-        $alertId = (int) db()->lastInsertId();
+                [
+                    ':server_id' => $serverId,
+                    ':alert_type' => $alertType,
+                    ':severity' => $severity,
+                    ':title' => $title,
+                    ':message' => $message,
+                    ':context_json' => json_encode($context, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
+                    ':sent_email' => 0,
+                    ':sent_telegram' => 0,
+                ]
+            );
+            $alertId = (int) db()->lastInsertId();
 
-        if (self::deliveryQueueAvailable()) {
-            $channels = [];
-            if (($settings['channel_email_enabled'] ?? '0') === '1') {
-                $channels[] = 'email';
+            if (self::deliveryQueueAvailable()) {
+                $channels = [];
+                if (($settings['channel_email_enabled'] ?? '0') === '1') {
+                    $channels[] = 'email';
+                }
+                if (($settings['channel_telegram_enabled'] ?? '0') === '1') {
+                    $channels[] = 'telegram';
+                }
+                foreach ($channels as $channel) {
+                    db_exec(
+                        'INSERT INTO alert_delivery_queue
+                      (alert_id, channel, available_at, created_at)
+                      VALUES (:alert_id, :channel, NOW(), NOW())
+                      ON DUPLICATE KEY UPDATE alert_id = VALUES(alert_id)',
+                        [':alert_id' => $alertId, ':channel' => $channel]
+                    );
+                }
             }
-            if (($settings['channel_telegram_enabled'] ?? '0') === '1') {
-                $channels[] = 'telegram';
+            $pdo->commit();
+        } catch (\Throwable $e) {
+            if ($pdo->inTransaction()) {
+                $pdo->rollBack();
             }
-            foreach ($channels as $channel) {
-                db_exec(
-                    'INSERT INTO alert_delivery_queue
-                     (alert_id, channel, available_at, created_at)
-                     VALUES (:alert_id, :channel, NOW(), NOW())
-                     ON DUPLICATE KEY UPDATE alert_id = VALUES(alert_id)',
-                    [':alert_id' => $alertId, ':channel' => $channel]
-                );
-            }
-        } else {
+            error_log('AlertService::create failed, rolled back: ' . $e->getMessage());
+            return;
+        }
+
+        if (!self::deliveryQueueAvailable()) {
             // Compatibility fallback for installations that have not applied the
             // queue migration yet.
             $emailSent = notify_email($title, $message, $settings);
@@ -223,6 +238,7 @@ final class AlertService
         $diskPct = calculateUsagePercent((int) ($metric['hdd_used'] ?? 0), (int) ($metric['hdd_total'] ?? 0));
 
         if ($mailQueue >= $mailCritical) {
+            self::resolveConditionAlerts($serverId, ['mail_queue_high']);
             self::create(
                 $serverId,
                 'mail_queue_critical',
@@ -246,6 +262,7 @@ final class AlertService
         }
 
         if ($cpuLoad >= $cpuCritical) {
+            self::resolveConditionAlerts($serverId, ['cpu_high']);
             self::create(
                 $serverId,
                 'cpu_critical',
@@ -269,6 +286,7 @@ final class AlertService
         }
 
         if ($ramPct >= $ramCritical) {
+            self::resolveConditionAlerts($serverId, ['ram_high']);
             self::create(
                 $serverId,
                 'ram_critical',
@@ -292,6 +310,7 @@ final class AlertService
         }
 
         if ($diskPct >= $diskCritical) {
+            self::resolveConditionAlerts($serverId, ['disk_high']);
             self::create(
                 $serverId,
                 'disk_critical',
@@ -431,6 +450,9 @@ final class AlertService
                      ON DUPLICATE KEY UPDATE is_down = 0',
                     [':id' => $serverId]
                 );
+                // Maintenance suppresses alerting: resolve any pre-maintenance
+                // server_down so it does not stay active forever.
+                self::resolveConditionAlerts($serverId, ['server_down']);
                 continue;
             }
             $isDown = isset($states[$serverId]) && $states[$serverId] === 1;
@@ -709,6 +731,11 @@ final class AlertService
         ];
 
         if ($newStatus === 'listed') {
+            // Linked-server maintenance suppresses new listing alerts, but a
+            // later clean transition still resolves (see below).
+            if ($serverId !== null && is_server_in_maintenance($serverId)) {
+                return;
+            }
             $blacklists = !empty($listedOn) ? ' Blacklists: ' . implode(', ', $listedOn) . '.' : '';
             self::create(
                 $serverId,
@@ -722,6 +749,7 @@ final class AlertService
         }
 
         if ($prevStatus === 'listed' && $newStatus === 'clean') {
+            self::resolveConditionAlerts($serverId, ['ip_rep_listed_' . $targetId]);
             self::create(
                 $serverId,
                 'ip_rep_clean_' . $targetId,

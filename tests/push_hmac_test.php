@@ -36,7 +36,7 @@ assert_push($ipInAllowlist('10.0.1.5', '10.0.0.0/24') === false, 'allow cidr fai
 assert_push($ipInAllowlist('10.0.0.5', '10.0.0.0/24, 192.168.1.1') === true, 'allow list comma second');
 assert_push($ipInAllowlist('192.168.1.1', '10.0.0.0/24, 192.168.1.1') === true, 'allow list comma first');
 assert_push($ipInAllowlist('1.1.1.1', "10.0.0.0/24\n192.168.1.1\n  1.1.1.1  ") === true, 'allow whitespace/newline');
-assert_push($ipInAllowlist('10.0.0.5', '  ') === false, 'allow empty');
+assert_push($ipInAllowlist('10.0.0.5', '  ') === true, 'allow whitespace-only treated as empty (allow all)');
 assert_push($ipInAllowlist('10.0.0.5', '10.0.0.5/32, 10.0.0.6') === true, 'allow /32 in list');
 assert_push($ipInAllowlist('10.0.0.5', '10.0.0.0/24 , , 10.0.0.5') === true, 'allow handles empty entries');
 

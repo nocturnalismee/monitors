@@ -94,6 +94,17 @@ foreach ($unhealthyWorkers as $uw) {
             </div>
         </div>
     <?php endif; ?>
+    <?php if (has_role('admin') && ($installerPresent ?? false) && !($installerLocked ?? false)): ?>
+        <div class="worker-health-banner has-error" role="alert">
+            <div class="worker-health-header">
+                <div class="worker-health-title">
+                    <i class="ti ti-shield-lock fs-5 text-danger" aria-hidden="true"></i>
+                    <span><strong>Installer still accessible</strong> — remove <code>public/install.php</code> or create <code>config/.installer-locked</code> to disable it</span>
+                    <span class="badge bg-danger rounded-pill ms-1">Action Required</span>
+                </div>
+            </div>
+        </div>
+    <?php endif; ?>
     <section class="page-header" data-ui-toolbar>
         <div>
             <h1 class="page-title">Dashboard Monitoring</h1>
@@ -278,7 +289,7 @@ foreach ($unhealthyWorkers as $uw) {
                             <?php $cpuLoadVal = (float) ($row['cpu_load'] ?? 0); ?>
                             <?php $cpuSevClass = $cpuLoadVal > (float) ($cpuCriticalThreshold ?? 4) ? 'text-danger' : ($cpuLoadVal > (float) ($cpuWarnThreshold ?? 2) ? 'text-warning' : ''); ?>
                             <div class="cpu-cell">
-                                <div class="cpu-value font-mono <?= e($cpuSevClass) ?>" title="<?= e($cpuSevClass !== '' ? 'CPU load melebihi ambang' : 'CPU load normal') ?>"><?= e(number_format($cpuLoadVal, 2)) ?></div>
+                                <div class="cpu-value font-mono <?= e($cpuSevClass) ?>" title="<?= e($cpuSevClass !== '' ? 'CPU load exceeds threshold' : 'CPU load normal') ?>"><?= e(number_format($cpuLoadVal, 2)) ?></div>
                                 <svg class="cpu-sparkline" width="60" height="18"><polyline fill="none" stroke="var(--sv-muted)" stroke-width="1.5" points="0,16.0 60,16.0"/></svg>
                             </div>
                         </td>
@@ -344,6 +355,7 @@ window.SERVMON_SERVERS_LIST = <?= json_encode(app_url('servers'), JSON_HEX_TAG |
 window.SERVMON_ADMIN_DETAIL_BASE = <?= json_encode(app_url('servers/'), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;
 window.SERVMON_API_ALERTS = <?= json_encode(app_url('api/alerts'), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;
 window.SERVMON_CSRF_TOKEN = <?= json_encode(csrf_token(), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;
+window.SERVMON_USER_ROLE = <?= json_encode((string) (current_user()['role'] ?? ''), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;
 window.SERVMON_CPU_THRESHOLDS = <?= json_encode(['warn' => (float) ($cpuWarnThreshold ?? 2), 'critical' => (float) ($cpuCriticalThreshold ?? 4)]) ?>;
 </script>
 <script src="<?= e(asset_url('assets/js/dashboard.js')) ?>"></script>

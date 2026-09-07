@@ -3,7 +3,7 @@ declare(strict_types=1);
 require_once __DIR__.'/../config/bootstrap.php';
 $s=new \App\Services\Slo\SloService();
 $r=$s->availability(30,5);
-foreach(['availability_pct','total_buckets','online_buckets','downtime_minutes','error_budget_minutes','budget_remaining_minutes','budget_remaining_pct','burn_rate'] as $k) if(!array_key_exists($k,$r)){ echo "FAIL $k\n"; exit(1);}
+foreach(['availability_pct','total_buckets','online_buckets','downtime_minutes','error_budget_minutes','budget_remaining_minutes','budget_remaining_pct','burn_rate','servers_measured','window_truncated','window_from','window_requested_from','effective_days'] as $k) if(!array_key_exists($k,$r)){ echo "FAIL $k\n"; exit(1);}
 // effective window: total must not exceed the full 30d window and must cover online buckets
 $fullTotal = (int)(30*24*60/5);
 try { $active = (int)(db_one("SELECT COUNT(*) AS c FROM servers WHERE active=1")['c']??0); } catch (\Throwable $e) { $active = 0; }
