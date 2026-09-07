@@ -105,7 +105,7 @@ function formatUptime(?int $seconds): string
         return 'N/A';
     }
     if ($seconds < 60) {
-        return '< 1 menit';
+        return '< 1 min';
     }
 
     $days = intdiv($seconds, 86400);
@@ -114,13 +114,13 @@ function formatUptime(?int $seconds): string
     $parts = [];
 
     if ($days > 0) {
-        $parts[] = $days . ' hari';
+        $parts[] = $days . ' days';
     }
     if ($hours > 0) {
-        $parts[] = $hours . ' jam';
+        $parts[] = $hours . ' hours';
     }
     if ($minutes > 0) {
-        $parts[] = $minutes . ' menit';
+        $parts[] = $minutes . ' min';
     }
 
     return implode(', ', $parts);

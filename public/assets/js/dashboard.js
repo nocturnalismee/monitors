@@ -119,7 +119,7 @@ function renderAdminRowCells(s) {
     <td class="font-mono">${SM.escapeHtml(formatUptime(s.uptime))}</td>
     <td>
       <div class="cpu-cell">
-        <div class="cpu-value font-mono ${SM.cpuSeverityClass(s.cpu_load)}" title="${SM.cpuLoadSeverity(s.cpu_load) !== 'ok' ? 'CPU load melebihi ambang' : 'CPU load normal'}">${SM.escapeHtml(Number(s.cpu_load || 0).toFixed(2))}</div>
+        <div class="cpu-value font-mono ${SM.cpuSeverityClass(s.cpu_load)}" title="${SM.cpuLoadSeverity(s.cpu_load) !== 'ok' ? 'CPU load exceeds threshold' : 'CPU load normal'}">${SM.escapeHtml(Number(s.cpu_load || 0).toFixed(2))}</div>
         ${SM.getCpuSparkline(s)}
       </div>
     </td>

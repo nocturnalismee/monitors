@@ -171,7 +171,7 @@
                             <?php $cpuLoadVal = (float) ($row['cpu_load'] ?? 0); ?>
                             <?php $cpuSevClass = $cpuLoadVal > (float) ($cpuCriticalThreshold ?? 4) ? 'text-danger' : ($cpuLoadVal > (float) ($cpuWarnThreshold ?? 2) ? 'text-warning' : ''); ?>
                             <div class="cpu-cell">
-                                <div class="cpu-value font-mono <?= e($cpuSevClass) ?>" title="<?= e($cpuSevClass !== '' ? 'CPU load melebihi ambang' : 'CPU load normal') ?>"><?= e(number_format($cpuLoadVal, 2)) ?></div>
+                                <div class="cpu-value font-mono <?= e($cpuSevClass) ?>" title="<?= e($cpuSevClass !== '' ? 'CPU load exceeds threshold' : 'CPU load normal') ?>"><?= e(number_format($cpuLoadVal, 2)) ?></div>
                                 <svg class="cpu-sparkline" width="60" height="18"><polyline fill="none" stroke="var(--sv-muted)" stroke-width="1.5" points="0,16.0 60,16.0"/></svg>
                             </div>
                         </td>

@@ -27,8 +27,8 @@
                     'label' => (string) ($server['label'] ?? ''),
                 ];
                 $idPrefix = 'edit-server';
-                $providerPlaceholder = 'contoh: AWS, DigitalOcean, Proxmox';
-                $labelPlaceholder = 'contoh: web-prod, mail';
+                $providerPlaceholder = 'e.g. AWS, DigitalOcean, Proxmox';
+                $labelPlaceholder = 'e.g. web-prod, mail';
                 require SERVMON_BASE_DIR . '/app/Views/partials/server_identity_form.php';
                 ?>
                 <div class="col-md-6">
@@ -37,8 +37,8 @@
                 </div>
                 <div class="col-md-6">
                     <label class="form-label" for="edit-server-push-allowed-ips">Push Allowed IPs (optional)</label>
-                    <textarea class="form-control" rows="2" name="push_allowed_ips" id="edit-server-push-allowed-ips" placeholder="contoh: 10.0.0.5, 203.0.113.0/24"><?= e((string) ($server['push_allowed_ips'] ?? '')) ?></textarea>
-                    <div class="form-text">Kosong = semua IP diizinkan. Support IP exact dan CIDR IPv4.</div>
+                    <textarea class="form-control" rows="2" name="push_allowed_ips" id="edit-server-push-allowed-ips" placeholder="e.g. 10.0.0.5, 203.0.113.0/24"><?= e((string) ($server['push_allowed_ips'] ?? '')) ?></textarea>
+                    <div class="form-text">Empty = all IPs allowed. Supports exact IPs and IPv4/IPv6 CIDR.</div>
                 </div>
                 <div class="col-md-6">
                     <label class="form-label d-block">Maintenance Mode</label>
@@ -78,7 +78,7 @@
                 <button class="btn btn-sm btn-soft" type="button" id="server-token-toggle">Reveal Token</button>
             </div>
             <?php else: ?>
-            <p class="text-secondary small mb-0">Token disimpan sebagai hash. Gunakan tombol <strong>Regenerate Token</strong> untuk membuat token baru (akan ditampilkan di sini).</p>
+            <p class="text-secondary small mb-0">Token is stored as a hash. Use the <strong>Regenerate Token</strong> button to create a new token (it will be shown here).</p>
             <?php endif; ?>
         </div>
     </section>

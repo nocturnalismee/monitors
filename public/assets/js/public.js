@@ -179,7 +179,7 @@ function renderPublicRowCells(s) {
     <td data-label="Disk">${SM.renderUsageCell(s.hdd_used, s.hdd_total, "Disk")}</td>
     <td data-label="CPU">
       <div class="cpu-cell">
-        <div class="cpu-value font-mono ${SM.cpuSeverityClass(s.cpu_load)}" title="${SM.cpuLoadSeverity(s.cpu_load) !== 'ok' ? 'CPU load melebihi ambang' : 'CPU load normal'}">${SM.escapeHtml(Number(s.cpu_load || 0).toFixed(2))}</div>
+        <div class="cpu-value font-mono ${SM.cpuSeverityClass(s.cpu_load)}" title="${SM.cpuLoadSeverity(s.cpu_load) !== 'ok' ? 'CPU load exceeds threshold' : 'CPU load normal'}">${SM.escapeHtml(Number(s.cpu_load || 0).toFixed(2))}</div>
         ${SM.getCpuSparkline(s)}
       </div>
     </td>

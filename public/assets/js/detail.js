@@ -103,7 +103,7 @@ function formatTimeTick(ts) {
   const d = new Date(ms);
   const hh = String(d.getHours()).padStart(2, "0");
   const mm = String(d.getMinutes()).padStart(2, "0");
-  // Tampilkan tanggal saat pergantian hari agar tidak muncul label ambigu seperti "4".
+  // Show the date on day change so ambiguous labels like "4" never appear.
   if (d.getHours() === 0 && d.getMinutes() === 0) {
     const dd = String(d.getDate()).padStart(2, "0");
     const mon = String(d.getMonth() + 1).padStart(2, "0");
