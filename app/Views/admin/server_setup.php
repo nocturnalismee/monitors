@@ -49,21 +49,22 @@
         </div>
         <div class="card-body">
             <p class="text-secondary mb-2">Run on the target server:</p>
-<pre class="code-block rounded p-3 border-soft mb-0"><code># 1) Install agent v3 (daemon real-time)
+<pre class="code-block rounded p-3 border-soft mb-0"><code># 1) Install agent (daemon real-time)
 wget <?= e($agentUrl) ?> -O /usr/local/bin/monitoring-agent.sh
 chmod +x /usr/local/bin/monitoring-agent.sh
 
-# 2) Configuration: everything lives in /etc/monitoring-agent.conf
-#    (fill in MASTER_URL, SERVER_TOKEN, SERVER_ID — other keys are optional)
-wget <?= e($confExampleUrl) ?> -O /etc/monitoring-agent.conf
-sed -i "s|^MASTER_URL=.*|MASTER_URL=<?= e($pushEndpoint) ?>|" /etc/monitoring-agent.conf
-sed -i "s|^SERVER_TOKEN=.*|SERVER_TOKEN=<?= e($setupToken) ?>|" /etc/monitoring-agent.conf
-sed -i "s|^SERVER_ID=.*|SERVER_ID=<?= e((string) $server['id']) ?>|" /etc/monitoring-agent.conf
+# 2) Configuration: everything lives in /etc/systemd/monitoring-agent.conf
+wget <?= e($confExampleUrl) ?> -O /etc/systemd/monitoring-agent.conf
+sed -i "s|^MASTER_URL=.*|MASTER_URL=<?= e($pushEndpoint) ?>|" /etc/systemd/monitoring-agent.conf
+sed -i "s|^SERVER_TOKEN=.*|SERVER_TOKEN=<?= e($setupToken) ?>|" /etc/systemd/monitoring-agent.conf
+sed -i "s|^SERVER_ID=.*|SERVER_ID=<?= e((string) $server['id']) ?>|" /etc/systemd/monitoring-agent.conf
 
 # Manual test (one-shot; the daemon only runs every 10 seconds once the service is active)
 /usr/local/bin/monitoring-agent.sh
 
-# 3) Install systemd service (daemon, auto-restart, pushes every 10 seconds)
+# 3) mkdir /var/lib/monitoring-agent
+
+# 4) Install systemd service (daemon, auto-restart, pushes every 10 seconds)
 wget <?= e($systemdServiceUrl) ?> -O /etc/systemd/system/monitoring-agent.service
 systemctl daemon-reload
 systemctl enable --now monitoring-agent.service
@@ -79,12 +80,11 @@ systemctl status monitoring-agent.service --no-pager
         </div>
         <div class="card-body">
             <p class="text-secondary mb-2">Use this profile specifically for mail/cPanel email nodes:</p>
-<pre class="code-block rounded p-3 border-soft mb-0"><code># 1) Script agent khusus email
+<pre class="code-block rounded p-3 border-soft mb-0"><code># 1) Special email agent script
 wget <?= e($agentEmailUrl) ?> -O /usr/local/bin/monitoring-agent-cpanel-mail.sh
 chmod +x /usr/local/bin/monitoring-agent-cpanel-mail.sh
 
 # 2) Configuration: everything lives in /etc/monitoring-agent-cpanel-mail.conf
-#    (fill in MASTER_URL, SERVER_TOKEN, SERVER_ID — other keys are optional)
 wget <?= e($confEmailExampleUrl) ?> -O /etc/monitoring-agent-cpanel-mail.conf
 sed -i "s|^MASTER_URL=.*|MASTER_URL=<?= e($pushEndpoint) ?>|" /etc/monitoring-agent-cpanel-mail.conf
 sed -i "s|^SERVER_TOKEN=.*|SERVER_TOKEN=<?= e($setupToken) ?>|" /etc/monitoring-agent-cpanel-mail.conf
@@ -93,7 +93,9 @@ sed -i "s|^SERVER_ID=.*|SERVER_ID=<?= e((string) $server['id']) ?>|" /etc/monito
 # Manual test (one-shot)
 /usr/local/bin/monitoring-agent-cpanel-mail.sh
 
-# 3) Install systemd unit (cPanel email role, every minute via timer)
+# 3) mkdir /var/lib/monitoring-agent
+
+# 4) Install systemd unit (cPanel email role, every minute via timer)
 wget <?= e($systemdEmailServiceUrl) ?> -O /etc/systemd/system/monitoring-agent-cpanel-email.service
 wget <?= e($systemdEmailTimerUrl) ?> -O /etc/systemd/system/monitoring-agent-cpanel-email.timer
 systemctl daemon-reload
