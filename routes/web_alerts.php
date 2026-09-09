@@ -12,9 +12,9 @@ return [
         'middleware' => ['auth', 'csrf'],
     ],
     [
-        'methods' => ['GET'],
+        'methods' => ['GET', 'POST'],
         'pattern' => '/audit-logs',
         'handler' => [AuditLogsController::class, 'index'],
-        'middleware' => ['admin'],
+        'middleware' => ['admin', 'csrf'],
     ],
 ];

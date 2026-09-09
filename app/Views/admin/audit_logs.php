@@ -56,11 +56,22 @@
         </div>
     </section>
 
-    <section class="card card-neon" data-ui-section>
+    <section class="card card-neon" data-ui-section data-bulk-select data-bulk-input-name="audit_ids[]" data-bulk-confirm="Delete {n} selected audit log(s)? This cannot be undone.">
+        <div class="bulk-action-bar" data-bulk-bar hidden>
+            <span class="small text-secondary" data-bulk-count>0 selected</span>
+            <form method="post" data-bulk-form class="d-flex flex-wrap gap-2">
+                <?= csrf_input() ?>
+                <div data-bulk-ids hidden></div>
+                <button type="submit" name="action" value="batch_delete" class="btn btn-sm btn-soft text-danger" data-bulk-submit>
+                    <i class="ti ti-trash me-1" aria-hidden="true"></i>Delete
+                </button>
+            </form>
+        </div>
         <div class="table-responsive table-shell" data-ui-table>
             <table class="table servmon-table mb-0">
                 <thead>
                 <tr>
+                    <th class="servmon-checkbox-cell"><input type="checkbox" class="form-check-input" data-bulk-checkall aria-label="Select all audit logs"></th>
                     <th>ID</th>
                     <th>Time</th>
                     <th>User</th>
@@ -73,11 +84,14 @@
                 </thead>
                 <tbody>
                 <?php if (empty($rows)): ?>
-                    <tr><td colspan="8" class="table-empty">No audit data yet.</td></tr>
+                    <tr><td colspan="9" class="table-empty">No audit data yet.</td></tr>
                 <?php endif; ?>
                 <?php foreach ($rows as $row): ?>
                     <?php $targetText = trim((string) ($row['target_type'] ?? '')) !== '' ? ((string) $row['target_type'] . '#' . (string) ($row['target_id'] ?? '-')) : '-'; ?>
                     <tr>
+                        <td class="servmon-checkbox-cell">
+                            <input type="checkbox" class="form-check-input" name="audit_ids[]" value="<?= e((string) $row['id']) ?>" data-bulk-checkbox aria-label="Select audit log <?= e((string) $row['id']) ?>">
+                        </td>
                         <td class="font-mono"><?= e((string) $row['id']) ?></td>
                         <td class="font-mono"><?= e((string) $row['created_at']) ?></td>
                         <td><?= e((string) ($row['username'] ?? 'system')) ?></td>
@@ -150,3 +164,4 @@
     });
   }
 </script>
+<script src="<?= e(asset_url('assets/js/bulk-select.js')) ?>"></script>
