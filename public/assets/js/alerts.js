@@ -8,21 +8,16 @@ let servmonAlertsInitialized = servmonLastAlertId > 0;
 
 function playAlertBeep() {
   if (window.SERVMON_ALERT_SOUND_ENABLED === false) return;
+  const url = window.SERVMON_ALERT_SOUND_URL || "";
+  if (!url) return;
   try {
-    const ctx = new (window.AudioContext || window.webkitAudioContext)();
-    const oscillator = ctx.createOscillator();
-    const gainNode = ctx.createGain();
-    oscillator.type = "sine";
-    oscillator.frequency.value = 880;
+    const audio = new Audio(url);
     const volume = Math.max(0, Math.min(10, Number(window.SERVMON_ALERT_SOUND_VOLUME ?? 8))) / 10;
-    gainNode.gain.value = 0.08 * volume;
-    oscillator.connect(gainNode);
-    gainNode.connect(ctx.destination);
-    oscillator.start();
-    setTimeout(() => {
-      oscillator.stop();
-      ctx.close();
-    }, 260);
+    audio.volume = volume;
+    const playPromise = audio.play();
+    if (playPromise && typeof playPromise.catch === "function") {
+      playPromise.catch((err) => console.error(err));
+    }
   } catch (err) {
     console.error(err);
   }

@@ -22,7 +22,7 @@ if ($isAdminPage || $isPublicPage) {
     $alertSoundVolume = max(0, min(10, (int) setting_get('alert_sound_volume')));
 ?>
 <div id="servmon-alert-toast-container" class="servmon-alert-toast-container toast-container position-fixed end-0 p-3"></div>
-  <script<?= csp_nonce_attr() ?>>window.SERVMON_API_ALERTS = <?= json_encode($alertEndpoint, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>; window.SERVMON_ALERT_STREAM = <?= json_encode($isAdminPage ? app_url('api/events') : '', JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>; window.SERVMON_ALERT_SOUND_ENABLED = <?= $alertSoundEnabled ? 'true' : 'false' ?>; window.SERVMON_ALERT_SOUND_VOLUME = <?= (int) $alertSoundVolume ?>;</script>
+  <script<?= csp_nonce_attr() ?>>window.SERVMON_API_ALERTS = <?= json_encode($alertEndpoint, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>; window.SERVMON_ALERT_STREAM = <?= json_encode($isAdminPage ? app_url('api/events') : '', JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>; window.SERVMON_ALERT_SOUND_ENABLED = <?= $alertSoundEnabled ? 'true' : 'false' ?>; window.SERVMON_ALERT_SOUND_VOLUME = <?= (int) $alertSoundVolume ?>; window.SERVMON_ALERT_SOUND_URL = <?= json_encode(asset_url('assets/sound/notification.wav'), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;</script>
 <script src="<?= e(asset_url('assets/js/alerts.js')) ?>"></script>
 <?php } ?>
 <script<?= csp_nonce_attr() ?>>
