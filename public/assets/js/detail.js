@@ -336,6 +336,10 @@ function buildEchartsLineOption({
       confine: true,
       axisPointer: {
         type: "cross",
+        // Hide the axis value labels (e.g. "0.99" on Y, timestamp on X) —
+        // they overlap the tick labels and distract; the tooltip already
+        // shows the exact values.
+        label: { show: false },
         lineStyle: { color: palette.series1, type: "dashed", width: 1 },
         crossStyle: { color: palette.axis },
       },
