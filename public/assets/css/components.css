@@ -3913,7 +3913,6 @@ body.sidebar-collapsed .sidebar-section-title .sidebar-label {
   height: 2rem;
   place-items: center;
   border-radius: 0.5rem;
-  background: var(--sv-accent-fill);
   color: #fff;
   font-size: 1.15rem;
   line-height: 1;
@@ -4092,7 +4091,6 @@ body.sidebar-collapsed .sidebar-section-title .sidebar-label {
   height: clamp(6rem, 9vw, 7.5rem);
   place-items: center;
   margin-bottom: 3.5rem;
-  background: var(--sv-accent-fill);
   color: #fff;
   font-size: 3rem;
   line-height: 1;
