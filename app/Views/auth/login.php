@@ -68,7 +68,7 @@
                 <p class="login-split-desc">Connect agents, track uptime and disk health, and get alerted &mdash; over a clean dashboard built for operators.</p>
 
                 <ul class="login-split-points">
-                    <li><i class="ti ti-pulse" aria-hidden="true"></i><span>Live status, ping &amp; resource metrics</span></li>
+                    <li><i class="ti ti-activity" aria-hidden="true"></i><span>Live status, ping &amp; resource metrics</span></li>
                     <li><i class="ti ti-bell-ringing" aria-hidden="true"></i><span>Instant alerts via Telegram &amp; webhook</span></li>
                     <li><i class="ti ti-shield-check" aria-hidden="true"></i><span>Hardened admin access with rate limiting</span></li>
                 </ul>
