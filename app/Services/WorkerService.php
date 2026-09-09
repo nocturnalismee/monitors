@@ -142,12 +142,23 @@ final class WorkerService
         // original worker is still running. flock() releases automatically
         // when the owning process exits, so the file itself needs no cleanup.
         $lockFp = @fopen($lockFile, 'c');
-        if ($lockFp === false || !flock($lockFp, LOCK_EX | LOCK_NB)) {
-            if ($lockFp !== false) {
-                fclose($lockFp);
+        if ($lockFp === false) {
+            // Distinguish a foreign-owned lock file (common when a worker was
+            // run manually as another OS user, e.g. root vs the cron user)
+            // from genuine contention: the former silently starves cron.
+            if (is_file($lockFile) && !is_writable($lockFile)) {
+                fwrite(STDERR, "worker lock not writable (owned by another user?): {$lockFile}\n");
             }
             return null;
         }
+        if (!flock($lockFp, LOCK_EX | LOCK_NB)) {
+            fclose($lockFp);
+            return null;
+        }
+        // Lock files carry no data (0 bytes); make them group/world-writable
+        // so a manual run as another user cannot starve the cron user.
+        // Silently skipped when we do not own the file.
+        @chmod($lockFile, 0666);
         @touch($lockFile);
         self::worker_remember_lock_path($lockFp, $lockFile);
         return $lockFp;
