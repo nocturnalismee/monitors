@@ -77,6 +77,9 @@
     });
 
     form?.addEventListener("submit", (event) => {
+      const button = event.submitter instanceof HTMLElement ? event.submitter.closest("[data-bulk-submit]") : null;
+      const actionName = button?.getAttribute("name") || "action";
+      const actionValue = button?.getAttribute("value") || "";
       const ids = selectedBoxes(scope)
         .map((cb) => cb.value)
         .filter((value) => value);
@@ -88,6 +91,12 @@
       showConfirm(confirmTpl.replace("{n}", String(ids.length)), () => {
         const container = form.querySelector("[data-bulk-ids]");
         container.replaceChildren();
+        // form.submit() skips the submitter button, so carry the action explicitly.
+        const actionInput = document.createElement("input");
+        actionInput.type = "hidden";
+        actionInput.name = actionName;
+        actionInput.value = actionValue;
+        container.appendChild(actionInput);
         ids.forEach((id) => {
           const input = document.createElement("input");
           input.type = "hidden";
