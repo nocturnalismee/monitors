@@ -13,6 +13,46 @@ final class AuditLogsController
     {
         require_role('admin');
 
+        if (is_post()) {
+            // CSRF single-guard: enforced by csrf middleware.
+            $action = (string) ($request->input('action') ?? '');
+            if ($action !== 'batch_delete') {
+                flash_set('danger', 'Invalid audit action.');
+                redirect('audit-logs');
+            }
+            $ids = [];
+            $rawIds = $request->input('audit_ids');
+            if (is_array($rawIds)) {
+                foreach ($rawIds as $value) {
+                    $id = (int) $value;
+                    if ($id > 0) {
+                        $ids[$id] = $id;
+                    }
+                }
+            }
+            if (count($ids) === 0) {
+                flash_set('danger', 'No audit logs selected.');
+                redirect('audit-logs?' . http_build_query($_GET));
+            }
+            $params = [];
+            foreach ($ids as $i => $id) {
+                $params[':id' . $i] = $id;
+            }
+            $placeholders = implode(',', array_keys($params));
+            db_exec("DELETE FROM admin_audit_logs WHERE id IN ({$placeholders})", $params);
+            $count = count($ids);
+            audit_log(
+                'audit_logs_batch_delete',
+                "Bulk deleted {$count} audit log(s)",
+                'audit',
+                null,
+                ['audit_ids' => array_values($ids)]
+            );
+            cache_delete_pattern('audit:logs:*');
+            flash_set('success', "{$count} audit log(s) deleted successfully.");
+            redirect('audit-logs?' . http_build_query($_GET));
+        }
+
         $page = max(1, (int) ($request->query('page') ?? 1));
         $perPage = 25;
 

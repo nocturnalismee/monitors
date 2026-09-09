@@ -32,6 +32,40 @@ final class AlertLogsController
                 redirect('alerts?' . http_build_query($_GET));
             }
             $alertId = (int) ($request->input('alert_id') ?? 0);
+            if ($action === 'batch_delete') {
+                $ids = [];
+                $rawIds = $request->input('alert_ids');
+                if (is_array($rawIds)) {
+                    foreach ($rawIds as $value) {
+                        $id = (int) $value;
+                        if ($id > 0) {
+                            $ids[$id] = $id;
+                        }
+                    }
+                }
+                if (count($ids) === 0) {
+                    flash_set('danger', 'No alerts selected.');
+                    redirect('alerts?' . http_build_query($_GET));
+                }
+                $params = [];
+                foreach ($ids as $i => $id) {
+                    $params[':id' . $i] = $id;
+                }
+                $placeholders = implode(',', array_keys($params));
+                // Queued delivery rows follow via ON DELETE CASCADE.
+                db_exec("DELETE FROM alert_logs WHERE id IN ({$placeholders})", $params);
+                $count = count($ids);
+                audit_log(
+                    'alerts_batch_delete',
+                    "Bulk deleted {$count} alert(s)",
+                    'alert',
+                    null,
+                    ['alert_ids' => array_values($ids)]
+                );
+                invalidate_alert_cache();
+                flash_set('success', "{$count} alert(s) deleted successfully.");
+                redirect('alerts?' . http_build_query($_GET));
+            }
             if ($alertId <= 0 || !in_array($action, ['acknowledge', 'resolve', 'silence'], true)) {
                 flash_set('danger', 'Invalid alert action.');
                 redirect('alerts');

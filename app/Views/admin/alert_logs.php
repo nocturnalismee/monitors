@@ -53,11 +53,27 @@
         ?>
     </div>
 
-    <section class="card card-neon" data-ui-section>
+    <section class="card card-neon" data-ui-section data-bulk-select data-bulk-input-name="alert_ids[]" data-bulk-confirm="Delete {n} selected alert(s)? Queued deliveries for them will be removed as well.">
+        <?php if (has_role('admin')): ?>
+        <div class="bulk-action-bar" data-bulk-bar hidden>
+            <span class="small text-secondary" data-bulk-count>0 selected</span>
+            <form method="post" data-bulk-form class="d-flex flex-wrap gap-2">
+                <?= csrf_input() ?>
+                <div data-bulk-ids hidden></div>
+                <button type="submit" name="action" value="batch_delete" class="btn btn-sm btn-soft text-danger" data-bulk-submit>
+                    <i class="ti ti-trash me-1" aria-hidden="true"></i>Delete
+                </button>
+            </form>
+        </div>
+        <?php endif; ?>
         <div class="table-responsive table-shell ping-table-shell ping-table-responsive alert-table-shell" data-ui-table>
             <table class="table servmon-table alert-log-table mb-0">
                 <thead>
                 <tr>
+                    <?php $isAlertAdmin = has_role('admin'); ?>
+                    <?php if ($isAlertAdmin): ?>
+                    <th class="servmon-checkbox-cell"><input type="checkbox" class="form-check-input" data-bulk-checkall aria-label="Select all alerts"></th>
+                    <?php endif; ?>
                     <th>ID</th>
                     <th>Time</th>
                     <th>Server</th>
@@ -71,7 +87,7 @@
                 </thead>
                 <tbody>
                 <?php if (empty($rows)): ?>
-                    <tr><td colspan="9" class="table-empty">No alert data yet.</td></tr>
+                    <tr><td colspan="<?= $isAlertAdmin ? 10 : 9 ?>" class="table-empty">No alert data yet.</td></tr>
                 <?php endif; ?>
                 <?php foreach ($rows as $row): ?>
                     <?php
@@ -99,6 +115,11 @@
                     };
                     ?>
                     <tr>
+                        <?php if ($isAlertAdmin): ?>
+                        <td class="servmon-checkbox-cell">
+                            <input type="checkbox" class="form-check-input" name="alert_ids[]" value="<?= e((string) $row['id']) ?>" data-bulk-checkbox aria-label="Select alert <?= e((string) $row['id']) ?>">
+                        </td>
+                        <?php endif; ?>
                         <td class="font-mono" data-label="ID"><?= e((string) $row['id']) ?></td>
                         <td class="font-mono" data-label="Time"><?= e((string) $row['created_at']) ?></td>
                         <td data-label="Server"><?= e((string) ($row['server_name'] ?? 'global')) ?></td>
@@ -236,3 +257,4 @@
     });
   }
 </script>
+<script src="<?= e(asset_url('assets/js/bulk-select.js')) ?>"></script>

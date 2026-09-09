@@ -168,6 +168,12 @@
       /* Fallback to original sync flow but we must submit manually since we called preventDefault */
       const idsContainer = bulkForm.querySelector("[data-bulk-ids]");
       idsContainer.replaceChildren();
+      // form.submit() skips the submitter button, so carry the action explicitly.
+      const fallbackAction = document.createElement("input");
+      fallbackAction.type = "hidden";
+      fallbackAction.name = "action";
+      fallbackAction.value = action;
+      idsContainer.appendChild(fallbackAction);
       ids.forEach((id) => {
         const input = document.createElement("input");
         input.type = "hidden";
@@ -193,6 +199,12 @@
         /* Build the hidden inputs and submit. */
         var idsContainer = bulkForm.querySelector("[data-bulk-ids]");
         idsContainer.replaceChildren();
+        // form.submit() skips the submitter button, so carry the action explicitly.
+        var actionInput = document.createElement("input");
+        actionInput.type = "hidden";
+        actionInput.name = "action";
+        actionInput.value = action;
+        idsContainer.appendChild(actionInput);
         ids.forEach(function (id) {
           var input = document.createElement("input");
           input.type = "hidden";
