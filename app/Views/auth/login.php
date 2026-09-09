@@ -53,10 +53,6 @@
         </section>
 
         <aside class="login-split-showcase" aria-label="About <?= e(APP_NAME) ?>">
-            <span class="login-split-plus" aria-hidden="true">+</span>
-            <span class="login-split-float login-split-float-users" aria-hidden="true"><i class="ti ti-users"></i></span>
-            <span class="login-split-float login-split-float-tag" aria-hidden="true"><i class="ti ti-tag"></i></span>
-
             <div class="login-split-showcase-inner">
                 <div class="login-split-hero-mark" aria-hidden="true">
                     <?php if ($brandingLogoUrl !== ''): ?>

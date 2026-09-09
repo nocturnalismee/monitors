@@ -4077,12 +4077,7 @@ body.sidebar-collapsed .sidebar-section-title .sidebar-label {
   overflow: hidden;
   padding: 3rem;
   border-left: 1px solid var(--sv-border);
-  background-color: color-mix(in srgb, var(--sv-surface-2) 55%, var(--sv-surface));
-  background-image: radial-gradient(
-    color-mix(in srgb, var(--sv-border) 65%, transparent) 1px,
-    transparent 1px
-  );
-  background-size: 22px 22px;
+  background: var(--sv-surface);
 }
 
 .login-split-showcase-inner {
@@ -4176,42 +4171,6 @@ body.sidebar-collapsed .sidebar-section-title .sidebar-label {
   background: color-mix(in srgb, var(--sv-accent) 12%, transparent);
   color: var(--sv-accent);
   font-size: 1rem;
-}
-
-.login-split-plus {
-  position: absolute;
-  top: 38%;
-  right: 26%;
-  color: var(--sv-muted);
-  font-size: 1.5rem;
-  font-weight: 300;
-  line-height: 1;
-  user-select: none;
-}
-
-.login-split-float {
-  position: absolute;
-  z-index: 1;
-  display: grid;
-  width: 3rem;
-  height: 3rem;
-  place-items: center;
-  font-size: 1.2rem;
-  line-height: 1;
-}
-
-.login-split-float-users {
-  top: 21%;
-  right: 0;
-  background: var(--sv-accent-fill);
-  color: #fff;
-}
-
-.login-split-float-tag {
-  right: 4.5rem;
-  bottom: 22%;
-  background: var(--sv-surface-3);
-  color: var(--sv-accent);
 }
 
 @media (max-width: 991.98px) {
