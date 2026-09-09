@@ -70,7 +70,7 @@ final class BackupWorker
 
         $descriptors = [0 => ['pipe', 'r'], 1 => ['pipe', 'w'], 2 => ['pipe', 'w']];
         $env = ['MYSQL_PWD' => DB_PASS, 'PATH' => (string) getenv('PATH')];
-        $proc = proc_open($cmd, $descriptors, $pipes);
+        $proc = proc_open($cmd, $descriptors, $pipes, null, $env);
         if (!is_resource($proc)) {
             throw new \RuntimeException('Cannot start mysqldump pipeline');
         }
@@ -78,13 +78,21 @@ final class BackupWorker
             fclose($p);
         }
         $exit = proc_close($proc);
+        $errDetail = '';
+        if (is_file($file . '.err')) {
+            $raw = (string) @file_get_contents($file . '.err');
+            $flat = trim((string) preg_replace('/\s+/', ' ', $raw));
+            if ($flat !== '') {
+                $errDetail = ': ' . substr($flat, 0, 300);
+            }
+        }
         @unlink($file . '.err');
         if ($exit !== 0) {
             @unlink($file);
             if ($exit === 127) {
                 throw new \RuntimeException('mysqldump binary not found in PATH');
             }
-            throw new \RuntimeException('mysqldump failed with exit code ' . $exit);
+            throw new \RuntimeException('mysqldump failed with exit code ' . $exit . $errDetail);
         }
     }
 

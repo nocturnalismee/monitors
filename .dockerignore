@@ -1,0 +1,10 @@
+.git/
+.gitignore
+.superpowers/
+storage/*
+!storage/.gitkeep
+config/local.php
+docs/
+tests/
+docker-compose.override.yml
+*.md

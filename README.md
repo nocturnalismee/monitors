@@ -84,9 +84,13 @@ monitors/
 ├── agents/                  # Push monitoring bash agents & systemd daemon units
 ├── config/                  # Bootstrap chain & local environment loader
 ├── database/                # Canonical schema.sql, seed data, and versioned migrations
+├── docker/                  # Container support (entrypoint, php.ini, apache conf)
+├── docs/                    # Usage docs (docker.md, screenshots)
 ├── public/                  # Document Root (index.php, install.php, router.php, assets/)
 ├── routes/                  # Clean URL route declarations (web.php, api_*.php)
-├── storage/                 # Runtime logs, cache, exports, and rate-limit locks
+├── Dockerfile               # PHP 8.2 + Apache + cron workers image
+├── docker-compose.yml       # Full stack: app + MySQL 8.0 + Redis
+├── storage/                 # Runtime logs, cache, exports, backups, and rate-limit locks
 ├── tests/                   # Architecture, helper, and schema consistency test suites
 └── workers/                 # CLI entry points for cron execution
 ```
@@ -99,6 +103,7 @@ monitors/
 * **PHP 8.2+** with extensions: `pdo`, `pdo_mysql`, `openssl`, `mbstring`, `curl`
 * **MySQL 8.0+** or **MariaDB 10.5+**
 * Web Server: **Nginx** (recommended) or **Apache** with `mod_rewrite`
+* *Alternatively*: **Docker + Docker Compose** (Method B below — no PHP/MySQL needed on the host)
 
 ---
 
@@ -119,11 +124,30 @@ monitors/
    http://your-server-ip-or-domain/install.php
    ```
 5. Follow the step-by-step setup wizard to configure your database and create the initial administrator account.
-6. **Security Note**: Once installation succeeds, delete or rename `public/install.php`.
+6. **Security Note**: Once installation succeeds, create `config/.installer-locked` (or delete/rename `public/install.php`) to disable the installer. A reminder banner is shown to admins while the installer stays reachable.
 
 ---
 
-### Method B: Manual CLI Setup
+### Method B: Docker Compose (Full Stack)
+
+No PHP/MySQL setup needed on the host — includes the app, MySQL 8.0, Redis, and all background workers via container cron:
+
+```bash
+git clone https://github.com/nocturnalismee/monitors.git
+cd monitors
+
+export DB_PASSWORD="strong-password-here"
+export DB_ROOT_PASSWORD="strong-root-password"
+export APP_KEY="$(php -r 'echo bin2hex(random_bytes(32)), PHP_EOL;')"
+
+docker compose up -d --build
+```
+
+Then open `http://localhost:8010/install.php` (Database host: `db`, port: `3306`, name: `servmon`, user: `servmon`, password: your `DB_PASSWORD`) and follow the wizard. See [`docs/docker.md`](docs/docker.md) for details, updates, and useful commands.
+
+---
+
+### Method C: Manual CLI Setup
 
 1. Copy the example configuration:
    ```bash
@@ -185,7 +209,10 @@ Add the following entries to your crontab (`crontab -e -u www-data`):
 30 0 * * *  php /path/to/monitors/workers/partition-maintain.php >/dev/null 2>&1
 30 2 * * *  php /path/to/monitors/workers/disk-cleanup.php >/dev/null 2>&1
 0 3 * * *   php /path/to/monitors/workers/cleanup.php >/dev/null 2>&1
+15 1 * * *  php /path/to/monitors/workers/backup.php >/dev/null 2>&1
 ```
+
+The nightly `backup.php` worker writes a gzipped `mysqldump` to `storage/backups/` with 30-day retention (tunable via the `backup_retention_days` setting).
 
 ---
 
