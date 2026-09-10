@@ -1,28 +1,15 @@
-function parseTimestampMs(input) {
-  if (!input) return null;
-  const text = String(input).trim();
-  const ms = Date.parse(text.includes("T") ? text : text.replace(" ", "T"));
-  return Number.isFinite(ms) ? ms : null;
-}
-
-function getThemeColor(varName, fallback) {
-  const css = getComputedStyle(document.documentElement);
-  const value = css.getPropertyValue(varName).trim();
-  return value || fallback;
-}
-
 function getChartPalette() {
   const theme = document.documentElement.getAttribute("data-bs-theme") || "dark";
   const isLight = theme === "light";
   return {
-    text: getThemeColor("--sv-text", isLight ? "#0f172a" : "#e9e9e9"),
-    muted: getThemeColor("--sv-muted", isLight ? "#475569" : "#9a9a9a"),
+    text: ServMon.getThemeColor("--sv-text", isLight ? "#0f172a" : "#e9e9e9"),
+    muted: ServMon.getThemeColor("--sv-muted", isLight ? "#475569" : "#9a9a9a"),
     grid: isLight ? "rgba(15,23,42,0.08)" : "rgba(148,163,184,0.16)",
     axis: isLight ? "rgba(15,23,42,0.2)" : "rgba(148,163,184,0.25)",
-    surface: getThemeColor("--sv-surface-2", isLight ? "#f1f5f9" : "#232323"),
-    border: getThemeColor("--sv-border", isLight ? "#cbd5e1" : "#333333"),
-    accent: getThemeColor("--sv-chart-1", "#2dd4bf"),
-    danger: getThemeColor("--sv-danger", "#ef4444"),
+    surface: ServMon.getThemeColor("--sv-surface-2", isLight ? "#f1f5f9" : "#232323"),
+    border: ServMon.getThemeColor("--sv-border", isLight ? "#cbd5e1" : "#333333"),
+    accent: ServMon.getThemeColor("--sv-chart-1", "#2dd4bf"),
+    danger: ServMon.getThemeColor("--sv-danger", "#ef4444"),
   };
 }
 
@@ -44,7 +31,7 @@ function normalizeRows(payload) {
   if (!Array.isArray(payload)) return [];
   return payload
     .map((row) => {
-      const ts = parseTimestampMs(row.checked_at);
+      const ts = ServMon.parseTimestampMs(row.checked_at);
       const status = String(row.status || "down");
       const latency = Number(row.latency_ms);
       return {

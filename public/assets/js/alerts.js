@@ -6,6 +6,9 @@ const FRESH_ALERT_WINDOW_MS = 2 * 60 * 1000;
 let servmonLastAlertId = Number(localStorage.getItem(STORAGE_KEY)) || 0;
 let servmonAlertsInitialized = servmonLastAlertId > 0;
 
+// Depends on: common.js (ServMon namespace, loaded via layouts/head.php).
+const SM = window.ServMon;
+
 function playAlertBeep() {
   if (window.SERVMON_ALERT_SOUND_ENABLED === false) return;
   const url = window.SERVMON_ALERT_SOUND_URL || "";
@@ -40,14 +43,7 @@ function showAlertToast(alert) {
   }
 
   const div = document.createElement("div");
-  const severity =
-    alert.severity === "danger"
-      ? "danger"
-      : alert.severity === "warning"
-        ? "warning"
-        : alert.severity === "success"
-          ? "success"
-          : "info";
+  const severity = SM.alertSeverity(alert.severity);
   const closeBtnClass =
     severity === "warning" || severity === "info"
       ? "btn-close"
@@ -59,8 +55,8 @@ function showAlertToast(alert) {
   div.innerHTML = `
     <div class="d-flex">
       <div class="toast-body">
-        <strong>${escapeHtml(alert.title || "Alert")}</strong><br>
-        ${escapeHtml(alert.message || "")}
+        <strong>${SM.escapeHtml(alert.title || "Alert")}</strong><br>
+        ${SM.escapeHtml(alert.message || "")}
       </div>
       <button type="button" class="${closeBtnClass} me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
     </div>
@@ -68,12 +64,6 @@ function showAlertToast(alert) {
   container.appendChild(div);
   const toast = new bootstrap.Toast(div, { delay: 12000 });
   toast.show();
-}
-
-function escapeHtml(input) {
-  const el = document.createElement("div");
-  el.textContent = input ?? "";
-  return el.innerHTML;
 }
 
 function isFreshAlert(alert) {

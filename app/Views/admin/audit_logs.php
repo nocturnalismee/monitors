@@ -150,18 +150,4 @@
     </div>
 </div>
 
-<script<?= csp_nonce_attr() ?>>
-  const auditModal = document.getElementById('auditContextModal');
-  if (auditModal) {
-    auditModal.addEventListener('show.bs.modal', (event) => {
-      const btn = event.relatedTarget;
-      const contextRaw = btn.getAttribute('data-audit-context') || '{}';
-      let contextPretty = contextRaw;
-      try {
-        contextPretty = JSON.stringify(JSON.parse(contextRaw), null, 2);
-      } catch (e) {}
-      document.getElementById('auditContextContent').textContent = contextPretty;
-    });
-  }
-</script>
 <script src="<?= e(asset_url('assets/js/bulk-select.js')) ?>"></script>

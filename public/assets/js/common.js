@@ -326,4 +326,179 @@ window.ServMon = window.ServMon || {};
 
     return `<svg class="cpu-sparkline" width="${width}" height="${height}" role="img" aria-label="CPU load trend, latest ${ns.escapeHtml(latestLoad.toFixed(2))}"><title>CPU load trend, latest ${ns.escapeHtml(latestLoad.toFixed(2))}</title><polyline fill="none" stroke="${strokeColor}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" points="${points.trim()}"/></svg>`;
   };
+  // ── Alert severity normalization ───────────────────────────────────
+  // Shared by alerts.js (toast) and notification-center.js (bell list).
+  ns.alertSeverity = function (severity) {
+    if (severity === "danger" || severity === "warning" || severity === "success") {
+      return severity;
+    }
+    return "info";
+  };
+
+  // ── Timestamp / theme helpers ──────────────────────────────────────
+  // Shared by detail.js (server charts) and ping-detail.js (ping charts).
+  ns.parseTimestampMs = function (ts) {
+    if (!ts) return null;
+    const text = String(ts).trim();
+    const ms = Date.parse(text.includes("T") ? text : text.replace(" ", "T"));
+    return Number.isFinite(ms) ? ms : null;
+  };
+
+  ns.getThemeColor = function (varName, fallback) {
+    const value = getComputedStyle(document.documentElement).getPropertyValue(varName).trim();
+    return value || fallback;
+  };
+
+  ns.prettyJson = function (raw) {
+    try {
+      return JSON.stringify(JSON.parse(raw), null, 2);
+    } catch (e) {
+      return raw;
+    }
+  };
+
+  // ── Clickable table rows ───────────────────────────────────────────
+  // Shared by dashboard.js (server table) and disk_health.php (disk table).
+  // Rows carry the target in data-detail-url. Interactive descendants
+  // (links, buttons, inputs) are never hijacked.
+  ns.wireRowNavigation = function (container) {
+    const root = typeof container === "string" ? document.querySelector(container) : container;
+    if (!root) return;
+    const goToRowDetail = (row) => {
+      const detailUrl = row.getAttribute("data-detail-url");
+      if (detailUrl) window.location.assign(detailUrl);
+    };
+    root.addEventListener("click", (event) => {
+      if (event.target.closest("a,button,input,select,textarea,label")) return;
+      const row = event.target.closest("tr[data-detail-url]");
+      if (row) goToRowDetail(row);
+    });
+    root.addEventListener("keydown", (event) => {
+      if (event.key !== "Enter" && event.key !== " ") return;
+      const row = event.target.closest("tr[data-detail-url]");
+      if (!row) return;
+      event.preventDefault();
+      goToRowDetail(row);
+    });
+  };
+
+  // ── IP reputation Check-Now ────────────────────────────────────────
+  // Shared by the list page (ip-reputation.js) and the detail page
+  // (ip-reputation-detail.js). Bound once here so the two page scripts
+  // can never double-fire on the same button.
+  ns.bindIpRepCheckNow = function () {
+    document.addEventListener("click", (event) => {
+      const btn = event.target.closest("[data-ip-rep-check-now]");
+      const apiUrl = window.SERVMON_IP_REP_API || "";
+      if (!btn || !apiUrl) return;
+      const targetId = btn.getAttribute("data-ip-rep-check-now");
+      if (!targetId || btn.disabled) return;
+      const ip = btn.getAttribute("data-ip") || "";
+
+      btn.disabled = true;
+      const origHtml = btn.innerHTML;
+      btn.innerHTML = `<i class="ti ti-loader-2 ti-spin me-1"></i>Checking${ip ? ` ${ns.escapeHtml(ip)}` : ""}…`;
+
+      fetch(`${apiUrl}?action=check_now&id=${encodeURIComponent(targetId)}`, {
+        method: "POST",
+        credentials: "same-origin",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: new URLSearchParams({ _csrf_token: window.SERVMON_CSRF_TOKEN || "" }),
+      })
+        .then((r) => r.json())
+        .then((data) => {
+          if (data && data.success) {
+            const status = (data.result && data.result.overall_status) || "";
+            btn.innerHTML = `<i class="ti ti-check me-1"></i>${status ? ns.escapeHtml(String(status).toUpperCase()) : "Done"}`;
+            setTimeout(() => window.location.reload(), 1200);
+          } else {
+            btn.innerHTML = '<i class="ti ti-alert-triangle me-1"></i>Failed';
+            setTimeout(() => {
+              btn.innerHTML = origHtml;
+              btn.disabled = false;
+            }, 3000);
+          }
+        })
+        .catch(() => {
+          btn.innerHTML = '<i class="ti ti-alert-triangle me-1"></i>Error';
+          setTimeout(() => {
+            btn.innerHTML = origHtml;
+            btn.disabled = false;
+          }, 3000);
+        });
+    });
+  };
+
+  // ── Auto behaviors (replaces per-page inline scripts) ─────────────
+  // login.php password toggle, server_setup.php copy-to-clipboard, and the
+  // alert/audit JSON detail modals. All guarded by element presence.
+  ns.bindAutoBehaviors = function () {
+    document.querySelectorAll("[data-password-toggle]").forEach((button) => {
+      button.addEventListener("click", () => {
+        const input = document.getElementById(button.getAttribute("data-password-toggle"));
+        if (!input) return;
+        const isPassword = input.type === "password";
+        input.type = isPassword ? "text" : "password";
+        button.setAttribute("aria-label", isPassword ? "Hide password" : "Show password");
+        button.setAttribute("title", isPassword ? "Hide password" : "Show password");
+        const icon = button.querySelector("i");
+        if (icon) icon.className = isPassword ? "ti ti-eye-off" : "ti ti-eye";
+      });
+    });
+
+    document.addEventListener("click", async (event) => {
+      const btn = event.target.closest("[data-copy-text]");
+      if (!btn) return;
+      const value = btn.getAttribute("data-copy-text") || "";
+      const prev = btn.textContent;
+      try {
+        await navigator.clipboard.writeText(value);
+      } catch (e) {
+        const textarea = document.createElement("textarea");
+        textarea.value = value;
+        textarea.style.position = "fixed";
+        textarea.style.opacity = "0";
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand("copy");
+        document.body.removeChild(textarea);
+      }
+      btn.textContent = "Copied";
+      window.setTimeout(() => {
+        btn.textContent = prev;
+      }, 1000);
+    });
+
+    const alertModal = document.getElementById("alertDetailModal");
+    if (alertModal) {
+      alertModal.addEventListener("show.bs.modal", (event) => {
+        const btn = event.relatedTarget;
+        const title = btn.getAttribute("data-alert-title") || "Alert Details";
+        const message = btn.getAttribute("data-alert-message") || "";
+        const contextRaw = btn.getAttribute("data-alert-context") || "{}";
+        document.getElementById("alertDetailTitle").textContent = title;
+        document.getElementById("alertDetailMessage").textContent = message;
+        document.getElementById("alertDetailContext").textContent = ns.prettyJson(contextRaw);
+      });
+    }
+
+    const auditModal = document.getElementById("auditContextModal");
+    if (auditModal) {
+      auditModal.addEventListener("show.bs.modal", (event) => {
+        const btn = event.relatedTarget;
+        const contextRaw = btn.getAttribute("data-audit-context") || "{}";
+        document.getElementById("auditContextContent").textContent = ns.prettyJson(contextRaw);
+      });
+    }
+  };
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", () => {
+      ns.bindAutoBehaviors();
+      ns.bindIpRepCheckNow();
+    });
+  } else {
+    ns.bindAutoBehaviors();
+    ns.bindIpRepCheckNow();
+  }
 })(window.ServMon);

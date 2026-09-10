@@ -13,14 +13,15 @@
   const canMutateAlerts = window.SERVMON_USER_ROLE === 'admin';
   if (!canMutateAlerts && readAll) readAll.style.display = 'none';
 
+  // Depends on: common.js (ServMon namespace, loaded via layouts/head.php).
+  const SM = window.ServMon;
+
   function escapeHtml(value) {
-    const node = document.createElement('div');
-    node.textContent = value ?? '';
-    return node.innerHTML;
+    return SM.escapeHtml(value);
   }
 
   function severityClass(severity) {
-    return ['danger', 'warning', 'success'].includes(severity) ? severity : 'info';
+    return SM.alertSeverity(severity);
   }
 
   function render(data) {

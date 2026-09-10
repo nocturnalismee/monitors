@@ -5,6 +5,7 @@ namespace App\Controllers\Admin;
 
 use App\Http\Request;
 use App\Http\Response;
+use App\Services\Validation\PingValidator;
 use App\Support\View;
 
 final class PingEditController
@@ -22,28 +23,25 @@ final class PingEditController
 
         if ($request->isPost()) {
             // CSRF single-guard: enforced by csrf middleware.
-            $name = trim((string) ($request->input('name') ?? ''));
-            $target = ping_normalize_target((string) ($request->input('target') ?? ''));
-            $targetType = ping_normalize_target_type((string) ($request->input('target_type') ?? 'domain'));
-            $checkMethod = ping_normalize_check_method((string) ($request->input('check_method') ?? 'icmp'));
-            if ($checkMethod === 'http') {
-                $targetType = 'url';
-            } elseif ($targetType === 'url') {
-                $targetType = 'domain';
-            }
-            $intervalSeconds = max(30, min(3600, (int) ($request->input('check_interval_seconds') ?? 60)));
-            $timeoutSeconds = max(1, min(10, (int) ($request->input('timeout_seconds') ?? 2)));
-            $failureThreshold = max(1, min(10, (int) ($request->input('failure_threshold') ?? 2)));
-            $active = $request->input('active') !== null ? 1 : 0;
-
-            if ($name === '') {
-                flash_set('danger', 'Monitor name is required.');
-                redirect('ping/' . $id . '/edit');
-            }
-            if (!ping_validate_target($target, $targetType, $checkMethod)) {
-                flash_set('danger', 'Invalid ping target for selected type.');
-                redirect('ping/' . $id . '/edit');
-            }
+            [
+                'name' => $name,
+                'target' => $target,
+                'target_type' => $targetType,
+                'check_method' => $checkMethod,
+                'check_interval_seconds' => $intervalSeconds,
+                'timeout_seconds' => $timeoutSeconds,
+                'failure_threshold' => $failureThreshold,
+                'active' => $active,
+            ] = PingValidator::validateMonitor([
+                'name' => $request->input('name'),
+                'target' => $request->input('target'),
+                'target_type' => $request->input('target_type'),
+                'check_method' => $request->input('check_method'),
+                'check_interval_seconds' => $request->input('check_interval_seconds'),
+                'timeout_seconds' => $request->input('timeout_seconds'),
+                'failure_threshold' => $request->input('failure_threshold'),
+                'active' => $request->input('active'),
+            ], 'ping/' . $id . '/edit');
 
             db_exec(
                 'UPDATE ping_monitors

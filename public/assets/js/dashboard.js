@@ -369,26 +369,9 @@ function cycleSort(key) {
 }
 
 function wireDashboardRowNavigation() {
-  const tableBody = document.querySelector("[data-server-table]");
-  if (!tableBody) return;
-
-  tableBody.addEventListener("click", (event) => {
-    const row = event.target.closest("tr[data-detail-url]");
-    if (!row) return;
-    const detailUrl = row.getAttribute("data-detail-url");
-    if (!detailUrl) return;
-    window.location.href = detailUrl;
-  });
-
-  tableBody.addEventListener("keydown", (event) => {
-    if (event.key !== "Enter" && event.key !== " ") return;
-    const row = event.target.closest("tr[data-detail-url]");
-    if (!row) return;
-    const detailUrl = row.getAttribute("data-detail-url");
-    if (!detailUrl) return;
-    event.preventDefault();
-    window.location.href = detailUrl;
-  });
+  // Shared helper (common.js) ignores clicks on interactive descendants;
+  // dashboard rows contain no links/buttons, so behavior is unchanged.
+  SM.wireRowNavigation("[data-server-table]");
 }
 
 async function refreshServerTable() {

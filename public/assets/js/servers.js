@@ -8,30 +8,15 @@
   const pagination = document.querySelector("[data-server-pagination]");
   const emptyRow = document.querySelector("[data-server-empty]");
   const filterEmptyRow = document.querySelector("[data-server-filter-empty]");
-  const bulkBar = document.querySelector("[data-bulk-bar]");
-  const bulkCount = document.querySelector("[data-bulk-count]");
-  const bulkForm = document.querySelector("[data-server-bulk-form]");
-  const checkAll = document.querySelector("[data-server-checkall]");
   if (!searchInput || !statusFilter || !pagination) return;
 
   const pageSize = 20;
   let currentPage = 1;
 
-  function getSelectedCheckboxes() {
-    return Array.from(document.querySelectorAll("[data-server-checkbox]:checked")).filter((cb) => !cb.disabled);
-  }
-
-  function updateBulkBar() {
-    if (!bulkBar) return;
-    const selected = getSelectedCheckboxes();
-    bulkBar.hidden = selected.length < 1;
-    if (bulkCount) bulkCount.textContent = `${selected.length} selected`;
-    if (checkAll) {
-      const visible = Array.from(document.querySelectorAll("[data-server-checkbox]")).filter((cb) => !cb.disabled);
-      const checked = visible.filter((cb) => cb.checked).length;
-      checkAll.checked = visible.length > 0 && checked === visible.length;
-      checkAll.indeterminate = checked > 0 && checked < visible.length;
-    }
+  function refreshBulkBar() {
+    // Bulk selection (check-all, counter bar, confirm submit) is handled by
+    // bulk-select.js; filtering only enables/disables row checkboxes here.
+    document.dispatchEvent(new CustomEvent("servmon:bulk-refresh"));
   }
 
   function getFilteredRows() {
@@ -87,11 +72,11 @@
     const visibleRows = new Set(filteredRows.slice(start, start + pageSize));
 
     rows.forEach((row) => {
-      row.hidden = !visibleRows.has(row);
-      row.querySelectorAll("[data-server-checkbox]").forEach((cb) => {
-        cb.disabled = row.hidden;
-      });
+    row.hidden = !visibleRows.has(row);
+    row.querySelectorAll("[data-bulk-checkbox]").forEach((cb) => {
+      cb.disabled = row.hidden;
     });
+  });
     if (emptyRow) emptyRow.hidden = rows.length > 0;
     if (filterEmptyRow) filterEmptyRow.hidden = rows.length === 0 || filteredRows.length > 0;
 
@@ -103,7 +88,7 @@
       ? (hasFilter ? "No servers match the current filter." : "No servers available yet.")
       : `Showing ${rangeStart}–${rangeEnd}`;
     renderPagination(totalPages);
-    updateBulkBar();
+    refreshBulkBar();
   }
 
   searchInput.addEventListener("input", () => {
@@ -128,100 +113,6 @@
     if (!button || button.disabled) return;
     currentPage = Number(button.dataset.serverPage || 1);
     render();
-  });
-
-  checkAll?.addEventListener("change", () => {
-    document.querySelectorAll("[data-server-checkbox]").forEach((cb) => {
-      if (!cb.disabled) cb.checked = checkAll.checked;
-    });
-    updateBulkBar();
-  });
-
-  document.addEventListener("change", (event) => {
-    if (event.target.closest("[data-server-checkbox]")) {
-      updateBulkBar();
-    }
-  });
-
-  bulkForm?.addEventListener("submit", (event) => {
-    const button = event.submitter instanceof HTMLElement ? event.submitter.closest("[data-bulk-submit]") : null;
-    if (!button) return;
-    const ids = getSelectedCheckboxes()
-      .map((cb) => cb.value)
-      .filter((value) => value);
-    if (ids.length === 0) {
-      event.preventDefault();
-      return;
-    }
-    const action = button.getAttribute("value") || "";
-    let message;
-    if (action === "batch_delete") {
-      message = `Delete ${ids.length} selected server(s) and all related metrics?`;
-    } else {
-      const verb = action === "batch_enable" ? "enable" : "disable";
-      message = `Turn ${verb} monitoring for ${ids.length} selected server(s)?`;
-    }
-    event.preventDefault();
-    var modalEl = document.getElementById("servmonConfirmModal");
-    if (!modalEl || typeof bootstrap === "undefined") {
-      if (!window.confirm(message)) return;
-      /* Fallback to original sync flow but we must submit manually since we called preventDefault */
-      const idsContainer = bulkForm.querySelector("[data-bulk-ids]");
-      idsContainer.replaceChildren();
-      // form.submit() skips the submitter button, so carry the action explicitly.
-      const fallbackAction = document.createElement("input");
-      fallbackAction.type = "hidden";
-      fallbackAction.name = "action";
-      fallbackAction.value = action;
-      idsContainer.appendChild(fallbackAction);
-      ids.forEach((id) => {
-        const input = document.createElement("input");
-        input.type = "hidden";
-        input.name = "server_ids[]";
-        input.value = id;
-        idsContainer.appendChild(input);
-      });
-      bulkForm.submit();
-    } else {
-      var bsModal = bootstrap.Modal.getOrCreateInstance(modalEl);
-      var bodyEl = document.getElementById("servmonConfirmModalBody");
-      if (bodyEl) bodyEl.textContent = message;
-      var proceedBtn = document.getElementById("servmonConfirmModalProceed");
-      if (proceedBtn) {
-        var isDelete = action === "batch_delete";
-        proceedBtn.textContent = isDelete ? "Delete" : "Disable";
-        proceedBtn.className = isDelete ? "btn btn-danger" : "btn btn-warning";
-      }
-      /* Store a one-time handler for the proceed click. */
-      var handler = function () {
-        proceedBtn.removeEventListener("click", handler);
-        bsModal.hide();
-        /* Build the hidden inputs and submit. */
-        var idsContainer = bulkForm.querySelector("[data-bulk-ids]");
-        idsContainer.replaceChildren();
-        // form.submit() skips the submitter button, so carry the action explicitly.
-        var actionInput = document.createElement("input");
-        actionInput.type = "hidden";
-        actionInput.name = "action";
-        actionInput.value = action;
-        idsContainer.appendChild(actionInput);
-        ids.forEach(function (id) {
-          var input = document.createElement("input");
-          input.type = "hidden";
-          input.name = "server_ids[]";
-          input.value = id;
-          idsContainer.appendChild(input);
-        });
-        bulkForm.submit();
-      };
-      proceedBtn.addEventListener("click", handler);
-      modalEl.addEventListener("hidden.bs.modal", function cleanup() {
-        modalEl.removeEventListener("hidden.bs.modal", cleanup);
-        proceedBtn.removeEventListener("click", handler);
-      });
-      bsModal.show();
-      return;
-    }
   });
 
   render();

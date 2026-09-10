@@ -14,7 +14,7 @@
         <div class="alert alert-info">Viewer mode: server changes are restricted to admin users.</div>
     <?php endif; ?>
 
-    <section class="card card-neon" data-ui-section>
+    <section class="card card-neon" data-ui-section data-bulk-select data-bulk-input-name="server_ids[]">
         <div class="card-header bg-surface-2 border-soft d-flex justify-content-between align-items-center gap-2 flex-wrap">
             <h2 class="h6 mb-0">Servers</h2>
             <span class="text-secondary small" data-server-result-count></span>
@@ -43,16 +43,16 @@
         <?php if ($canManageServers): ?>
         <div class="bulk-action-bar" data-bulk-bar hidden>
             <span class="small text-secondary" data-bulk-count>0 selected</span>
-            <form method="post" data-server-bulk-form class="d-flex flex-wrap gap-2">
+            <form method="post" data-bulk-form class="d-flex flex-wrap gap-2">
                 <?= csrf_input() ?>
                 <div data-bulk-ids hidden></div>
-                <button type="submit" name="action" value="batch_enable" class="btn btn-sm btn-soft" data-bulk-submit>
+                <button type="submit" name="action" value="batch_enable" class="btn btn-sm btn-soft" data-bulk-submit data-bulk-confirm="Turn on monitoring for {n} selected server(s)?" data-bulk-proceed-label="Enable" data-bulk-proceed-class="btn btn-success">
                     <i class="ti ti-player-play me-1" aria-hidden="true"></i>Enable
                 </button>
-                <button type="submit" name="action" value="batch_disable" class="btn btn-sm btn-soft text-warning" data-bulk-submit>
+                <button type="submit" name="action" value="batch_disable" class="btn btn-sm btn-soft text-warning" data-bulk-submit data-bulk-confirm="Turn off monitoring for {n} selected server(s)?" data-bulk-proceed-label="Disable" data-bulk-proceed-class="btn btn-warning">
                     <i class="ti ti-player-pause me-1" aria-hidden="true"></i>Disable
                 </button>
-                <button type="submit" name="action" value="batch_delete" class="btn btn-sm btn-soft text-danger" data-bulk-submit>
+                <button type="submit" name="action" value="batch_delete" class="btn btn-sm btn-soft text-danger" data-bulk-submit data-bulk-confirm="Delete {n} selected server(s) and all related metrics?" data-bulk-proceed-label="Delete" data-bulk-proceed-class="btn btn-danger">
                     <i class="ti ti-trash me-1" aria-hidden="true"></i>Delete
                 </button>
             </form>
@@ -63,7 +63,7 @@
                 <thead>
                 <tr>
                     <?php if ($canManageServers): ?>
-                    <th class="servmon-checkbox-cell"><input type="checkbox" class="form-check-input" data-server-checkall aria-label="Select all servers"></th>
+                    <th class="servmon-checkbox-cell"><input type="checkbox" class="form-check-input" data-bulk-checkall aria-label="Select all servers"></th>
                     <?php endif; ?>
                     <th>Name</th>
                     <th>Host</th>
@@ -101,7 +101,7 @@
                     <tr data-server-row data-server-status="<?= e($status) ?>" data-server-search="<?= e(strtolower(implode(' ', array_map(static fn ($value): string => (string) ($value ?? ''), [$row['name'], $row['host'], $row['location'], $row['provider'], $row['label'], $row['type'], $row['panel_profile']])) )) ?>">
                         <?php if ($canManageServers): ?>
                         <td class="servmon-checkbox-cell">
-                            <input type="checkbox" class="form-check-input" name="server_ids[]" value="<?= e((string) $row['id']) ?>" data-server-checkbox aria-label="Select <?= e((string) $row['name']) ?>">
+                            <input type="checkbox" class="form-check-input" name="server_ids[]" value="<?= e((string) $row['id']) ?>" data-bulk-checkbox aria-label="Select <?= e((string) $row['name']) ?>">
                         </td>
                         <?php endif; ?>
                         <td>
@@ -205,3 +205,4 @@
 </main>
 <script src="<?= e(asset_url('assets/js/forms.js')) ?>"></script>
 <script src="<?= e(asset_url('assets/js/servers.js')) ?>"></script>
+<script src="<?= e(asset_url('assets/js/bulk-select.js')) ?>"></script>

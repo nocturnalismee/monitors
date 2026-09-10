@@ -239,22 +239,4 @@
     </div>
 </div>
 
-<script<?= csp_nonce_attr() ?>>
-  const modal = document.getElementById('alertDetailModal');
-  if (modal) {
-    modal.addEventListener('show.bs.modal', (event) => {
-      const btn = event.relatedTarget;
-      const title = btn.getAttribute('data-alert-title') || 'Alert Details';
-      const message = btn.getAttribute('data-alert-message') || '';
-      const contextRaw = btn.getAttribute('data-alert-context') || '{}';
-      let contextPretty = contextRaw;
-      try {
-        contextPretty = JSON.stringify(JSON.parse(contextRaw), null, 2);
-      } catch (e) {}
-      document.getElementById('alertDetailTitle').textContent = title;
-      document.getElementById('alertDetailMessage').textContent = message;
-      document.getElementById('alertDetailContext').textContent = contextPretty;
-    });
-  }
-</script>
 <script src="<?= e(asset_url('assets/js/bulk-select.js')) ?>"></script>

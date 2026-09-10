@@ -70,13 +70,6 @@ function toNumber(value, fallback = 0) {
   return Number.isFinite(n) ? n : fallback;
 }
 
-function parseTimestampMs(ts) {
-  if (!ts) return null;
-  const text = String(ts).trim();
-  const ms = Date.parse(text.includes("T") ? text : text.replace(" ", "T"));
-  return Number.isFinite(ms) ? ms : null;
-}
-
 function formatBytes(bytes, decimals = 2) {
   const n = toNumber(bytes, 0);
   if (n <= 0) return "0 B";
@@ -112,27 +105,22 @@ function formatTimeTick(ts) {
   return `${hh}:${mm}`;
 }
 
-function getThemeColor(varName, fallback) {
-  const value = getComputedStyle(document.documentElement).getPropertyValue(varName).trim();
-  return value || fallback;
-}
-
 function getChartPalette() {
   const theme = document.documentElement.getAttribute("data-bs-theme") || "dark";
   const isLight = theme === "light";
   return {
-    text: getThemeColor("--sv-text", isLight ? "#0f172a" : "#e5e7eb"),
-    textMuted: getThemeColor("--sv-muted", isLight ? "#475569" : "#94a3b8"),
+    text: ServMon.getThemeColor("--sv-text", isLight ? "#0f172a" : "#e5e7eb"),
+    textMuted: ServMon.getThemeColor("--sv-muted", isLight ? "#475569" : "#94a3b8"),
     grid: isLight ? "rgba(15,23,42,0.08)" : "rgba(148,163,184,0.14)",
     axis: isLight ? "rgba(15,23,42,0.18)" : "rgba(148,163,184,0.22)",
-    tooltipBg: getThemeColor("--sv-surface-2", isLight ? "#f1f5f9" : "#1f2937"),
-    tooltipBorder: getThemeColor("--sv-border", isLight ? "#cbd5e1" : "#334155"),
-    tooltipText: getThemeColor("--sv-text", isLight ? "#0f172a" : "#e5e7eb"),
-    series1: getThemeColor("--sv-chart-1", "#38bdf8"),
-    series2: getThemeColor("--sv-chart-2", "#f59e0b"),
-    series3: getThemeColor("--sv-chart-3", "#ef4444"),
-    series4: getThemeColor("--sv-chart-4", "#22c55e"),
-    series5: getThemeColor("--sv-chart-5", "#a78bfa"),
+    tooltipBg: ServMon.getThemeColor("--sv-surface-2", isLight ? "#f1f5f9" : "#1f2937"),
+    tooltipBorder: ServMon.getThemeColor("--sv-border", isLight ? "#cbd5e1" : "#334155"),
+    tooltipText: ServMon.getThemeColor("--sv-text", isLight ? "#0f172a" : "#e5e7eb"),
+    series1: ServMon.getThemeColor("--sv-chart-1", "#38bdf8"),
+    series2: ServMon.getThemeColor("--sv-chart-2", "#f59e0b"),
+    series3: ServMon.getThemeColor("--sv-chart-3", "#ef4444"),
+    series4: ServMon.getThemeColor("--sv-chart-4", "#22c55e"),
+    series5: ServMon.getThemeColor("--sv-chart-5", "#a78bfa"),
   };
 }
 
@@ -148,7 +136,7 @@ function normalizeRows(payload) {
     const recorded_at = String(row.recorded_at || "");
     return {
       recorded_at,
-      ts: parseTimestampMs(recorded_at),
+      ts: ServMon.parseTimestampMs(recorded_at),
       ram_used: toNumber(row.ram_used, 0),
       hdd_used: toNumber(row.hdd_used, 0),
       cpu_load: toNumber(row.cpu_load, 0),
