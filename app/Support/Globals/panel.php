@@ -32,6 +32,30 @@ function panel_brand(string $raw): array
 }
 
 /**
+ * Brand map for client-side row rendering (dashboard.js, public.js).
+ * Same source of truth as panel_brand(), with versioned logo URLs.
+ * Unknown values are handled JS-side with a generic fallback.
+ *
+ * @return array<string, array{slug: string, label: string, logo: string|null, logo_dark: string|null}>
+ */
+function panel_brands_for_js(): array
+{
+    $keys = ['cpanel', 'cpanel_mail', 'cpanel_email', 'plesk', 'directadmin', 'cyberpanel', 'cybperpanel', 'aapanel', 'generic'];
+    $out = [];
+    foreach ($keys as $key) {
+        $brand = panel_brand($key);
+        if ($brand['logo'] !== null) {
+            $brand['logo'] = asset_url($brand['logo']);
+        }
+        if ($brand['logo_dark'] !== null) {
+            $brand['logo_dark'] = asset_url($brand['logo_dark']);
+        }
+        $out[$key] = $brand;
+    }
+    return $out;
+}
+
+/**
  * Render a logo + label chip for a panel_profile value. All output escaped.
  */
 function panel_brand_chip(string $raw, string $extraClass = ''): string

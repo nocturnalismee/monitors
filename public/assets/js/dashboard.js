@@ -125,7 +125,7 @@ function renderAdminRowCells(s) {
     </td>
     <td>${SM.renderUsageCell(s.ram_used, s.ram_total, "RAM")}</td>
     <td>${SM.renderUsageCell(s.hdd_used, s.hdd_total, "Disk")}</td>
-    <td class="d-none d-xl-table-cell"><code>${SM.escapeHtml(s.panel_profile ?? "generic")}</code></td>
+    <td class="d-none d-xl-table-cell">${SM.panelBrandChip(s.panel_profile)}</td>
     <td>${renderServiceSummary(serviceSummary)}</td>
     <td>
       <div class="net-line"><i class="ti ti-arrow-down" aria-label="In"></i> <span class="font-mono">${SM.escapeHtml(SM.formatBps(s.network_in_bps))}</span></div>

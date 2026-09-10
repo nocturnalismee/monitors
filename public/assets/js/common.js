@@ -43,6 +43,31 @@ window.ServMon = window.ServMon || {};
     return `${Number.isFinite(queue) ? Math.max(0, Math.trunc(queue)) : 0}`;
   };
 
+  // ── Panel brand chip ───────────────────────────────────────────────
+  // Mirrors PHP panel_brand_chip(). Brand data comes from
+  // window.SERVMON_PANEL_BRANDS (see panel_brands_for_js()).
+  ns.panelBrandChip = function (profile, extraClass) {
+    const brands = window.SERVMON_PANEL_BRANDS || {};
+    const raw = String(profile ?? "");
+    const key = raw.toLowerCase().trim();
+    const fallback = { slug: "generic", label: key === "" ? "generic" : raw, logo: null, logo_dark: null };
+    const brand = Object.prototype.hasOwnProperty.call(brands, key) ? brands[key] : fallback;
+    const slug = String((brand && brand.slug) || "generic");
+    const label = String((brand && brand.label) || fallback.label);
+    const logo = brand && brand.logo ? String(brand.logo) : null;
+    const logoDark = brand && brand.logo_dark ? String(brand.logo_dark) : null;
+    const cls = `panel-brand panel-${slug}${extraClass ? ` ${extraClass}` : ""}`;
+    let html = `<span class="${ns.escapeHtml(cls)}">`;
+    if (logo) {
+      const logoCls = logoDark ? "panel-logo panel-logo-day" : "panel-logo";
+      html += `<img class="${logoCls}" src="${ns.escapeHtml(logo)}" alt="" aria-hidden="true" loading="lazy">`;
+      if (logoDark) {
+        html += `<img class="panel-logo panel-logo-dark" src="${ns.escapeHtml(logoDark)}" alt="" aria-hidden="true" loading="lazy">`;
+      }
+    }
+    return `${html}${ns.escapeHtml(label)}</span>`;
+  };
+
   // ── Status helpers ─────────────────────────────────────────────────
   ns.statusClass = function (status) {
     if (status === "online") return "badge-online";

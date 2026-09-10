@@ -13,16 +13,6 @@ const SORTABLE_KEYS = ["cpu", "ram", "disk", "queue"];
 let sortState = null;
 let cachedServers = [];
 
-function panelColorClass(profile) {
-  var p = String(profile || "").toLowerCase();
-  if (p.indexOf("cpanel") !== -1) return "panel-cpanel";
-  if (p.indexOf("aapanel") !== -1) return "panel-aapanel";
-  if (p.indexOf("plesk") !== -1) return "panel-plesk";
-  if (p.indexOf("directadmin") !== -1) return "panel-directadmin";
-  if (p.indexOf("cyberpanel") !== -1 || p.indexOf("cybperpanel") !== -1) return "panel-cyberpanel";
-  return "";
-}
-
 function getSortValue(s, key) {
   let value = 0;
   if (key === "cpu") value = Number(s.cpu_load) || 0;
@@ -183,7 +173,7 @@ function renderPublicRowCells(s) {
         ${SM.getCpuSparkline(s)}
       </div>
     </td>
-    <td data-label="Panel"><code class="public-panel-chip ${panelColorClass(s.panel_profile)}">${SM.escapeHtml(s.panel_profile || "generic")}</code></td>
+    <td data-label="Panel">${SM.panelBrandChip(s.panel_profile, "public-panel-chip")}</td>
     <td data-label="Services"><div class="service-summary">${SM.renderServiceSummary(s)}</div></td>
     <td data-label="NET">
       <div class="net-line"><i class="ti ti-arrow-down" aria-label="In"></i><span class="font-mono">${SM.escapeHtml(SM.formatBps(s.network_in_bps))}</span></div>

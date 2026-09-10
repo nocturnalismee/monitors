@@ -211,4 +211,5 @@
 </main>
 <script<?= csp_nonce_attr() ?>>window.SERVMON_API_STATUS = <?= json_encode(app_url('api/status'), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;</script>
 <script<?= csp_nonce_attr() ?>>window.SERVMON_CPU_THRESHOLDS = <?= json_encode(['warn' => (float) ($cpuWarnThreshold ?? 2), 'critical' => (float) ($cpuCriticalThreshold ?? 4)]) ?>;</script>
+<script<?= csp_nonce_attr() ?>>window.SERVMON_PANEL_BRANDS = <?= json_encode(panel_brands_for_js(), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;</script>
 <script src="<?= e(asset_url('assets/js/public.js')) ?>"></script>
