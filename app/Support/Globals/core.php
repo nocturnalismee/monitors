@@ -42,11 +42,6 @@ function app_url(string $path = ''): string
     return '/' . $path;
 }
 
-function route(string $name, array $params = []): string
-{
-    return \App\Support\Url::route($name, $params);
-}
-
 function asset_url(string $path): string
 {
     $relative = ltrim($path, '/');

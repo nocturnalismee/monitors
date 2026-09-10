@@ -5,6 +5,7 @@ namespace App\Controllers\Api;
 
 use App\Http\Request;
 use App\Http\Response;
+use Throwable;
 
 final class IpReputationApiController
 {

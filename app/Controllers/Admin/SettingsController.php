@@ -77,6 +77,7 @@ final class SettingsController
                         'session_absolute_timeout_minutes' => (string) max(15, (int) ($request->input('session_absolute_timeout_minutes') ?? setting_get('session_absolute_timeout_minutes'))),
                         'retention_days' => (string) max(1, (int) ($request->input('retention_days') ?? setting_get('retention_days'))),
                         'disk_retention_days' => (string) max(1, (int) ($request->input('disk_retention_days') ?? setting_get('disk_retention_days'))),
+                        'backup_retention_days' => (string) max(1, (int) ($request->input('backup_retention_days') ?? setting_get('backup_retention_days'))),
                     ];
                 } elseif ($section === 'ip_reputation') {
                     $values = [
@@ -403,7 +404,7 @@ final class SettingsController
         if (isset($post['smtp_host']) || isset($post['telegram_bot_token']) || isset($post['channel_email_enabled']) || isset($post['channel_telegram_enabled'])) {
             return 'notifications';
         }
-        if (isset($post['session_idle_timeout_minutes']) || isset($post['session_absolute_timeout_minutes']) || isset($post['retention_days']) || isset($post['disk_retention_days'])) {
+        if (isset($post['session_idle_timeout_minutes']) || isset($post['session_absolute_timeout_minutes']) || isset($post['retention_days']) || isset($post['disk_retention_days']) || isset($post['backup_retention_days'])) {
             return 'security';
         }
         if (isset($post['ip_rep_check_interval_hours']) || isset($post['ip_rep_alert_enabled']) || isset($post['ip_rep_abuseipdb_key'])) {

@@ -84,7 +84,6 @@
     full.classList.toggle("d-none", isHidden);
     btn.textContent = isHidden ? "Hide Token" : "Reveal Token";
   }
-  window.toggleToken = toggleToken;
   document.addEventListener("click", function (event) {
     if (event.target.closest("#server-token-toggle")) toggleToken();
   });

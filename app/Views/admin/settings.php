@@ -361,7 +361,7 @@
                     <span class="settings-group-icon"><i class="ti ti-trash" aria-hidden="true"></i></span>
                     <div>
                         <h2 class="settings-group-title">Data Retention</h2>
-                        <p class="settings-group-desc">How long historical data is kept before cleanup. Core retention cleans metrics, alerts, logins, and audit; disk retention cleans disk health metrics and disk history.</p>
+                        <p class="settings-group-desc">How long historical data is kept before cleanup. Core retention cleans metrics, alerts, logins, and audit; disk retention cleans disk health metrics and disk history; backup retention prunes nightly database dumps.</p>
                     </div>
                 </div>
                 <div class="settings-group-body">
@@ -379,6 +379,14 @@
                             <select class="form-select" name="disk_retention_days" id="setting-retention-disk">
                                 <?php foreach ([7, 15, 30, 60, 90, 180, 365] as $d): ?>
                                     <option value="<?= $d ?>" <?= (int) ($settings['disk_retention_days'] ?? '90') === $d ? 'selected' : '' ?>><?= $d ?> days</option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label" for="setting-retention-backup">Backup Retention (days)</label>
+                            <select class="form-select" name="backup_retention_days" id="setting-retention-backup">
+                                <?php foreach ([7, 15, 30, 60, 90] as $d): ?>
+                                    <option value="<?= $d ?>" <?= (int) ($settings['backup_retention_days'] ?? '30') === $d ? 'selected' : '' ?>><?= $d ?> days</option>
                                 <?php endforeach; ?>
                             </select>
                         </div>

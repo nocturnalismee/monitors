@@ -241,7 +241,6 @@
 <script<?= csp_nonce_attr() ?>>
 window.SERVMON_IP_REP_API = <?= json_encode(app_url('api/ip-reputation'), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;
 window.SERVMON_CSRF_TOKEN = <?= json_encode(csrf_token(), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;
-window.SERVMON_IP_REP_TARGET_ID = <?= (int) $target['id'] ?>;
 window.SERVMON_IP_REP_CHART_DATA = <?= json_encode(array_map(static fn(array $c) => [
     'time'    => $c['checked_at'],
     'listed'  => (int) ($c['listed_count'] ?? 0),

@@ -18,11 +18,6 @@ function require_login(): void
     AuthService::requireLogin();
 }
 
-function role_rank(string $role): int
-{
-    return AuthService::roleRank($role);
-}
-
 function has_role(string $requiredRole): bool
 {
     return AuthService::hasRole($requiredRole);

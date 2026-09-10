@@ -28,21 +28,6 @@ function ping_display_status(?string $lastStatus, int $active): string
     return PingService::ping_display_status($lastStatus, $active);
 }
 
-function ping_probe_command(string $target, int $timeoutSeconds): string
-{
-    return PingService::ping_probe_command($target, $timeoutSeconds);
-}
-
-function ping_probe_target_icmp(string $target, int $timeoutSeconds): array
-{
-    return PingService::ping_probe_target_icmp($target, $timeoutSeconds);
-}
-
-function ping_probe_target_http(string $target, int $timeoutSeconds): array
-{
-    return PingService::ping_probe_target_http($target, $timeoutSeconds);
-}
-
 function ping_probe_target(string $target, int $timeoutSeconds, string $checkMethod = 'icmp'): array
 {
     return PingService::ping_probe_target($target, $timeoutSeconds, $checkMethod);
