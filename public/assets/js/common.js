@@ -57,15 +57,16 @@ window.ServMon = window.ServMon || {};
     const logo = brand && brand.logo ? String(brand.logo) : null;
     const logoDark = brand && brand.logo_dark ? String(brand.logo_dark) : null;
     const cls = `panel-brand panel-${slug}${extraClass ? ` ${extraClass}` : ""}`;
-    let html = `<span class="${ns.escapeHtml(cls)}">`;
-    if (logo) {
-      const logoCls = logoDark ? "panel-logo panel-logo-day" : "panel-logo";
-      html += `<img class="${logoCls}" src="${ns.escapeHtml(logo)}" alt="" aria-hidden="true" loading="lazy">`;
-      if (logoDark) {
-        html += `<img class="panel-logo panel-logo-dark" src="${ns.escapeHtml(logoDark)}" alt="" aria-hidden="true" loading="lazy">`;
-      }
+    if (!logo) {
+      return `<span class="${ns.escapeHtml(cls)}">${ns.escapeHtml(label)}</span>`;
     }
-    return `${html}${ns.escapeHtml(label)}</span>`;
+    let html = `<span class="${ns.escapeHtml(cls)}" title="${ns.escapeHtml(label)}">`;
+    const logoCls = logoDark ? "panel-logo panel-logo-day" : "panel-logo";
+    html += `<img class="${logoCls}" src="${ns.escapeHtml(logo)}" alt="${ns.escapeHtml(label)} logo" loading="lazy">`;
+    if (logoDark) {
+      html += `<img class="panel-logo panel-logo-dark" src="${ns.escapeHtml(logoDark)}" alt="" aria-hidden="true" loading="lazy">`;
+    }
+    return `${html}</span>`;
   };
 
   // ── Status helpers ─────────────────────────────────────────────────

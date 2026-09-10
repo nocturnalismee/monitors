@@ -56,19 +56,22 @@ function panel_brands_for_js(): array
 }
 
 /**
- * Render a logo + label chip for a panel_profile value. All output escaped.
+ * Render a logo-only chip for a panel_profile value. The brand name stays
+ * available as tooltip + image alt text. Unknown values fall back to text.
+ * All output escaped.
  */
 function panel_brand_chip(string $raw, string $extraClass = ''): string
 {
     $brand = panel_brand($raw);
     $class = trim('panel-brand panel-' . $brand['slug'] . ' ' . $extraClass);
-    $html = '<span class="' . e($class) . '">';
-    if ($brand['logo'] !== null) {
-        $logoClass = $brand['logo_dark'] !== null ? 'panel-logo panel-logo-day' : 'panel-logo';
-        $html .= '<img class="' . $logoClass . '" src="' . e(asset_url($brand['logo'])) . '" alt="" aria-hidden="true" loading="lazy">';
-        if ($brand['logo_dark'] !== null) {
-            $html .= '<img class="panel-logo panel-logo-dark" src="' . e(asset_url($brand['logo_dark'])) . '" alt="" aria-hidden="true" loading="lazy">';
-        }
+    if ($brand['logo'] === null) {
+        return '<span class="' . e($class) . '">' . e($brand['label']) . '</span>';
     }
-    return $html . e($brand['label']) . '</span>';
+    $html = '<span class="' . e($class) . '" title="' . e($brand['label']) . '">';
+    $logoClass = $brand['logo_dark'] !== null ? 'panel-logo panel-logo-day' : 'panel-logo';
+    $html .= '<img class="' . $logoClass . '" src="' . e(asset_url($brand['logo'])) . '" alt="' . e($brand['label']) . ' logo" loading="lazy">';
+    if ($brand['logo_dark'] !== null) {
+        $html .= '<img class="panel-logo panel-logo-dark" src="' . e(asset_url($brand['logo_dark'])) . '" alt="" aria-hidden="true" loading="lazy">';
+    }
+    return $html . '</span>';
 }
