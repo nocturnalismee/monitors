@@ -2082,7 +2082,7 @@ body:has(.admin-page) {
 
 [data-bs-theme="dark"] .public-panel-chip.panel-plesk { color: #6aa9d2; }
 
-/* Panel brand logo + label chip (servers/dashboard tables reuse .panel-brand) */
+/* Panel brand logo-only chip (servers/dashboard tables reuse .panel-brand) */
 .panel-brand {
   display: inline-flex;
   align-items: center;
@@ -2094,6 +2094,10 @@ body:has(.admin-page) {
   height: 1.4rem;
   width: auto;
 }
+
+/* Wide wordmarks render shorter so their visual weight matches the compact marks */
+.panel-plesk .panel-logo { height: 1rem; }
+.panel-cyberpanel .panel-logo { height: 0.75rem; }
 
 /* CyberPanel ships separate artwork for dark backgrounds */
 .panel-brand .panel-logo-dark { display: none; }
