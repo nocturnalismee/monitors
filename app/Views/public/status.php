@@ -175,18 +175,7 @@
                                 <svg class="cpu-sparkline" width="60" height="18"><polyline fill="none" stroke="var(--sv-muted)" stroke-width="1.5" points="0,16.0 60,16.0"/></svg>
                             </div>
                         </td>
-                        <?php
-                        $panelRaw = strtolower(trim((string) ($row['panel_profile'] ?? 'generic')));
-                        $panelClass = match (true) {
-                            str_contains($panelRaw, 'cpanel')      => 'panel-cpanel',
-                            str_contains($panelRaw, 'aapanel')     => 'panel-aapanel',
-                            str_contains($panelRaw, 'plesk')       => 'panel-plesk',
-                            str_contains($panelRaw, 'directadmin') => 'panel-directadmin',
-                            str_contains($panelRaw, 'cyberpanel') || str_contains($panelRaw, 'cybperpanel') => 'panel-cyberpanel',
-                            default => '',
-                        };
-                        ?>
-                        <td data-label="Panel"><code class="public-panel-chip <?= e($panelClass) ?>"><?= e((string) ($row['panel_profile'] ?? 'generic')) ?></code></td>
+                        <td data-label="Panel"><?= panel_brand_chip((string) ($row['panel_profile'] ?? 'generic'), 'public-panel-chip') ?></td>
                         <td data-label="Services">
                             <div class="service-summary">
                                 <?php if ($serviceDown > 0 || $serviceUnknown > 0): ?>

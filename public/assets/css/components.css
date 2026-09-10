@@ -2071,6 +2071,28 @@ body:has(.admin-page) {
 .public-panel-chip.panel-directadmin { color: #38bdf8; }
 .public-panel-chip.panel-cyberpanel  { color: #eab308; }
 
+[data-bs-theme="dark"] .public-panel-chip.panel-plesk { color: #6aa9d2; }
+
+/* Panel brand logo + label chip (servers/dashboard tables reuse .panel-brand) */
+.panel-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  white-space: nowrap;
+}
+
+.panel-brand .panel-logo {
+  height: 1.15rem;
+  width: auto;
+}
+
+/* CyberPanel ships separate artwork for dark backgrounds */
+.panel-brand .panel-logo-dark { display: none; }
+
+[data-bs-theme="dark"] .panel-brand .panel-logo-day { display: none; }
+
+[data-bs-theme="dark"] .panel-brand .panel-logo-dark { display: inline-block; }
+
 .service-summary {
   display: inline-flex;
   align-items: center;

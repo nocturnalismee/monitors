@@ -114,7 +114,7 @@
                         <td><?= e($row['provider'] ?? '-') ?></td>
                         <td><?= e($row['label'] ?? '-') ?></td>
                         <td><?= e($row['type'] ?? '-') ?></td>
-                        <td><code><?= e((string) ($row['panel_profile'] ?? 'generic')) ?></code></td>
+                        <td><?= panel_brand_chip((string) ($row['panel_profile'] ?? 'generic')) ?></td>
                         <?php
                         $upCount = max(0, (int) ($row['service_up_count'] ?? 0));
                         $downCount = max(0, (int) ($row['service_down_count'] ?? 0));

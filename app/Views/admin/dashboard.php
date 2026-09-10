@@ -315,7 +315,7 @@ foreach ($unhealthyWorkers as $uw) {
                                 </div>
                             </div>
                         </td>
-                        <td class="d-none d-xl-table-cell"><code><?= e((string) ($row['panel_profile'] ?? 'generic')) ?></code></td>
+                        <td class="d-none d-xl-table-cell"><?= panel_brand_chip((string) ($row['panel_profile'] ?? 'generic')) ?></td>
                         <td>
                             <?php if ($serviceDown > 0 || $serviceUnknown > 0): ?>
                                 <?php if ($serviceDown > 0): ?>
