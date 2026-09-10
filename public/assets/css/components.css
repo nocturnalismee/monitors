@@ -921,6 +921,15 @@ body.sidebar-collapsed .sidebar-section-title::after {
   flex-wrap: wrap;
 }
 
+/* Bottom-aligned toolbar variant (server detail header): sits level with the meta list row. */
+.page-header > .toolbar-actions-end {
+  align-self: flex-end;
+}
+
+.toolbar-actions-end .detail-live-state {
+  font-size: 0.76rem;
+}
+
 .panel {
   border: 1px solid var(--sv-stroke-soft);
   border-radius: var(--sv-radius-lg);
@@ -3323,6 +3332,10 @@ body:has(.admin-page) {
 
   .toolbar-actions {
     width: 100%;
+  }
+
+  .page-header > .toolbar-actions-end {
+    align-self: stretch;
   }
 
   .toolbar-actions .btn {

@@ -11,14 +11,14 @@
                 <?php endforeach; ?>
             </ul>
         </div>
-        <div class="toolbar-actions align-items-center">
+        <div class="toolbar-actions align-items-center toolbar-actions-end">
             <span class="detail-live-state" data-detail-live-state aria-live="polite">
                 <span class="detail-live-dot" aria-hidden="true"></span>Live
             </span>
             <span class="badge <?= e('badge-' . $status) ?> text-uppercase"><?= e($status) ?></span>
-            <a class="btn btn-outline-info btn-sm" href="<?= e(app_url('disk-health/' . (int) $server['id'])) ?>"><i class="ti ti-disc me-1"></i>Disk Health</a>
+            <a class="btn btn-soft btn-sm" href="<?= e(app_url('disk-health/' . (int) $server['id'])) ?>"><i class="ti ti-disc me-1"></i>Disk Health</a>
             <?php if (has_role('admin')): ?>
-                <a class="btn btn-outline-light btn-sm" href="<?= e(app_url('servers/' . (int) $server['id'] . '/setup')) ?>" title="Agent setup instructions"><i class="ti ti-terminal me-1"></i>Setup</a>
+                <a class="btn btn-soft btn-sm" href="<?= e(app_url('servers/' . (int) $server['id'] . '/setup')) ?>" title="Agent setup instructions"><i class="ti ti-terminal me-1"></i>Setup</a>
                 <a class="btn btn-soft btn-sm" href="<?= e(app_url('servers/' . (int) $server['id'] . '/edit')) ?>"><i class="ti ti-edit me-1"></i>Edit</a>
             <?php endif; ?>
         </div>
