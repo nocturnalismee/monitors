@@ -26,6 +26,7 @@ assert_architecture(!str_contains($push, 'Failed to persist service metrics'), '
 
 $alerts = source_text('app/Services/AlertService.php');
 assert_architecture(str_contains($alerts, 'alert_delivery_queue'), 'alerts must enqueue delivery work');
+assert_architecture(str_contains($alerts, 'db_exec_count('), 'resolveConditionAlerts must use db_exec_count (db_exec returns bool, which would fake a resolved incident and emit phantom recoveries)');
 assert_architecture(is_file(__DIR__ . '/../app/Console/Workers/AlertDeliveryWorker.php'), 'alert delivery worker must exist');
 
 $schema = source_text('database/schema.sql');

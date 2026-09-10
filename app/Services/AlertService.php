@@ -196,7 +196,11 @@ final class AlertService
             $params[':resolve_server_id'] = $serverId;
         }
 
-        $changed = db_exec(
+        // NOTE: db_exec() returns bool (statement success), NOT the affected
+        // row count. Use db_exec_count() here: callers rely on the return
+        // value to decide whether an incident was actually closed (e.g. the
+        // service snapshot check only emits a recovery when this is > 0).
+        $changed = db_exec_count(
             'UPDATE alert_logs
              SET status = \'resolved\', resolved_at = NOW(), silenced_until = NULL
              WHERE ' . $serverClause . '
@@ -205,11 +209,11 @@ final class AlertService
             $params
         );
 
-        if ($changed) {
+        if ($changed > 0) {
             invalidate_alert_cache();
         }
 
-        return $changed ? 1 : 0;
+        return $changed;
     }
 
     public static function evaluateServerThresholdAlerts(array $server, array $metric): void
