@@ -42,75 +42,17 @@ final class PushDiskController
             json_response(['error' => 'Disk health tables are not ready'], 503);
         }
 
-        $token = (string) ($request->header('X-Server-Token') ?? '');
-        if (!preg_match('/^[a-f0-9]{64}$/', $token)) {
-            json_response(['error' => 'Invalid token'], 403);
-        }
-
-        try {
-            $tokenHash = hash('sha256', $token);
-            $server = db_one(
-                'SELECT id, active FROM servers WHERE token_hash = :token_hash LIMIT 1',
-                [':token_hash' => $tokenHash]
-            );
-        } catch (Throwable $e) {
-            error_log('push-disk.php server lookup failed error=' . $e->getMessage());
-            json_response(['error' => 'Database unavailable'], 503);
-        }
-
-        if ($server === null || (int) ($server['active'] ?? 0) !== 1) {
-            json_response(['error' => 'Invalid token'], 403);
-        }
-
-        // Rate limit per server token + client IP.
-        $clientIp = get_client_ip();
-        if (!api_rate_check('push_disk_api', (int) $server['id'] . ':' . $clientIp, 120)) {
-            api_rate_limit_exceeded();
-        }
-
-        $raw = file_get_contents('php://input');
-        if (!is_string($raw)) {
-            json_response(['error' => 'Unable to read request body'], 400);
-        }
-        if (trim($raw) === '') {
-            json_response(['error' => 'Empty request body'], 400);
-        }
-        if (strlen($raw) > $maxBodyBytes) {
-            json_response(['error' => 'Payload too large'], 413);
-        }
-
-        $signedTimestamp = trim((string) ($request->header('X-Server-Timestamp') ?? ''));
-        $signedSignature = strtolower(trim((string) ($request->header('X-Server-Signature') ?? '')));
-        $signatureRequired = self::diskSettingGet('agent_push_signature_required', '1') === '1';
-
-        if ($signedTimestamp !== '' || $signedSignature !== '' || $signatureRequired) {
-            if ($signedTimestamp === '' || preg_match('/^\d{10}$/', $signedTimestamp) !== 1) {
-                json_response(['error' => 'Invalid or missing X-Server-Timestamp'], 400);
-            }
-            if ($signedSignature === '' || preg_match('/^[a-f0-9]{64}$/', $signedSignature) !== 1) {
-                json_response(['error' => 'Invalid or missing X-Server-Signature'], 400);
-            }
-
-            $requestTs = (int) $signedTimestamp;
-            if (abs(time() - $requestTs) > 60) {
-                json_response(['error' => 'Signature timestamp expired'], 403);
-            }
-
-            $expectedSig = hash_hmac('sha256', $signedTimestamp . '.' . (string) $raw, $token);
-            if (!hash_equals($expectedSig, $signedSignature)) {
-                json_response(['error' => 'Invalid request signature'], 403);
-            }
-        }
-
-        $payload = json_decode((string) $raw, true);
-        if (!is_array($payload)) {
-            json_response(['error' => 'Invalid JSON payload'], 400);
-        }
-
-        $serverId = isset($payload['server_id']) ? (int) $payload['server_id'] : (int) ($server['id'] ?? 0);
-        if ($serverId !== (int) ($server['id'] ?? 0)) {
-            json_response(['error' => 'server_id does not match token'], 400);
-        }
+        // Shared ingest auth: token lookup, IP allowlist, per-server rate
+        // limit, body caps, and HMAC-SHA256 request signing.
+        $auth = \App\Services\PushAuthService::authenticate($request, [
+            'max_body_bytes' => $maxBodyBytes,
+            'rate_key' => 'push_disk_api',
+            'rate_max' => 120,
+            'signature_required' => self::diskSettingGet('agent_push_signature_required', '1') === '1',
+        ]);
+        $server = $auth['server'];
+        $serverId = $auth['server_id'];
+        $payload = $auth['data'];
 
         $items = $payload['disk_health'] ?? $payload['disks'] ?? null;
         if (!is_array($items)) {

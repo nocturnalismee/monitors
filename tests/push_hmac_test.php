@@ -10,8 +10,8 @@ function assert_push(bool $cond, string $msg): void
     }
 }
 
-// Access private helpers via reflection (actual controller logic, not copy)
-$ref = new ReflectionClass(\App\Controllers\Api\PushController::class);
+// Access shared auth helpers (actual service logic, not a copy)
+$ref = new ReflectionClass(\App\Services\PushAuthService::class);
 $cidrMethod = $ref->getMethod('ipMatchesCidr');
 $allowMethod = $ref->getMethod('ipInAllowlist');
 $ipMatchesCidr = static fn(string $ip, string $cidr): bool => (bool) $cidrMethod->invoke(null, $ip, $cidr);

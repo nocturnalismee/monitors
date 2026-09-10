@@ -13,108 +13,20 @@ final class PushController
 
     public function index(Request $request): Response
     {
-        if (strtoupper($request->method) !== 'POST') {
-            header('Allow: POST');
-            json_response(['error' => 'Method not allowed'], 405);
-        }
+        // Shared ingest auth: token lookup, IP allowlist, per-server rate
+        // limit (configurable via push_api_rate_per_minute, default 600),
+        // body caps, and HMAC-SHA256 request signing.
+        $auth = \App\Services\PushAuthService::authenticate($request, [
+            'max_body_bytes' => self::PUSH_MAX_BODY_BYTES,
+            'rate_key' => 'push_api',
+            'rate_max' => self::safeSettingInt('push_api_rate_per_minute', 600),
+            'signature_required' => self::safeSettingGet('agent_push_signature_required', '1') === '1',
+        ]);
+        $serverId = $auth['server_id'];
+        $agentTs = $auth['agent_ts'];
+        $data = $auth['data'];
 
-        $contentType = strtolower(trim((string) ($request->header('Content-Type') ?? '')));
-        if (!str_starts_with($contentType, 'application/json')) {
-            json_response(['error' => 'Content-Type must be application/json'], 415);
-        }
-
-        $contentLength = $request->header('Content-Length') !== null
-            ? max(0, (int) $request->header('Content-Length'))
-            : 0;
-        if ($contentLength > self::PUSH_MAX_BODY_BYTES) {
-            json_response(['error' => 'Payload too large'], 413);
-        }
-
-        $token = (string) ($request->header('X-Server-Token') ?? '');
-        if (!preg_match('/^[a-f0-9]{64}$/', $token)) {
-            json_response(['error' => 'Invalid token'], 403);
-        }
-
-        try {
-            $server = null;
-            $tokenHash = hash('sha256', $token);
-            $tokenParams = [':token_hash' => $tokenHash];
-            if (db_column_exists('servers', 'push_allowed_ips')) {
-                $server = db_one(
-                    'SELECT id, active, push_allowed_ips FROM servers WHERE token_hash = :token_hash LIMIT 1',
-                    $tokenParams
-                );
-            } else {
-                $server = db_one(
-                    'SELECT id, active, NULL AS push_allowed_ips FROM servers WHERE token_hash = :token_hash LIMIT 1',
-                    $tokenParams
-                );
-            }
-        } catch (Throwable $e) {
-            error_log('push.php server lookup failed error=' . $e->getMessage());
-            json_response(['error' => 'Database unavailable'], 503);
-        }
-        if ($server === null || (int) $server['active'] !== 1) {
-            json_response(['error' => 'Invalid token'], 403);
-        }
-        $clientIp = get_client_ip();
-        $allowlist = trim((string) ($server['push_allowed_ips'] ?? ''));
-        if ($allowlist !== '' && !self::ipInAllowlist($clientIp, $allowlist)) {
-            json_response(['error' => 'Source IP not allowed'], 403);
-        }
-
-        // Rate limit per server token + client IP to prevent token leaks from flooding ingest.
-        // Configurable via push_api_rate_per_minute (default 600) to accommodate 10s+ deadband agents.
-        $pushRatePerMinute = self::safeSettingInt('push_api_rate_per_minute', 600);
-        if (!api_rate_check('push_api', (int) $server['id'] . ':' . $clientIp, $pushRatePerMinute)) {
-            api_rate_limit_exceeded();
-        }
-
-        $raw = file_get_contents('php://input');
-        if (!is_string($raw)) {
-            json_response(['error' => 'Unable to read request body'], 400);
-        }
-        if (trim($raw) === '') {
-            json_response(['error' => 'Empty request body'], 400);
-        }
-        if (strlen($raw) > self::PUSH_MAX_BODY_BYTES) {
-            json_response(['error' => 'Payload too large'], 413);
-        }
-        $signedTimestamp = trim((string) ($request->header('X-Server-Timestamp') ?? ''));
-        $signedSignature = strtolower(trim((string) ($request->header('X-Server-Signature') ?? '')));
-        $signatureRequired = self::safeSettingGet('agent_push_signature_required', '1') === '1';
-
-        if ($signedTimestamp !== '' || $signedSignature !== '' || $signatureRequired) {
-            if ($signedTimestamp === '' || preg_match('/^\d{10}$/', $signedTimestamp) !== 1) {
-                json_response(['error' => 'Invalid or missing X-Server-Timestamp'], 400);
-            }
-            if ($signedSignature === '' || preg_match('/^[a-f0-9]{64}$/', $signedSignature) !== 1) {
-                json_response(['error' => 'Invalid or missing X-Server-Signature'], 400);
-            }
-
-            $requestTs = (int) $signedTimestamp;
-            if (abs(time() - $requestTs) > 60) {
-                json_response(['error' => 'Signature timestamp expired'], 403);
-            }
-
-            $expectedSig = hash_hmac('sha256', $signedTimestamp . '.' . (string) $raw, $token);
-            if (!hash_equals($expectedSig, $signedSignature)) {
-                json_response(['error' => 'Invalid request signature'], 403);
-            }
-        }
-
-        $agentTs = isset($requestTs) ? (int) $requestTs : null;
         $ingestLagMs = \App\Services\Slo\IngestLagService::computeLagMs(time(), $agentTs);
-
-        $data = json_decode((string) $raw, true);
-        if (!is_array($data)) {
-            json_response(['error' => 'Invalid JSON payload'], 400);
-        }
-
-        $serverId = isset($data['server_id']) ? (int) $data['server_id'] : (int) $server['id'];
-        if ($serverId !== (int) $server['id']) {
-            json_response(['error' => 'server_id does not match token'], 400);
-        }
 
         $mail = $data['mail'] ?? [];
         $mailMta = 'none';
@@ -290,7 +202,19 @@ final class PushController
             }
         }
 
-        $serviceTransitions = [];
+        try {
+            $ingestPdo->commit();
+        } catch (Throwable $e) {
+            if ($ingestPdo->inTransaction()) {
+                $ingestPdo->rollBack();
+            }
+            error_log('push.php ingest commit failed server_id=' . $serverId . ' error=' . $e->getMessage());
+            json_response(['error' => 'Failed to commit metrics'], 500);
+        }
+
+        // Service samples + state upserts run AFTER the metric commit in a
+        // short dedicated transaction: holding the metric transaction across
+        // per-service writes inflated lock time on every push.
         if (
             $metricId > 0 &&
             !empty($services) &&
@@ -320,140 +244,34 @@ final class PushController
                 foreach ($services as $service) {
                     $serviceMapKey = $service['service_group'] . '|' . $service['service_key'];
                     $prevState = $prevStateMap[$serviceMapKey] ?? null;
-                    if ($prevState === null) {
+                    if ($prevState === null || $prevState['last_status'] !== $service['status']) {
                         $changedServices[] = $service;
-                        continue;
-                    }
-
-                    if ($prevState['last_status'] !== $service['status']) {
-                        $changedServices[] = $service;
-                        $serviceTransitions[] = [
-                            'service_group' => $service['service_group'],
-                            'service_key' => $service['service_key'],
-                            'unit_name' => $service['unit_name'],
-                            'prev_status' => $prevState['last_status'],
-                            'new_status' => $service['status'],
-                            'prev_changed_at' => $prevState['last_change_at'],
-                        ];
                     }
                 }
                 if ($storeAllServiceSamples) {
                     $changedServices = $services;
                 }
 
-                foreach ($changedServices as $service) {
-                    db_exec(
-                        'INSERT INTO service_metrics (
-                            metric_id, server_id, service_group, service_key, unit_name, status, source, recorded_at
-                        ) VALUES (
-                            :metric_id, :server_id, :service_group, :service_key, :unit_name, :status, :source, NOW()
-                        )',
-                        [
-                            ':metric_id' => $metricId,
-                            ':server_id' => $serverId,
-                            ':service_group' => $service['service_group'],
-                            ':service_key' => $service['service_key'],
-                            ':unit_name' => $service['unit_name'],
-                            ':status' => $service['status'],
-                            ':source' => $service['source'],
-                        ]
-                    );
-
-                    db_exec(
-                        'INSERT INTO server_service_states (
-                            server_id, service_group, service_key, unit_name, last_status, last_change_at, updated_at
-                         ) VALUES (
-                            :server_id, :service_group, :service_key, :unit_name, :last_status, NOW(), NOW()
-                         )
-                         ON DUPLICATE KEY UPDATE
-                            unit_name = VALUES(unit_name),
-                            last_status = VALUES(last_status),
-                            last_change_at = IF(last_status <> VALUES(last_status), NOW(), last_change_at),
-                            updated_at = NOW()',
-                        [
-                            ':server_id' => $serverId,
-                            ':service_group' => $service['service_group'],
-                            ':service_key' => $service['service_key'],
-                            ':unit_name' => $service['unit_name'],
-                            ':last_status' => $service['status'],
-                        ]
-                    );
-                }
+                self::persistServiceStates($serverId, $metricId, $changedServices);
             } catch (Throwable $e) {
-                if ($ingestPdo->inTransaction()) {
-                    $ingestPdo->rollBack();
-                }
+                // Best-effort: the metric above is already committed, so a
+                // service-write failure must not fail the push (the agent
+                // retry would duplicate the metric sample).
                 error_log('push.php service write failed server_id=' . $serverId . ' error=' . $e->getMessage());
-                json_response(['error' => 'Failed to persist service metrics'], 500);
             }
         } elseif ($metricId > 0 && !empty($services)) {
             error_log('push.php service tables missing, skip service write server_id=' . $serverId);
-        }
-
-        try {
-            $ingestPdo->commit();
-        } catch (Throwable $e) {
-            if ($ingestPdo->inTransaction()) {
-                $ingestPdo->rollBack();
-            }
-            error_log('push.php ingest commit failed server_id=' . $serverId . ' error=' . $e->getMessage());
-            json_response(['error' => 'Failed to commit metrics'], 500);
         }
 
         if ($metricId > 0) {
             self::publishLive($serverId, $metricId, $metricValues);
         }
 
-        try {
-            $serverInfo = db_one('SELECT id, name FROM servers WHERE id = :id LIMIT 1', [':id' => $serverId]);
-            $maintenanceActive = false;
-            try {
-                $maintenanceActive = is_server_in_maintenance($serverId);
-            } catch (Throwable $e) {
-                error_log('push.php maintenance check failed server_id=' . $serverId . ' error=' . $e->getMessage());
-            }
-
-            $state = null;
-            if (self::dbTableExists('server_states')) {
-                $state = db_one('SELECT is_down FROM server_states WHERE server_id = :id LIMIT 1', [':id' => $serverId]);
-            }
-
-            if (!$maintenanceActive && $state !== null && (int) $state['is_down'] === 1) {
-                create_alert(
-                    $serverId,
-                    'server_recovery',
-                    'success',
-                    '[' . ($serverInfo['name'] ?? ('Server #' . $serverId)) . '] Server Recovery',
-                    'Server is back online and sending metrics.',
-                    ['recorded_at' => date('Y-m-d H:i:s')]
-                );
-            }
-
-            if (self::dbTableExists('server_states')) {
-                db_exec(
-                    'INSERT INTO server_states (server_id, is_down) VALUES (:id, 0)
-                     ON DUPLICATE KEY UPDATE is_down = 0',
-                    [':id' => $serverId]
-                );
-            }
-
-            if ($serverInfo !== null && !$maintenanceActive) {
-                $thresholdThrottle = (int) ($data['ts'] ?? time());
-                if (($thresholdThrottle % 60) < 10) {
-                    evaluate_server_threshold_alerts($serverInfo, [
-                        'mail_queue_total' => $metricValues['mail_queue_total'],
-                        'cpu_load' => $metricValues['cpu_load'],
-                        'ram_used' => $metricValues['ram_used'],
-                        'ram_total' => $metricValues['ram_total'],
-                        'hdd_used' => $metricValues['hdd_used'],
-                        'hdd_total' => $metricValues['hdd_total'],
-                    ]);
-                }
-                evaluate_service_transition_alerts($serverInfo, $serviceTransitions);
-            }
-        } catch (Throwable $e) {
-            error_log('push.php post-metric processing failed server_id=' . $serverId . ' error=' . $e->getMessage());
-        }
+        // Threshold, recovery, and service-transition evaluation is deferred
+        // to the alert-check worker (1/min): running it here kept every push
+        // waiting on maintenance checks, state writes, and SMTP-adjacent
+        // alert creation. See AlertService::evaluateDownRecoveryAlerts(),
+        // evaluateServerThresholdAlerts(), evaluateCurrentServiceDownAlerts().
         invalidate_status_cache($serverId);
 
         $recordedAt = db_one('SELECT DATE_FORMAT(NOW(), "%Y-%m-%d %H:%i:%s") AS ts');
@@ -495,6 +313,69 @@ final class PushController
         return $value > 0 ? $value : $fallback;
     }
 
+    /**
+     * Batch-persist service samples + state upserts in one short transaction:
+     * two round-trips regardless of service count.
+     */
+    private static function persistServiceStates(int $serverId, int $metricId, array $services): void
+    {
+        $services = array_values($services);
+        if ($services === []) {
+            return;
+        }
+        $metricRows = [];
+        $metricParams = [];
+        $stateRows = [];
+        $stateParams = [];
+        foreach ($services as $i => $service) {
+            $metricRows[] = '(:metric_id_' . $i . ', :server_id_' . $i . ', :service_group_' . $i
+                . ', :service_key_' . $i . ', :unit_name_' . $i . ', :status_' . $i . ', :source_' . $i . ', NOW())';
+            $metricParams[':metric_id_' . $i] = $metricId;
+            $metricParams[':server_id_' . $i] = $serverId;
+            $metricParams[':service_group_' . $i] = $service['service_group'];
+            $metricParams[':service_key_' . $i] = $service['service_key'];
+            $metricParams[':unit_name_' . $i] = $service['unit_name'];
+            $metricParams[':status_' . $i] = $service['status'];
+            $metricParams[':source_' . $i] = $service['source'];
+
+            $stateRows[] = '(:st_server_id_' . $i . ', :st_service_group_' . $i . ', :st_service_key_' . $i
+                . ', :st_unit_name_' . $i . ', :st_last_status_' . $i . ', NOW(), NOW())';
+            $stateParams[':st_server_id_' . $i] = $serverId;
+            $stateParams[':st_service_group_' . $i] = $service['service_group'];
+            $stateParams[':st_service_key_' . $i] = $service['service_key'];
+            $stateParams[':st_unit_name_' . $i] = $service['unit_name'];
+            $stateParams[':st_last_status_' . $i] = $service['status'];
+        }
+
+        $pdo = db();
+        $pdo->beginTransaction();
+        try {
+            db_exec(
+                'INSERT INTO service_metrics (
+                    metric_id, server_id, service_group, service_key, unit_name, status, source, recorded_at
+                 ) VALUES ' . implode(', ', $metricRows),
+                $metricParams
+            );
+            db_exec(
+                'INSERT INTO server_service_states (
+                    server_id, service_group, service_key, unit_name, last_status, last_change_at, updated_at
+                 ) VALUES ' . implode(', ', $stateRows) . '
+                 ON DUPLICATE KEY UPDATE
+                    unit_name = VALUES(unit_name),
+                    last_status = VALUES(last_status),
+                    last_change_at = IF(last_status <> VALUES(last_status), NOW(), last_change_at),
+                    updated_at = NOW()',
+                $stateParams
+            );
+            $pdo->commit();
+        } catch (Throwable $e) {
+            if ($pdo->inTransaction()) {
+                $pdo->rollBack();
+            }
+            throw $e;
+        }
+    }
+
     private static function publishLive(int $serverId, int $metricId, array $metricValues): void
     {
         $redis = redis_client();
@@ -528,85 +409,4 @@ final class PushController
         }
     }
 
-    private static function ipMatchesCidr(string $ip, string $cidr): bool
-    {
-        if (str_contains($cidr, '/') === false) {
-            return false;
-        }
-        [$network, $prefix] = explode('/', $cidr, 2);
-        $network = trim((string)$network);
-        $prefix = trim((string)$prefix);
-        if ($network === '' || $prefix === '' || !ctype_digit($prefix)) {
-            return false;
-        }
-        $prefixInt = (int)$prefix;
-        $ipBin = @inet_pton($ip);
-        $netBin = @inet_pton($network);
-        if ($ipBin === false || $netBin === false) {
-            return false;
-        }
-        if (strlen($ipBin) !== strlen($netBin)) {
-            return false;
-        }
-        $max = strlen($ipBin) * 8;
-        if ($prefixInt < 0 || $prefixInt > $max) {
-            return false;
-        }
-        if ($prefixInt === 0) {
-            return true;
-        }
-        $bytes = intdiv($prefixInt, 8);
-        $bits = $prefixInt % 8;
-        if ($bytes > 0 && substr($ipBin, 0, $bytes) !== substr($netBin, 0, $bytes)) {
-            return false;
-        }
-        if ($bits !== 0) {
-            $mask = (0xFF << (8 - $bits)) & 0xFF;
-            $ipByte = ord($ipBin[$bytes]);
-            $netByte = ord($netBin[$bytes]);
-            if (($ipByte & $mask) !== ($netByte & $mask)) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    private static function ipInAllowlist(string $ip, string $allowlist): bool
-    {
-        $trim = trim($allowlist);
-        if ($trim === '') {
-            return true;
-        }
-        if (!filter_var($ip, FILTER_VALIDATE_IP)) {
-            return false;
-        }
-        $entries = preg_split('/[\s,]+/', $trim) ?: [];
-        foreach ($entries as $entry) {
-            $candidate = trim((string)$entry);
-            if ($candidate === '') {
-                continue;
-            }
-            if (str_contains($candidate, '/')) {
-                if (self::ipMatchesCidr($ip, $candidate)) {
-                    return true;
-                }
-                continue;
-            }
-            if (!filter_var($candidate, FILTER_VALIDATE_IP)) {
-                continue;
-            }
-            $ipBin = @inet_pton($ip);
-            $candBin = @inet_pton($candidate);
-            if ($ipBin !== false && $candBin !== false) {
-                if ($ipBin === $candBin) {
-                    return true;
-                }
-                continue;
-            }
-            if (strcasecmp($ip, $candidate) === 0) {
-                return true;
-            }
-        }
-        return false;
-    }
 }

@@ -9,6 +9,13 @@ use App\Support\View;
 
 final class ExportController
 {
+    /**
+     * Synchronous downloads are capped: building a 100k-row payload in
+     * memory per request is an OOM vector reachable from a plain URL.
+     * Full datasets go through the queued export below (streams keyset 1000).
+     */
+    private const SYNC_EXPORT_MAX_ROWS = 5000;
+
     public function index(Request $request): Response
     {
         require_role('admin');
@@ -36,7 +43,7 @@ final class ExportController
 
         $type = (string) ($request->query('type') ?? '');
         $format = (string) ($request->query('format') ?? 'csv');
-        $exportLimit = 100000;
+        $exportLimit = self::SYNC_EXPORT_MAX_ROWS;
 
         if (in_array($type, ['alerts', 'metrics', 'services', 'audits'], true)) {
             $format = in_array($format, ['csv', 'json'], true) ? $format : 'csv';
@@ -82,15 +89,7 @@ final class ExportController
                     $params
                 );
 
-                $filename = 'servmon_alerts_' . date('Ymd_His') . '.' . $format;
-                if ($format === 'json') {
-                    return Response::text((string) json_encode($rows, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT))
-                        ->withHeader('Content-Type', 'application/json; charset=utf-8')
-                        ->withHeader('Content-Disposition', 'attachment; filename="' . $filename . '"');
-                }
-                return Response::text($this->buildCsv($rows))
-                    ->withHeader('Content-Type', 'text/csv; charset=utf-8')
-                    ->withHeader('Content-Disposition', 'attachment; filename="' . $filename . '"');
+                return $this->downloadResponse($rows, $format, 'servmon_alerts_');
             }
 
             if ($type === 'metrics') {
@@ -124,15 +123,7 @@ final class ExportController
                     $params
                 );
 
-                $filename = 'servmon_metrics_' . date('Ymd_His') . '.' . $format;
-                if ($format === 'json') {
-                    return Response::text((string) json_encode($rows, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT))
-                        ->withHeader('Content-Type', 'application/json; charset=utf-8')
-                        ->withHeader('Content-Disposition', 'attachment; filename="' . $filename . '"');
-                }
-                return Response::text($this->buildCsv($rows))
-                    ->withHeader('Content-Type', 'text/csv; charset=utf-8')
-                    ->withHeader('Content-Disposition', 'attachment; filename="' . $filename . '"');
+                return $this->downloadResponse($rows, $format, 'servmon_metrics_');
             }
 
             if ($type === 'services') {
@@ -165,15 +156,7 @@ final class ExportController
                     $params
                 );
 
-                $filename = 'servmon_services_' . date('Ymd_His') . '.' . $format;
-                if ($format === 'json') {
-                    return Response::text((string) json_encode($rows, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT))
-                        ->withHeader('Content-Type', 'application/json; charset=utf-8')
-                        ->withHeader('Content-Disposition', 'attachment; filename="' . $filename . '"');
-                }
-                return Response::text($this->buildCsv($rows))
-                    ->withHeader('Content-Type', 'text/csv; charset=utf-8')
-                    ->withHeader('Content-Disposition', 'attachment; filename="' . $filename . '"');
+                return $this->downloadResponse($rows, $format, 'servmon_services_');
             }
 
             if ($type === 'audits') {
@@ -214,15 +197,7 @@ final class ExportController
                     $params
                 );
 
-                $filename = 'servmon_audits_' . date('Ymd_His') . '.' . $format;
-                if ($format === 'json') {
-                    return Response::text((string) json_encode($rows, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT))
-                        ->withHeader('Content-Type', 'application/json; charset=utf-8')
-                        ->withHeader('Content-Disposition', 'attachment; filename="' . $filename . '"');
-                }
-                return Response::text($this->buildCsv($rows))
-                    ->withHeader('Content-Type', 'text/csv; charset=utf-8')
-                    ->withHeader('Content-Disposition', 'attachment; filename="' . $filename . '"');
+                return $this->downloadResponse($rows, $format, 'servmon_audits_');
             }
         }
 
@@ -244,6 +219,25 @@ final class ExportController
         ];
 
         return Response::html(View::render('admin/export', $data, 'admin'));
+    }
+
+    private function downloadResponse(array $rows, string $format, string $prefix): Response
+    {
+        $filename = $prefix . date('Ymd_His') . '.' . $format;
+        if ($format === 'json') {
+            $response = Response::text((string) json_encode($rows, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT))
+                ->withHeader('Content-Type', 'application/json; charset=utf-8');
+        } else {
+            $response = Response::text($this->buildCsv($rows))
+                ->withHeader('Content-Type', 'text/csv; charset=utf-8');
+        }
+        $response = $response->withHeader('Content-Disposition', 'attachment; filename="' . $filename . '"');
+        if (count($rows) >= self::SYNC_EXPORT_MAX_ROWS) {
+            // Signal UIs/consumers that this is a capped preview; the queued
+            // export on this page produces the complete dataset.
+            $response = $response->withHeader('X-Servmon-Export-Truncated', '1');
+        }
+        return $response;
     }
 
     private function buildCsv(array $rows): string
