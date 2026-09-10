@@ -125,25 +125,3 @@ systemctl list-timers --all | grep monitoring-agent-cpanel-email
         </div>
     </section>
 </main>
-<script<?= csp_nonce_attr() ?>>
-document.addEventListener("click", async (event) => {
-  const btn = event.target.closest("[data-copy-text]");
-  if (!btn) return;
-  const value = btn.getAttribute("data-copy-text") || "";
-  const prev = btn.textContent;
-  try {
-    await navigator.clipboard.writeText(value);
-  } catch {
-    const textarea = document.createElement("textarea");
-    textarea.value = value;
-    textarea.style.position = "fixed";
-    textarea.style.opacity = "0";
-    document.body.appendChild(textarea);
-    textarea.select();
-    document.execCommand("copy");
-    document.body.removeChild(textarea);
-  }
-  btn.textContent = "Copied";
-  window.setTimeout(() => { btn.textContent = prev; }, 1000);
-});
-</script>

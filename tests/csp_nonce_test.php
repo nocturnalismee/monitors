@@ -16,7 +16,9 @@ foreach ($views as $f) {
     }
 }
 ae($bare, 0, 'no bare inline scripts');
-if ($nonce < 21) { echo "FAIL expected >=21 nonce scripts got $nonce\n"; exit(1); }
+// Floor intentionally shrinks as inline scripts move into common.js
+// auto-bind (login toggle, copy-text, detail modals removed in F2-b).
+if ($nonce < 18) { echo "FAIL expected >=18 nonce scripts got $nonce\n"; exit(1); }
 echo "PASS nonce coverage $nonce\n";
 $boot = file_get_contents(__DIR__.'/../config/bootstrap.php');
 if (!str_contains($boot, "'nonce-")) { echo "FAIL csp header missing nonce\n"; exit(1); }

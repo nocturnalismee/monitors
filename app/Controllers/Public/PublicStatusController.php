@@ -5,6 +5,7 @@ namespace App\Controllers\Public;
 
 use App\Http\Request;
 use App\Http\Response;
+use App\Services\ServerListService;
 use App\Support\View;
 
 final class PublicStatusController
@@ -19,62 +20,20 @@ final class PublicStatusController
              WHERE s.active = 1
              ORDER BY s.name ASC'
         );
-        $statusOnlineMinutes = max(1, (int) setting_get('alert_down_minutes'));
-        $cpuWarnThreshold = max(0.0, (float) setting_get('threshold_cpu_load'));
-        $cpuCriticalThreshold = max($cpuWarnThreshold, (float) setting_get('threshold_cpu_load_critical'));
-        usort(
-            $rows,
-            static function (array $a, array $b) use ($cpuWarnThreshold, $cpuCriticalThreshold): int {
-                $ra = self::cpuSeverityRank((float) ($a['cpu_load'] ?? 0), $cpuWarnThreshold, $cpuCriticalThreshold);
-                $rb = self::cpuSeverityRank((float) ($b['cpu_load'] ?? 0), $cpuWarnThreshold, $cpuCriticalThreshold);
-                if ($ra !== $rb) {
-                    return $rb <=> $ra;
-                }
-                return strcasecmp((string) ($a['name'] ?? ''), (string) ($b['name'] ?? ''));
-            }
-        );
+        $thresholds = ServerListService::thresholds();
+        $statusOnlineMinutes = $thresholds['onlineMinutes'];
+        $cpuWarnThreshold = $thresholds['cpuWarn'];
+        $cpuCriticalThreshold = $thresholds['cpuCritical'];
+        $rows = ServerListService::sortBySeverity($rows, $cpuWarnThreshold, $cpuCriticalThreshold);
 
-        $serviceSummaryByServer = [];
         $serverIds = array_values(array_filter(array_map(static fn (array $row): int => (int) ($row['id'] ?? 0), $rows), static fn (int $id): bool => $id > 0));
-        if (!empty($serverIds)) {
-            $placeholders = implode(',', array_fill(0, count($serverIds), '?'));
-            $stmt = db()->prepare(
-                "SELECT server_id,
-                        SUM(last_status = 'up') AS up_count,
-                        SUM(last_status = 'down') AS down_count,
-                        SUM(last_status = 'unknown') AS unknown_count
-                 FROM server_service_states
-                 WHERE server_id IN ({$placeholders})
-                 GROUP BY server_id"
-            );
-            $stmt->execute($serverIds);
-            foreach ($stmt->fetchAll() as $row) {
-                $sid = (int) ($row['server_id'] ?? 0);
-                if ($sid <= 0) {
-                    continue;
-                }
-                $serviceSummaryByServer[$sid] = [
-                    'up' => (int) ($row['up_count'] ?? 0),
-                    'down' => (int) ($row['down_count'] ?? 0),
-                    'unknown' => (int) ($row['unknown_count'] ?? 0),
-                ];
-            }
-        }
+        $serviceSummaryByServer = ServerListService::serviceSummaryMap($serverIds);
 
         $total = count($rows);
-        $online = 0;
-        $down = 0;
-        $pending = 0;
-        foreach ($rows as $row) {
-            $status = serverStatusFromLastSeen($row['last_seen'] ?? null, (int) ($row['active'] ?? 0) === 1, $statusOnlineMinutes);
-            if ($status === 'online') {
-                $online++;
-            } elseif ($status === 'down') {
-                $down++;
-            } else {
-                $pending++;
-            }
-        }
+        $counts = ServerListService::countByStatus($rows, $statusOnlineMinutes);
+        $online = $counts['online'];
+        $down = $counts['down'];
+        $pending = $counts['pending'];
 
         $uiSettings = settings_get_all();
         $brandingLogoRaw = trim((string) ($uiSettings['branding_logo_url'] ?? ''));
@@ -101,16 +60,5 @@ final class PublicStatusController
             'brandingLogoUrl' => $brandingLogoUrl,
         ];
         return Response::html(View::render('public/status', $data, 'public'));
-    }
-
-    private static function cpuSeverityRank(float $cpuLoad, float $warn, float $critical): int
-    {
-        if ($cpuLoad > $critical) {
-            return 2;
-        }
-        if ($cpuLoad > $warn) {
-            return 1;
-        }
-        return 0;
     }
 }

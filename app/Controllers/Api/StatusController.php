@@ -5,6 +5,7 @@ namespace App\Controllers\Api;
 
 use App\Http\Request;
 use App\Http\Response;
+use App\Services\ServerListService;
 use PDO;
 use Throwable;
 
@@ -308,7 +309,7 @@ final class StatusController
                     'updated_at' => (string) ($service['updated_at'] ?? ''),
                 ];
             }, $services);
-            $summaryMap = $this->serviceSummaryMap([$serverId]);
+            $summaryMap = ServerListService::serviceSummaryMap([$serverId]);
             $row['services_summary'] = $summaryMap[$serverId] ?? ['up' => 0, 'down' => 0, 'unknown' => 0];
             cache_set($singleCacheKey, $row, cache_ttl('cache_ttl_status_single', 15));
             return Response::json($row);
@@ -328,7 +329,7 @@ final class StatusController
              ' . ($includeInactive ? '' : 'WHERE s.active = 1') . '
              ORDER BY s.name ASC'
         );
-        $summaryMap = $this->serviceSummaryMap(array_map(static fn (array $r): int => (int) $r['id'], $rows));
+        $summaryMap = ServerListService::serviceSummaryMap(array_map(static fn (array $r): int => (int) $r['id'], $rows));
 
         $result = [];
         foreach ($rows as $row) {
@@ -391,44 +392,5 @@ final class StatusController
         }
 
         return $ready;
-    }
-
-    private function serviceSummaryMap(array $serverIds): array
-    {
-        if (empty($serverIds)) {
-            return [];
-        }
-
-        $safeIds = array_values(array_filter(array_map('intval', $serverIds), static fn (int $id): bool => $id > 0));
-        if (empty($safeIds)) {
-            return [];
-        }
-
-        $placeholders = implode(',', array_fill(0, count($safeIds), '?'));
-        $stmt = db()->prepare(
-            "SELECT server_id,
-                    SUM(last_status = 'up') AS up_count,
-                    SUM(last_status = 'down') AS down_count,
-                    SUM(last_status = 'unknown') AS unknown_count
-             FROM server_service_states
-             WHERE server_id IN ({$placeholders})
-             GROUP BY server_id"
-        );
-        $stmt->execute($safeIds);
-        $rows = $stmt->fetchAll();
-
-        $map = [];
-        foreach ($rows as $row) {
-            $sid = (int) ($row['server_id'] ?? 0);
-            if ($sid <= 0) {
-                continue;
-            }
-            $map[$sid] = [
-                'up' => (int) ($row['up_count'] ?? 0),
-                'down' => (int) ($row['down_count'] ?? 0),
-                'unknown' => (int) ($row['unknown_count'] ?? 0),
-            ];
-        }
-        return $map;
     }
 }

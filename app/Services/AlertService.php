@@ -3,6 +3,8 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use Throwable;
+
 final class AlertService
 {
     private static ?bool $available = null;
@@ -156,14 +158,11 @@ final class AlertService
         }
 
         if (!self::deliveryQueueAvailable()) {
-            // Compatibility fallback for installations that have not applied the
-            // queue migration yet.
-            $emailSent = notify_email($title, $message, $settings);
-            $telegramSent = notify_telegram("<b>{$title}</b>\n" . htmlspecialchars($message, ENT_QUOTES, 'UTF-8'), $settings);
-            db_exec(
-                'UPDATE alert_logs SET sent_email = :email, sent_telegram = :telegram WHERE id = :id',
-                [':email' => $emailSent ? 1 : 0, ':telegram' => $telegramSent ? 1 : 0, ':id' => $alertId]
-            );
+            // No synchronous send fallback: delivering here would tie alert
+            // creation (often inside the push hot path) to SMTP/Telegram
+            // network latency. The delivery worker owns all sending; apply
+            // pending migrations so it can pick this alert up from the queue.
+            error_log('AlertService::create alert_id=' . $alertId . ' has no delivery queue table; run migrations');
         }
         invalidate_alert_cache();
     }
@@ -526,17 +525,34 @@ final class AlertService
             }
 
             $status = (string) ($row['last_status'] ?? 'unknown');
+            $serverId = (int) ($row['server_id'] ?? 0);
+            $serviceKey = (string) ($row['service_key'] ?? '');
             if ($status === 'up') {
-                self::resolveConditionAlerts(
-                    (int) ($row['server_id'] ?? 0),
-                    ['service_down_' . (string) ($row['service_key'] ?? '')]
-                );
+                // resolveConditionAlerts() returns 1 only when it actually
+                // closed an incident, so the recovery fires exactly once.
+                $resolved = self::resolveConditionAlerts($serverId, ['service_down_' . $serviceKey]);
+                if ($resolved > 0 && $serverId > 0 && $serviceKey !== '') {
+                    $serviceLabel = strtoupper($serviceKey);
+                    $serverName = (string) ($row['server_name'] ?? ('Server #' . $serverId));
+                    self::create(
+                        $serverId,
+                        'service_recovery_' . $serviceKey,
+                        'success',
+                        "[{$serverName}] Service {$serviceLabel} Recovery",
+                        "Service {$serviceLabel} (" . (string) ($row['unit_name'] ?? '') . ") recovered from down to up.",
+                        [
+                            'service_group' => (string) ($row['service_group'] ?? ''),
+                            'service_key' => $serviceKey,
+                            'unit_name' => (string) ($row['unit_name'] ?? ''),
+                            'source' => 'snapshot-check',
+                        ]
+                    );
+                }
             }
             if ($status !== 'down') {
                 continue;
             }
 
-            $serverId = (int) ($row['server_id'] ?? 0);
             if ($serverId <= 0) {
                 continue;
             }

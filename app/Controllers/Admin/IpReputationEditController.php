@@ -5,6 +5,7 @@ namespace App\Controllers\Admin;
 
 use App\Http\Request;
 use App\Http\Response;
+use App\Services\Validation\IpRepValidator;
 use App\Support\View;
 
 final class IpReputationEditController
@@ -30,21 +31,17 @@ final class IpReputationEditController
 
         if ($request->isPost()) {
             // CSRF single-guard: enforced by csrf middleware.
-            $ipAddress = trim((string) ($request->input('ip_address') ?? ''));
-            $label     = trim((string) ($request->input('label') ?? ''));
-            $serverId  = (int) ($request->input('server_id') ?? 0);
-            $interval  = max(1, (int) ($request->input('check_interval_hours') ?? 6));
-
-            if (!filter_var($ipAddress, FILTER_VALIDATE_IP)) {
-                flash_set('danger', 'Invalid IP address format.');
-                redirect('ip-reputation/' . $targetId . '/edit');
-            }
-
-            $existing = db_one('SELECT id FROM ip_reputation_targets WHERE ip_address = :ip AND id != :id', [':ip' => $ipAddress, ':id' => $targetId]);
-            if ($existing !== null) {
-                flash_set('danger', 'IP address ' . htmlspecialchars($ipAddress) . ' is already monitored by another target.');
-                redirect('ip-reputation/' . $targetId . '/edit');
-            }
+            [
+                'ip_address' => $ipAddress,
+                'label' => $label,
+                'server_id' => $serverId,
+                'check_interval_hours' => $interval,
+            ] = IpRepValidator::validateTarget([
+                'ip_address' => $request->input('ip_address'),
+                'label' => $request->input('label'),
+                'server_id' => $request->input('server_id'),
+                'check_interval_hours' => $request->input('check_interval_hours'),
+            ], $targetId, 'ip-reputation/' . $targetId . '/edit');
 
             db_exec(
                 'UPDATE ip_reputation_targets SET ip_address = :ip, label = :label, server_id = :server_id, check_interval_hours = :interval WHERE id = :id',

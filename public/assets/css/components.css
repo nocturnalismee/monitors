@@ -231,11 +231,6 @@ samp,
   letter-spacing: -0.015em;
 }
 
-.servmon-nav {
-  background: color-mix(in srgb, var(--sv-surface) 92%, transparent);
-  backdrop-filter: blur(10px);
-}
-
 .servmon-sidebar {
   position: fixed;
   inset: 0 auto 0 0;
@@ -289,11 +284,6 @@ samp,
   flex: 0 0 auto;
 }
 
-.login-brand-logo {
-  width: 28px;
-  height: 28px;
-}
-
 .auth-shell {
   min-height: 100vh;
   display: grid;
@@ -313,12 +303,6 @@ samp,
       transparent 1px
     );
   background-size: 50px 50px, 50px 50px;
-}
-
-.auth-layout {
-  position: relative;
-  z-index: 2;
-  width: min(100%, 440px);
 }
 
 .auth-theme-toggle {
@@ -350,57 +334,6 @@ samp,
   letter-spacing: 0.14em;
 }
 
-.auth-panel {
-  width: 100%;
-  z-index: 2;
-  border-radius: 1.35rem;
-  background: color-mix(in srgb, var(--sv-surface) 98%, transparent);
-  box-shadow: 0 1.5rem 4rem rgb(0 0 0 / 28%);
-}
-
-.auth-panel-body {
-  padding: clamp(1.35rem, 4vw, 2rem);
-}
-
-.auth-brand-badge {
-  width: 56px;
-  height: 56px;
-  margin: 0 auto 1rem;
-  border-radius: 14px;
-  border: 1px solid color-mix(in srgb, var(--sv-border) 82%, transparent);
-  background: color-mix(in srgb, var(--sv-surface-2) 70%, transparent);
-  display: grid;
-  place-items: center;
-  box-shadow: inset 0 0 0 1px
-    color-mix(in srgb, var(--sv-border) 55%, transparent);
-}
-
-.auth-brand-badge > i {
-  color: var(--sv-accent);
-  font-size: 1.65rem;
-}
-
-.auth-brand-badge .login-brand-logo {
-  width: 30px;
-  height: 30px;
-}
-
-.auth-title {
-  margin: 0;
-  font-size: 1.7rem;
-  font-weight: 700;
-}
-
-.auth-subtitle {
-  margin: 0.45rem 0 1rem;
-  color: var(--sv-muted);
-  font-size: 0.92rem;
-}
-
-.auth-panel-heading {
-  margin-bottom: 1.5rem;
-}
-
 .auth-form {
   margin-top: 0.45rem;
 }
@@ -408,16 +341,6 @@ samp,
 .auth-form .cf-turnstile {
   display: flex;
   justify-content: center;
-}
-
-.auth-input-icon {
-  border-color: var(--sv-border);
-  background: color-mix(in srgb, var(--sv-surface-2) 92%, transparent);
-  color: var(--sv-muted);
-}
-
-.auth-input {
-  background: color-mix(in srgb, var(--sv-surface) 92%, transparent);
 }
 
 /* Remove the neon focus glow from the auth form fields; keep the accent border
@@ -517,16 +440,6 @@ body:has(.admin-page) #servmon-flash-toast-container .toast {
 .auth-submit-btn:hover {
   background: color-mix(in srgb, var(--sv-accent-fill) 85%, #000000 15%);
   color: #fff;
-}
-
-.auth-password-toggle {
-  border-color: var(--sv-border);
-  background: color-mix(in srgb, var(--sv-surface-2) 92%, transparent);
-  color: var(--sv-muted);
-}
-
-.auth-password-toggle:hover {
-  color: var(--sv-text);
 }
 
 .auth-note {
@@ -833,11 +746,6 @@ body.sidebar-collapsed .sidebar-section-title::after {
   flex: 0 0 22px;
 }
 
-.card-transparent {
-  background: color-mix(in srgb, var(--sv-surface) 80%, transparent) !important;
-  backdrop-filter: blur(4px);
-}
-
 .admin-shell {
   display: grid;
   gap: var(--sv-space-4);
@@ -935,29 +843,6 @@ body.sidebar-collapsed .sidebar-section-title::after {
   border-radius: var(--sv-radius-lg);
   background: var(--sv-card-bg);
   box-shadow: var(--sv-shadow-soft);
-}
-
-.panel-header {
-  padding: var(--sv-space-3) var(--sv-space-4);
-  border-bottom: 1px solid var(--sv-stroke-soft);
-  background: var(--sv-card-header-bg);
-  border-radius: var(--sv-radius-lg) var(--sv-radius-lg) 0 0;
-}
-
-.panel-body {
-  padding: var(--sv-space-4);
-}
-
-.panel-title {
-  margin: 0;
-  font-size: 1rem;
-  font-weight: 600;
-}
-
-.panel-subtitle {
-  margin: 0.3rem 0 0;
-  color: var(--sv-muted);
-  font-size: 0.86rem;
 }
 
 .table-shell {
@@ -1190,12 +1075,6 @@ th.is-sorted .sort-icon {
 .form-grid {
   display: grid;
   gap: var(--sv-space-3);
-}
-
-.field-group .form-label {
-  margin-bottom: 0.42rem;
-  font-weight: 600;
-  font-size: 0.9rem;
 }
 
 .field-help {
@@ -1465,12 +1344,6 @@ th.is-sorted .sort-icon {
   background: color-mix(in srgb, var(--sv-accent) 14%, transparent);
 }
 
-.btn-toolbar-compact {
-  padding: 0.2rem 0.5rem;
-  font-size: 0.74rem;
-  line-height: 1.15;
-}
-
 .sidebar-mobile-toggle {
   position: fixed;
   left: 1rem;
@@ -1495,23 +1368,6 @@ th.is-sorted .sort-icon {
 
 .bg-surface-2 {
   background: var(--sv-surface-2);
-}
-
-/* Subtle theme-aware grid backdrop (same family as the login page grid,
-   slightly lighter to stay calm behind dense content). */
-.bg-pattern-grid {
-  background-color: var(--sv-bg);
-  background-image:
-    linear-gradient(
-      color-mix(in srgb, var(--sv-border) 16%, transparent) 1px,
-      transparent 1px
-    ),
-    linear-gradient(
-      90deg,
-      color-mix(in srgb, var(--sv-border) 16%, transparent) 1px,
-      transparent 1px
-    );
-  background-size: 50px 50px, 50px 50px;
 }
 
 /* Full-viewport grid for every admin page (dashboard, servers, settings,
@@ -1604,18 +1460,6 @@ body:has(.admin-page) {
 
 .card-neon > .card-header .btn-sm {
   min-height: 1.95rem;
-}
-
-.servmon-body .btn.btn-toolbar-compact {
-  min-height: 1.75rem;
-  padding: 0.2rem 0.5rem;
-  font-size: 0.76rem;
-}
-
-.stat-number {
-  font-family: var(--sv-font-mono);
-  font-size: 2rem;
-  font-weight: 700;
 }
 
 .server-stat-card {
@@ -2978,77 +2822,11 @@ body:has(.admin-page) {
   color: var(--sv-text) !important;
 }
 
-.admin-metric {
-  display: grid;
-  gap: 0.15rem;
-}
-
-.admin-metric .label {
-  font-size: 0.78rem;
-  color: var(--sv-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-}
-
-.admin-metric .value {
-  font-size: 1.9rem;
-  font-weight: 700;
-  line-height: 1.2;
-}
-
 .summary-grid .card {
   min-height: 110px;
 }
 
-.alert-filter-card .form-label {
-  margin-bottom: 0.4rem;
-}
-
-.alert-filter-card .form-select,
-.alert-filter-card .filter-submit,
-.alert-filter-card .btn-outline-light {
-  min-height: 2.35rem;
-}
-
-.alert-filter-card .filter-submit {
-  min-width: 10rem;
-}
-
-.alert-filter-collapse > summary {
-  display: none;
-  cursor: pointer;
-  color: var(--sv-text);
-  font-weight: 600;
-  list-style: none;
-}
-
-.alert-filter-collapse > summary::-webkit-details-marker {
-  display: none;
-}
-
-@media (min-width: 992px) {
-  .alert-filter-row {
-    display: grid;
-    grid-template-columns:
-      minmax(0, 1.4fr) minmax(0, 1fr) minmax(0, 1fr)
-      minmax(0, 1fr) auto;
-  }
-
-  .alert-filter-row > [class*="col-"] {
-    width: auto;
-    max-width: none;
-  }
-}
-
 @media (max-width: 767.98px) {
-  .alert-filter-collapse > summary {
-    display: block;
-  }
-
-  .alert-filter-card .filter-submit {
-    flex: 1 1 auto;
-  }
-
   .alert-table-shell {
     overflow: visible;
     border: 0;
@@ -3363,10 +3141,6 @@ body:has(.admin-page) {
     padding: 4.6rem 1rem 1.5rem;
   }
 
-  .auth-layout {
-    width: min(100%, 440px);
-  }
-
   .auth-theme-toggle {
     top: 0.9rem;
     right: 0.85rem;
@@ -3381,14 +3155,6 @@ body:has(.admin-page) {
   body:has(.admin-page) #servmon-flash-toast-container {
     right: 4.75rem !important;
     width: calc(100vw - 6rem);
-  }
-
-  .auth-title {
-    font-size: 1.48rem;
-  }
-
-  .panel-body {
-    padding: var(--sv-space-3);
   }
 
   .settings-actions {
@@ -3503,17 +3269,6 @@ body:has(.admin-page) {
 
 .summary-card.is-active-filter::before {
   width: 3px;
-}
-
-.summary-card-active-indicator {
-  font-size: 0.68rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: var(--summary-tone);
-  display: inline-flex;
-  align-items: center;
-  gap: 0.25rem;
 }
 
 /* 3. Dashboard Instant Search Toolbar */
@@ -3676,13 +3431,6 @@ body.sidebar-collapsed .sidebar-section-title .sidebar-label {
   display: none !important;
 }
 
-/* 5. Server Detail Action Toolbar */
-.server-quick-actions {
-  display: flex;
-  align-items: center;
-  gap: 0.45rem;
-}
-
 /* 6. Alert Filter Quick Chips */
 .alert-chip-group {
   display: flex;
@@ -3748,15 +3496,6 @@ body.sidebar-collapsed .sidebar-section-title .sidebar-label {
   justify-content: center;
   gap: 0.65rem;
   text-align: center;
-}
-
-.public-footer-brand {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-weight: 600;
-  color: var(--sv-text);
-  font-size: 0.88rem;
 }
 
 /* Ping Terminal — extracted from inline <style> in app/Views/admin/ping_monitors.php */
@@ -3868,12 +3607,6 @@ body.sidebar-collapsed .sidebar-section-title .sidebar-label {
   font-size: 0.84rem;
   font-weight: 500;
   line-height: 1.4;
-}
-
-.slo-hint {
-  font-weight: 400;
-  font-size: 0.75rem;
-  opacity: 0.65;
 }
 
 .slo-grid {

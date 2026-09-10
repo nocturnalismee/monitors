@@ -14,7 +14,11 @@
   if (scopes.length === 0) return;
 
   function selectedBoxes(scope) {
-    return Array.from(scope.querySelectorAll("[data-bulk-checkbox]:checked"));
+    return Array.from(scope.querySelectorAll("[data-bulk-checkbox]:checked")).filter((cb) => !cb.disabled);
+  }
+
+  function enabledBoxes(scope) {
+    return Array.from(scope.querySelectorAll("[data-bulk-checkbox]")).filter((cb) => !cb.disabled);
   }
 
   function updateBar(scope) {
@@ -26,14 +30,22 @@
     if (label) label.textContent = `${count} selected`;
     const checkAll = scope.querySelector("[data-bulk-checkall]");
     if (checkAll) {
-      const boxes = Array.from(scope.querySelectorAll("[data-bulk-checkbox]"));
+      const boxes = enabledBoxes(scope);
       const checked = boxes.filter((cb) => cb.checked).length;
       checkAll.checked = boxes.length > 0 && checked === boxes.length;
       checkAll.indeterminate = checked > 0 && checked < boxes.length;
     }
   }
 
-  function showConfirm(message, onProceed) {
+  function refreshAllScopes() {
+    scopes.forEach(updateBar);
+  }
+
+  // Lets client-filtered pages (servers.js) refresh the bar after they
+  // enable/disable checkboxes without firing change events.
+  document.addEventListener("servmon:bulk-refresh", refreshAllScopes);
+
+  function showConfirm(message, onProceed, proceedLabel, proceedClass) {
     const modalEl = document.getElementById("servmonConfirmModal");
     if (!modalEl || typeof bootstrap === "undefined") {
       if (window.confirm(message)) onProceed();
@@ -44,8 +56,8 @@
     if (bodyEl) bodyEl.textContent = message;
     const proceedBtn = document.getElementById("servmonConfirmModalProceed");
     if (proceedBtn) {
-      proceedBtn.textContent = "Delete";
-      proceedBtn.className = "btn btn-danger";
+      proceedBtn.textContent = proceedLabel || "Delete";
+      proceedBtn.className = proceedClass || "btn btn-danger";
     }
     const handler = function () {
       proceedBtn.removeEventListener("click", handler);
@@ -67,7 +79,7 @@
 
     scope.querySelector("[data-bulk-checkall]")?.addEventListener("change", (event) => {
       scope.querySelectorAll("[data-bulk-checkbox]").forEach((cb) => {
-        cb.checked = event.target.checked;
+        if (!cb.disabled) cb.checked = event.target.checked;
       });
       updateBar(scope);
     });
@@ -88,7 +100,10 @@
         return;
       }
       event.preventDefault();
-      showConfirm(confirmTpl.replace("{n}", String(ids.length)), () => {
+      // A submit button may override the scope-level confirm message and
+      // proceed-button styling (used by the servers page multi-action bar).
+      const confirmMessage = (button?.getAttribute("data-bulk-confirm") || confirmTpl).replace("{n}", String(ids.length));
+      showConfirm(confirmMessage, () => {
         const container = form.querySelector("[data-bulk-ids]");
         container.replaceChildren();
         // form.submit() skips the submitter button, so carry the action explicitly.
@@ -105,7 +120,7 @@
           container.appendChild(input);
         });
         form.submit();
-      });
+      }, button?.getAttribute("data-bulk-proceed-label") || undefined, button?.getAttribute("data-bulk-proceed-class") || undefined);
     });
 
     updateBar(scope);

@@ -21,7 +21,8 @@ function source_text(string $relativePath): string
 $push = source_text('app/Controllers/Api/PushController.php');
 assert_architecture(str_contains($push, 'beginTransaction()'), 'push ingest must start a transaction');
 assert_architecture(str_contains($push, '->commit()'), 'push ingest must commit a transaction');
-assert_architecture(str_contains($push, 'Failed to persist service metrics'), 'service failure must fail the ingest request');
+assert_architecture(str_contains($push, 'persistServiceStates'), 'push must batch service writes outside the metric transaction');
+assert_architecture(!str_contains($push, 'Failed to persist service metrics'), 'service write failure must be best-effort, never fail an already-committed ingest');
 
 $alerts = source_text('app/Services/AlertService.php');
 assert_architecture(str_contains($alerts, 'alert_delivery_queue'), 'alerts must enqueue delivery work');
@@ -41,7 +42,10 @@ assert_architecture(!str_contains($serverDetailView, 'e($historyEndpoint)'), 'hi
 assert_architecture(str_contains($serverDetailView, 'const initialHistoryEndpoint = <?= json_encode($historyEndpoint'), 'history API URLs embedded in JavaScript must use JSON encoding');
 
 $pushDisk = source_text('app/Controllers/Api/PushDiskController.php');
-assert_architecture(str_contains($pushDisk, 'token_hash'), 'disk push must support hashed server tokens');
+assert_architecture(str_contains($pushDisk, 'PushAuthService::authenticate'), 'disk push must share the central ingest auth preamble');
+$pushAuth = source_text('app/Services/PushAuthService.php');
+assert_architecture(str_contains($pushAuth, 'token_hash'), 'shared ingest auth must support hashed server tokens');
+assert_architecture(str_contains($pushAuth, 'ipInAllowlist'), 'shared ingest auth must enforce the IP allowlist');
 
 $serverAdd = source_text('app/Controllers/Admin/ServerAddController.php');
 assert_architecture(!str_contains($serverAdd, "':token'"), 'server creation must not reference a plaintext token parameter');

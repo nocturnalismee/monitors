@@ -43,7 +43,7 @@ final class RetentionService
     {
         $allowed = self::retention_allowed_targets();
         if (!isset($allowed[$table]) || $allowed[$table] !== $column) {
-            throw new InvalidArgumentException(
+            throw new \InvalidArgumentException(
                 "retention_batch_delete: disallowed table/column pair: {$table}.{$column}"
             );
         }
@@ -145,7 +145,7 @@ final class RetentionService
     public static function metrics_history_bucket_delete(int $bucketSeconds, string $cutoff, int $batchSize = 5000): int
     {
         if (!in_array($bucketSeconds, [300, 3600, 86400], true)) {
-            throw new InvalidArgumentException(
+            throw new \InvalidArgumentException(
                 "metrics_history_bucket_delete: invalid bucket_seconds: {$bucketSeconds}"
             );
         }
@@ -379,10 +379,5 @@ final class RetentionService
         servmon_log_info('Disk retention cleanup complete', 'retention', $result);
 
         return $result;
-    }
-
-    public static function run_retention_cleanup(int $days): array
-    {
-        return self::run_core_retention_cleanup($days);
     }
 }

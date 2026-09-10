@@ -216,8 +216,8 @@
     </section>
 </main>
 <script src="<?= e(asset_url('assets/js/forms.js')) ?>"></script>
-<script<?= csp_nonce_attr() ?>>window.SERVMON_PING_AUTO_REFRESH_MS = 15000;</script>
-<script src="<?= e(asset_url('assets/js/ping-refresh.js')) ?>"></script>
+<script<?= csp_nonce_attr() ?>>window.SERVMON_AUTO_REFRESH_MS = 15000; window.SERVMON_AUTO_REFRESH_SKIP_TERMINAL = true;</script>
+<script src="<?= e(asset_url('assets/js/auto-refresh.js')) ?>"></script>
 
 <div class="modal fade" id="pingTerminalModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-lg">

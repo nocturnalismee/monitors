@@ -1,10 +1,10 @@
 /**
- * IP Reputation detail page – ECharts listing history chart + Check Now
+ * IP Reputation detail page – ECharts listing history chart.
+ * (Check-Now is bound once by ServMon.bindIpRepCheckNow in common.js.)
  */
 (function () {
   'use strict';
 
-  var API_URL  = window.SERVMON_IP_REP_API || '';
   var chartData = window.SERVMON_IP_REP_CHART_DATA || [];
   var chartDom  = document.getElementById('ip-rep-history-chart');
 
@@ -105,38 +105,4 @@
   } else if (chartDom) {
     chartDom.innerHTML = '<div class="d-flex justify-content-center align-items-center h-100 text-secondary"><i class="ti ti-chart-line me-2"></i>No check history data yet</div>';
   }
-
-  /* ── Check Now button ──────────────────────────────────── */
-  document.addEventListener('click', function (e) {
-    var btn = e.target.closest('[data-ip-rep-check-now]');
-    if (!btn || !API_URL) return;
-
-    var targetId = btn.getAttribute('data-ip-rep-check-now');
-    if (!targetId) return;
-
-    btn.disabled = true;
-    var origHtml = btn.innerHTML;
-    btn.innerHTML = '<i class="ti ti-loader-2 ti-spin me-1"></i>Checking…';
-
-    fetch(API_URL + '?action=check_now&id=' + encodeURIComponent(targetId), {
-      method: 'POST',
-      credentials: 'same-origin',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: new URLSearchParams({ _csrf_token: window.SERVMON_CSRF_TOKEN || '' }),
-    })
-      .then(function (r) { return r.json(); })
-      .then(function (data) {
-        if (data.success) {
-          btn.innerHTML = '<i class="ti ti-check me-1"></i>Done';
-          setTimeout(function () { location.reload(); }, 1000);
-        } else {
-          btn.innerHTML = '<i class="ti ti-alert-triangle me-1"></i>Failed';
-          setTimeout(function () { btn.innerHTML = origHtml; btn.disabled = false; }, 3000);
-        }
-      })
-      .catch(function () {
-        btn.innerHTML = '<i class="ti ti-alert-triangle me-1"></i>Error';
-        setTimeout(function () { btn.innerHTML = origHtml; btn.disabled = false; }, 3000);
-      });
-  });
 })();

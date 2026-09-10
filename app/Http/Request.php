@@ -77,11 +77,6 @@ final class Request
         return $this->method === 'POST';
     }
 
-    public function rawBody(): string
-    {
-        return (string) file_get_contents('php://input');
-    }
-
     public function ip(): string
     {
         return get_client_ip();

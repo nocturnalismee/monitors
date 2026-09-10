@@ -18,5 +18,5 @@ return [
     'REDIS_PASSWORD' => '',
     'REDIS_DB' => '0',
     'REDIS_PREFIX' => 'servmon',
-    'TRUST_PROXY_HEADERS' => '0',
+    'TRUSTED_PROXIES' => '127.0.0.1,::1',
 ];

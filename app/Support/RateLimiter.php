@@ -22,6 +22,14 @@ final class RateLimiter
         if ($maxPerMinute > 10000) {
             $maxPerMinute = 10000;
         }
+
+        // Prefer Redis (atomic INCR, no LOCK_EX serialization) when available;
+        // fall back to the file sliding window below.
+        $redisResult = self::redisFixedWindow($endpoint, $ip, $maxPerMinute);
+        if ($redisResult !== null) {
+            return $redisResult;
+        }
+
         $key = md5($endpoint . ':' . $ip);
         $file = self::api_rate_limit_dir() . DIRECTORY_SEPARATOR . $key . '.dat';
         $now = time();
@@ -63,6 +71,37 @@ final class RateLimiter
         fclose($fp);
 
         return true;
+    }
+
+    /**
+     * Redis fixed-window counter. Returns null when Redis is disabled or
+     * unusable so the caller falls back to the file sliding window.
+     */
+    private static function redisFixedWindow(string $endpoint, string $ip, int $maxPerMinute): ?bool
+    {
+        try {
+            $redis = Cache::client();
+        } catch (\Throwable) {
+            return null;
+        }
+        if ($redis === null) {
+            return null;
+        }
+        try {
+            $key = Cache::key('ratelimit:' . md5($endpoint . ':' . $ip));
+            // Atomic first-hit: SET NX EX creates the window in one step.
+            $created = $redis->set($key, 1, ['nx', 'ex' => 60]);
+            if ($created) {
+                return true;
+            }
+            $count = (int) $redis->incr($key);
+            if ($redis->ttl($key) === -1) {
+                $redis->expire($key, 60);
+            }
+            return $count <= $maxPerMinute;
+        } catch (\Throwable) {
+            return null;
+        }
     }
 
     public static function api_rate_limit_exceeded(): void

@@ -12,7 +12,6 @@ final class AgentDownloadController
         'monitoring-agent.sh',
         'monitoring-agent-cpanel-mail.sh',
         'agent-disk-health.sh',
-        'agent-old.sh',
     ];
 
     private const ALLOWED_SYSTEMD = [

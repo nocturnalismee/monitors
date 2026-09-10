@@ -76,20 +76,6 @@
         </aside>
     </div>
 </main>
-<script<?= csp_nonce_attr() ?>>
-document.querySelectorAll('[data-password-toggle]').forEach(function (button) {
-    button.addEventListener('click', function () {
-        var input = document.getElementById(button.getAttribute('data-password-toggle'));
-        if (!input) return;
-        var isPassword = input.type === 'password';
-        input.type = isPassword ? 'text' : 'password';
-        button.setAttribute('aria-label', isPassword ? 'Hide password' : 'Show password');
-        button.setAttribute('title', isPassword ? 'Hide password' : 'Show password');
-        var icon = button.querySelector('i');
-        if (icon) icon.className = isPassword ? 'ti ti-eye-off' : 'ti ti-eye';
-    });
-});
-</script>
 <?php if ($turnstileEnabled && turnstile_site_key() !== ''): ?>
     <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
 <?php endif; ?>

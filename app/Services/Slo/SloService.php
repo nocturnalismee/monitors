@@ -8,6 +8,12 @@ final class SloService {
    * When retention (or a young server) truncates the window, the result
    * carries window_truncated=true + window_from so the UI can label it
    * explicitly (e.g. "dihitung 7 dari 30 hari").
+   *
+   * Query shape: one GROUP BY server_id per table (metrics_history +
+   * metrics), regardless of fleet size — never N x per-server COUNTs.
+   * Buckets are counted from the global cutoff and then clamped to each
+   * server's own window total; a young server has no rows before its
+   * created_at anyway, so the clamp keeps the math exact.
    */
   public function availability(int $windowDays,int $thresholdMinutes): array {
     $now = time();
@@ -22,30 +28,62 @@ final class SloService {
     $historyExists = true;
     try { $historyExists = \App\Services\RetentionService::retention_table_exists('metrics_history'); }
     catch (\Throwable $e) { $historyExists = true; }
-    $total = 0; $onlineSum = 0; $pctSum = 0.0; $measured = 0; $minFloor = $now;
+    $total = 0; $minFloor = $now; $serverTotals = [];
+    foreach ($servers as $srv) {
+      $sid = (int)($srv['id'] ?? 0);
+      if ($sid <= 0) continue;
+      $createdTs = isset($srv['created_at']) && ($ts = strtotime((string) $srv['created_at'])) !== false ? $ts : $cutoffTs;
+      $floorTs = max($cutoffTs, $createdTs);
+      if ($floorTs < $minFloor) $minFloor = $floorTs;
+      $perTotal = (int) ceil(max(0, $now - $floorTs) / 300);
+      if ($perTotal <= 0) continue;
+      $serverTotals[$sid] = $perTotal;
+      $total += $perTotal;
+    }
+    if ($serverTotals === []) {
+      $unknown['servers_measured'] = 0;
+      $unknown['total_buckets'] = $total;
+      return $unknown;
+    }
+    // PDO with emulated prepares off rejects duplicate named placeholders,
+    // so each UNION branch gets its own IN-list (:ha_*/:hb_*, :ma_*/:mb_*).
+    $params = [':cutoff1' => $cutoff, ':cutoff2' => $cutoff];
+    $inA = [];
+    $inB = [];
+    $i = 0;
+    foreach (array_keys($serverTotals) as $sid) {
+      $pa = ':ha_' . $i;
+      $pb = ':hb_' . $i;
+      $inA[] = $pa;
+      $inB[] = $pb;
+      $params[$pa] = $sid;
+      $params[$pb] = $sid;
+      $i++;
+    }
+    $onlineByServer = [];
     try {
-      foreach ($servers as $srv) {
-        $createdTs = isset($srv['created_at']) && ($ts = strtotime((string) $srv['created_at'])) !== false ? $ts : $cutoffTs;
-        $floorTs = max($cutoffTs, $createdTs);
-        if ($floorTs < $minFloor) $minFloor = $floorTs;
-        $perTotal = (int) ceil(max(0, $now - $floorTs) / 300);
-        if ($perTotal <= 0) continue;
-        $floor = date('Y-m-d H:i:s', $floorTs);
-        $sid = (int) ($srv['id'] ?? 0);
-        $perOnline = 0;
-        try {
-          if ($historyExists) {
-            $row = db_one("SELECT COUNT(*) AS c FROM (SELECT DISTINCT FLOOR(UNIX_TIMESTAMP(recorded_at)/300)*300 AS bkt FROM metrics_history WHERE bucket_seconds=300 AND server_id=:sid AND recorded_at>=:cutoff1 UNION SELECT DISTINCT FLOOR(UNIX_TIMESTAMP(recorded_at)/300)*300 AS bkt FROM metrics WHERE server_id=:sid2 AND recorded_at>=:cutoff2) AS u",[':sid'=>$sid, ':cutoff1'=>$floor, ':sid2'=>$sid, ':cutoff2'=>$floor]);
-          } else {
-            $row = db_one("SELECT COUNT(*) AS c FROM (SELECT DISTINCT FLOOR(UNIX_TIMESTAMP(recorded_at)/300)*300 AS bkt FROM metrics WHERE server_id=:sid AND recorded_at>=:cutoff) AS u",[':sid'=>$sid, ':cutoff'=>$floor]);
-          }
-          $perOnline = (int)($row['c'] ?? $row['C'] ?? 0);
-        } catch (\Throwable $e) {
-          $row = db_one("SELECT COUNT(*) AS c FROM (SELECT DISTINCT FLOOR(UNIX_TIMESTAMP(recorded_at)/300)*300 AS bkt FROM metrics WHERE server_id=:sid AND recorded_at>=:cutoff) AS u",[':sid'=>$sid, ':cutoff'=>$floor]);
-          $perOnline = (int)($row['c'] ?? $row['C'] ?? 0);
+      if ($historyExists) {
+        $rows = db_all("SELECT server_id, COUNT(*) AS c FROM (SELECT DISTINCT server_id, FLOOR(UNIX_TIMESTAMP(recorded_at)/300)*300 AS bkt FROM metrics_history WHERE bucket_seconds=300 AND recorded_at>=:cutoff1 AND server_id IN (" . implode(',', $inA) . ") UNION SELECT DISTINCT server_id, FLOOR(UNIX_TIMESTAMP(recorded_at)/300)*300 AS bkt FROM metrics WHERE recorded_at>=:cutoff2 AND server_id IN (" . implode(',', $inB) . ")) AS u GROUP BY server_id", $params);
+      } else {
+        $rows = db_all("SELECT server_id, COUNT(*) AS c FROM (SELECT DISTINCT server_id, FLOOR(UNIX_TIMESTAMP(recorded_at)/300)*300 AS bkt FROM metrics WHERE recorded_at>=:cutoff1 AND server_id IN (" . implode(',', $inA) . ")) AS u GROUP BY server_id", $params);
+      }
+      foreach ($rows as $r) {
+        $onlineByServer[(int)($r['server_id'] ?? $r['SERVER_ID'] ?? 0)] = (int)($r['c'] ?? $r['C'] ?? 0);
+      }
+    } catch (\Throwable $e) {
+      try {
+        $rows = db_all("SELECT server_id, COUNT(*) AS c FROM (SELECT DISTINCT server_id, FLOOR(UNIX_TIMESTAMP(recorded_at)/300)*300 AS bkt FROM metrics WHERE recorded_at>=:cutoff1 AND server_id IN (" . implode(',', $inA) . ")) AS u GROUP BY server_id", $params);
+        foreach ($rows as $r) {
+          $onlineByServer[(int)($r['server_id'] ?? $r['SERVER_ID'] ?? 0)] = (int)($r['c'] ?? $r['C'] ?? 0);
         }
+      } catch (\Throwable $e2) { $unknown['error']=$e2->getMessage(); return $unknown; }
+    }
+    try {
+      $onlineSum = 0; $pctSum = 0.0; $measured = 0;
+      foreach ($serverTotals as $sid => $perTotal) {
+        $perOnline = $onlineByServer[$sid] ?? 0;
         if ($perOnline > $perTotal) $perOnline = $perTotal;
-        $total += $perTotal; $onlineSum += $perOnline;
+        $onlineSum += $perOnline;
         $pctSum += $perOnline / $perTotal * 100;
         $measured++;
       }

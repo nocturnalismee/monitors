@@ -5,6 +5,7 @@ namespace App\Controllers\Admin;
 
 use App\Http\Request;
 use App\Http\Response;
+use App\Services\Validation\ServerValidator;
 use App\Support\View;
 
 final class ServerEditController
@@ -33,12 +34,21 @@ final class ServerEditController
                 redirect('servers/' . $id . '/edit');
             }
 
-            $name = trim((string) ($request->input('name') ?? ''));
-            $location = trim((string) ($request->input('location') ?? ''));
-            $host = trim((string) ($request->input('host') ?? ''));
-            $type = trim((string) ($request->input('type') ?? ''));
-            $provider = trim((string) ($request->input('provider') ?? ''));
-            $label = trim((string) ($request->input('label') ?? ''));
+            [
+                'name' => $name,
+                'location' => $location,
+                'host' => $host,
+                'type' => $type,
+                'provider' => $provider,
+                'label' => $label,
+            ] = ServerValidator::validateIdentity([
+                'name' => $request->input('name'),
+                'location' => $request->input('location'),
+                'host' => $request->input('host'),
+                'type' => $request->input('type'),
+                'provider' => $request->input('provider'),
+                'label' => $request->input('label'),
+            ], 'servers/' . $id . '/edit');
             $notifyEmail = trim((string) ($request->input('notify_email') ?? ''));
             $pushAllowedIps = trim((string) ($request->input('push_allowed_ips') ?? ''));
             $maintenanceMode = isset($_POST['maintenance_mode']) ? 1 : 0;
@@ -51,47 +61,10 @@ final class ServerEditController
                 }
             }
 
-            if ($name === '') {
-                flash_set('danger', 'Server name is required.');
-                redirect('servers/' . $id . '/edit');
-            }
-            if (mb_strlen($name) > 100) {
-                flash_set('danger', 'Server name must not exceed 100 characters.');
-                redirect('servers/' . $id . '/edit');
-            }
-            if (mb_strlen($location) > 100) {
-                flash_set('danger', 'Location must not exceed 100 characters.');
-                redirect('servers/' . $id . '/edit');
-            }
-            if (mb_strlen($host) > 100) {
-                flash_set('danger', 'Host must not exceed 100 characters.');
-                redirect('servers/' . $id . '/edit');
-            }
-            if (mb_strlen($type) > 50) {
-                flash_set('danger', 'Type must not exceed 50 characters.');
-                redirect('servers/' . $id . '/edit');
-            }
-            if (mb_strlen($provider) > 100) {
-                flash_set('danger', 'Provider must not exceed 100 characters.');
-                redirect('servers/' . $id . '/edit');
-            }
-            if (mb_strlen($label) > 100) {
-                flash_set('danger', 'Label must not exceed 100 characters.');
-                redirect('servers/' . $id . '/edit');
-            }
-            if ($notifyEmail !== '') {
-                if (mb_strlen($notifyEmail) > 255) {
-                    flash_set('danger', 'Notify email must not exceed 255 characters.');
-                    redirect('servers/' . $id . '/edit');
-                }
-                if (filter_var($notifyEmail, FILTER_VALIDATE_EMAIL) === false) {
-                    flash_set('danger', 'Notify email is not a valid email address.');
-                    redirect('servers/' . $id . '/edit');
-                }
-            }
-            $v = \App\Services\Security\PushAllowlistValidator::validate((string)($pushAllowedIps ?? ''));
-            if (!$v['valid']) { flash_set('danger', $v['error']); redirect('servers/'.$id.'/edit'); }
-            $pushAllowedIps = $v['normalized'] ?? '';
+            [
+                'notify_email' => $notifyEmail,
+                'push_allowed_ips' => $pushAllowedIps,
+            ] = ServerValidator::validateContact($notifyEmail, $pushAllowedIps, 'servers/' . $id . '/edit');
 
             db_exec(
                 'UPDATE servers

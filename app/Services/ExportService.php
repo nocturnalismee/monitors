@@ -3,12 +3,14 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use Throwable;
+
 final class ExportService
 {
     public static function export_job_create(int $userId, string $type, string $format): int
     {
         if ($userId <= 0 || !in_array($type, ['alerts', 'metrics', 'services', 'audits'], true)) {
-            throw new InvalidArgumentException('Invalid export job parameters.');
+            throw new \InvalidArgumentException('Invalid export job parameters.');
         }
         $format = in_array($format, ['csv', 'json'], true) ? $format : 'csv';
         db_exec(

@@ -85,31 +85,8 @@
 </main>
 <script<?= csp_nonce_attr() ?>>
 document.addEventListener("DOMContentLoaded", function () {
-  const table = document.querySelector("[data-disk-health-table]");
-  if (!table) return;
-
-  const goToRowDetail = function (row) {
-    const detailUrl = row.getAttribute("data-detail-url");
-    if (!detailUrl) return;
-    window.location.assign(detailUrl);
-  };
-
-  table.addEventListener("click", function (event) {
-    const interactive = event.target.closest("a,button,input,select,textarea,label");
-    if (interactive) return;
-    const row = event.target.closest("tr[data-detail-url]");
-    if (!row) return;
-    goToRowDetail(row);
-  });
-
-  table.addEventListener("keydown", function (event) {
-    if (event.key !== "Enter" && event.key !== " ") return;
-    const row = event.target.closest("tr[data-detail-url]");
-    if (!row) return;
-    event.preventDefault();
-    goToRowDetail(row);
-  });
+  window.ServMon.wireRowNavigation("[data-disk-health-table]");
 });
 </script>
-<script<?= csp_nonce_attr() ?>>window.SERVMON_DISK_AUTO_REFRESH_MS = 30000;</script>
-<script src="<?= e(asset_url('assets/js/disk-refresh.js')) ?>"></script>
+<script<?= csp_nonce_attr() ?>>window.SERVMON_AUTO_REFRESH_MS = 30000;</script>
+<script src="<?= e(asset_url('assets/js/auto-refresh.js')) ?>"></script>

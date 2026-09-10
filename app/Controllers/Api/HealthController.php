@@ -10,6 +10,14 @@ use Throwable;
 
 final class HealthController
 {
+    /**
+     * Deep-check fan-out (worker SELECTs, queue COUNTs, SLO scans,
+     * partition introspection) is cached briefly so monitoring pollers
+     * cannot DDoS the database through this endpoint.
+     */
+    private const HEALTH_CACHE_TTL = 20;
+    private const HEALTH_CACHE_KEY = 'health:summary';
+
     public function index(Request $request): Response
     {
         if ($request->method !== 'GET') {
@@ -19,6 +27,16 @@ final class HealthController
         $ip = $request->ip();
         if (!api_rate_check('health_api', $ip, 30)) {
             api_rate_limit_exceeded();
+        }
+
+        $cached = cache_get(self::HEALTH_CACHE_KEY);
+        if (!is_array($cached)) {
+            $cached = self::readFileCache();
+        }
+        if (is_array($cached) && isset($cached['status'], $cached['checks'])) {
+            $cached['time'] = date('Y-m-d H:i:s');
+            $cached['cached'] = true;
+            return Response::json($cached, $cached['status'] === 'ok' ? 200 : 503);
         }
 
         $checks = [];
@@ -113,11 +131,47 @@ final class HealthController
         $checks['ingest_lag']=$lag;
         $checks['partitions']=$parts;
 
-        return Response::json([
+        $payload = [
             'status' => $status,
             'service' => 'servmon',
             'time' => date('Y-m-d H:i:s'),
             'checks' => $checks,
-        ], $status === 'ok' ? 200 : 503);
+        ];
+        cache_set(self::HEALTH_CACHE_KEY, $payload, self::HEALTH_CACHE_TTL);
+        self::writeFileCache($payload);
+
+        return Response::json($payload, $status === 'ok' ? 200 : 503);
+    }
+
+    /**
+     * File fallback for installations without Redis: a single JSON file
+     * guarded by mtime, so the deep checks still run at most once per TTL.
+     */
+    private static function healthFilePath(): string
+    {
+        return SERVMON_BASE_DIR . '/storage/cache/health-summary.json';
+    }
+
+    private static function readFileCache(): ?array
+    {
+        $path = self::healthFilePath();
+        if (!is_file($path) || (time() - (int) @filemtime($path)) > self::HEALTH_CACHE_TTL) {
+            return null;
+        }
+        $raw = @file_get_contents($path);
+        if (!is_string($raw) || $raw === '') {
+            return null;
+        }
+        $decoded = json_decode($raw, true);
+        return is_array($decoded) ? $decoded : null;
+    }
+
+    private static function writeFileCache(array $payload): void
+    {
+        $encoded = json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+        if (!is_string($encoded)) {
+            return;
+        }
+        @file_put_contents(self::healthFilePath(), $encoded, LOCK_EX);
     }
 }

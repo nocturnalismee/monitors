@@ -3,16 +3,6 @@ declare(strict_types=1);
 
 use App\Services\AlertService;
 
-function alert_delivery_queue_available(): bool
-{
-    return AlertService::deliveryQueueAvailable();
-}
-
-function alert_in_cooldown(?int $serverId, string $alertType, int $cooldownMinutes): bool
-{
-    return AlertService::inCooldown($serverId, $alertType, $cooldownMinutes);
-}
-
 function create_alert(
     ?int $serverId,
     string $alertType,
@@ -22,11 +12,6 @@ function create_alert(
     array $context = []
 ): void {
     AlertService::create($serverId, $alertType, $severity, $title, $message, $context);
-}
-
-function resolve_condition_alerts(?int $serverId, array $alertTypes): int
-{
-    return AlertService::resolveConditionAlerts($serverId, $alertTypes);
 }
 
 function evaluate_server_threshold_alerts(array $server, array $metric): void

@@ -5,7 +5,9 @@ namespace App\Controllers\Admin;
 
 use App\Http\Request;
 use App\Http\Response;
+use App\Services\Validation\IpRepValidator;
 use App\Support\View;
+use Throwable;
 
 final class IpReputationAddController
 {
@@ -18,22 +20,18 @@ final class IpReputationAddController
 
         if ($request->isPost()) {
             // CSRF single-guard: enforced by csrf middleware.
-            $ipAddress = trim((string) ($request->input('ip_address') ?? ''));
-            $label     = trim((string) ($request->input('label') ?? ''));
-            $serverId  = (int) ($request->input('server_id') ?? 0);
-            $interval  = max(1, (int) ($request->input('check_interval_hours') ?? 6));
+            [
+                'ip_address' => $ipAddress,
+                'label' => $label,
+                'server_id' => $serverId,
+                'check_interval_hours' => $interval,
+            ] = IpRepValidator::validateTarget([
+                'ip_address' => $request->input('ip_address'),
+                'label' => $request->input('label'),
+                'server_id' => $request->input('server_id'),
+                'check_interval_hours' => $request->input('check_interval_hours'),
+            ], null, 'ip-reputation/add');
             $checkNow  = $request->input('check_now') !== null;
-
-            if (!filter_var($ipAddress, FILTER_VALIDATE_IP)) {
-                flash_set('danger', 'Invalid IP address format.');
-                redirect('ip-reputation/add');
-            }
-
-            $existing = db_one('SELECT id FROM ip_reputation_targets WHERE ip_address = :ip', [':ip' => $ipAddress]);
-            if ($existing !== null) {
-                flash_set('danger', 'IP address ' . htmlspecialchars($ipAddress) . ' is already monitored.');
-                redirect('ip-reputation/add');
-            }
 
             db_exec(
                 'INSERT INTO ip_reputation_targets (ip_address, label, server_id, check_interval_hours) VALUES (:ip, :label, :server_id, :interval)',
