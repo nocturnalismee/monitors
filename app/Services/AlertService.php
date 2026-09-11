@@ -206,112 +206,85 @@ final class AlertService
         }
 
         $settings = settings_get_all();
-
         $serverName = (string) $server['name'];
-        $mailThreshold = max(0, (int) ($settings['threshold_mail_queue'] ?? '50'));
-        $mailCritical = max($mailThreshold, (int) ($settings['threshold_mail_queue_critical'] ?? '100'));
-        $cpuThreshold = (float) ($settings['threshold_cpu_load'] ?? '2.00');
-        $cpuCritical = max($cpuThreshold, (float) ($settings['threshold_cpu_load_critical'] ?? '4.00'));
-        $ramThreshold = max(0, (float) ($settings['threshold_ram_pct'] ?? '85'));
-        $ramCritical = max($ramThreshold, (float) ($settings['threshold_ram_pct_critical'] ?? '95'));
-        $diskThreshold = max(0, (float) ($settings['threshold_disk_pct'] ?? '90'));
-        $diskCritical = max($diskThreshold, (float) ($settings['threshold_disk_pct_critical'] ?? '97'));
 
-        $mailQueue = (int) ($metric['mail_queue_total'] ?? 0);
-        $cpuLoad = (float) ($metric['cpu_load'] ?? 0.0);
+        self::evaluateThreshold(
+            $serverId, $serverName, $settings,
+            'mail_queue', (int) ($metric['mail_queue_total'] ?? 0),
+            (int) ($settings['threshold_mail_queue'] ?? '50'),
+            (int) ($settings['threshold_mail_queue_critical'] ?? '100'),
+            ['mail_queue_total' => (int) ($metric['mail_queue_total'] ?? 0)]
+        );
+
+        self::evaluateThreshold(
+            $serverId, $serverName, $settings,
+            'cpu', (float) ($metric['cpu_load'] ?? 0.0),
+            (float) ($settings['threshold_cpu_load'] ?? '2.00'),
+            (float) ($settings['threshold_cpu_load_critical'] ?? '4.00'),
+            ['cpu_load' => (float) ($metric['cpu_load'] ?? 0.0)]
+        );
+
         $ramPct = calculateUsagePercent((int) ($metric['ram_used'] ?? 0), (int) ($metric['ram_total'] ?? 0));
+        self::evaluateThreshold(
+            $serverId, $serverName, $settings,
+            'ram', $ramPct,
+            max(0, (float) ($settings['threshold_ram_pct'] ?? '85')),
+            max(0, (float) ($settings['threshold_ram_pct_critical'] ?? '95')),
+            ['ram_pct' => $ramPct]
+        );
+
         $diskPct = calculateUsagePercent((int) ($metric['hdd_used'] ?? 0), (int) ($metric['hdd_total'] ?? 0));
+        self::evaluateThreshold(
+            $serverId, $serverName, $settings,
+            'disk', $diskPct,
+            max(0, (float) ($settings['threshold_disk_pct'] ?? '90')),
+            max(0, (float) ($settings['threshold_disk_pct_critical'] ?? '97')),
+            ['disk_pct' => $diskPct]
+        );
+    }
 
-        if ($mailQueue >= $mailCritical) {
+    private static function evaluateThreshold(
+        int $serverId,
+        string $serverName,
+        array $settings,
+        string $resource,
+        int|float $value,
+        int|float $warnThreshold,
+        int|float $criticalThreshold,
+        array $context
+    ): void {
+        $criticalType = $resource . '_critical';
+        $warningType = $resource . '_high';
+        $label = match ($resource) {
+            'mail_queue' => 'Mail Queue',
+            'cpu' => 'CPU Load',
+            'ram' => 'RAM Usage',
+            'disk' => 'Disk Usage',
+            default => ucfirst($resource),
+        };
+        $valueDisplay = $resource === 'mail_queue' ? (string) $value : ($resource === 'cpu' ? (string) $value : ((string) $value . '%'));
+
+        if ($value >= $criticalThreshold) {
             self::create(
                 $serverId,
-                'mail_queue_critical',
+                $criticalType,
                 'danger',
-                "[{$serverName}] Critical Mail Queue",
-                "Mail queue {$mailQueue} exceeds critical threshold {$mailCritical}.",
-                ['mail_queue_total' => $mailQueue, 'threshold' => $mailCritical]
+                "[{$serverName}] Critical {$label}",
+                "{$label} {$valueDisplay} exceeds critical threshold {$criticalThreshold}" . ($resource === 'cpu' ? '' : '%') . ".",
+                array_merge($context, ['threshold' => $criticalThreshold])
             );
-        } elseif ($mailQueue >= $mailThreshold) {
-            self::resolveConditionAlerts($serverId, ['mail_queue_critical']);
+        } elseif ($value >= $warnThreshold) {
+            self::resolveConditionAlerts($serverId, [$criticalType]);
             self::create(
                 $serverId,
-                'mail_queue_high',
+                $warningType,
                 'warning',
-                "[{$serverName}] High Mail Queue",
-                "Mail queue {$mailQueue} exceeds threshold {$mailThreshold}.",
-                ['mail_queue_total' => $mailQueue, 'threshold' => $mailThreshold]
+                "[{$serverName}] High {$label}",
+                "{$label} {$valueDisplay} exceeds threshold {$warnThreshold}" . ($resource === 'cpu' ? '' : '%') . ".",
+                array_merge($context, ['threshold' => $warnThreshold])
             );
         } else {
-            self::resolveConditionAlerts($serverId, ['mail_queue_critical', 'mail_queue_high']);
-        }
-
-        if ($cpuLoad >= $cpuCritical) {
-            self::create(
-                $serverId,
-                'cpu_critical',
-                'danger',
-                "[{$serverName}] Critical CPU Load",
-                "CPU load {$cpuLoad} exceeds critical threshold {$cpuCritical}.",
-                ['cpu_load' => $cpuLoad, 'threshold' => $cpuCritical]
-            );
-        } elseif ($cpuLoad >= $cpuThreshold) {
-            self::resolveConditionAlerts($serverId, ['cpu_critical']);
-            self::create(
-                $serverId,
-                'cpu_high',
-                'warning',
-                "[{$serverName}] High CPU Load",
-                "CPU load {$cpuLoad} exceeds threshold {$cpuThreshold}.",
-                ['cpu_load' => $cpuLoad, 'threshold' => $cpuThreshold]
-            );
-        } else {
-            self::resolveConditionAlerts($serverId, ['cpu_critical', 'cpu_high']);
-        }
-
-        if ($ramPct >= $ramCritical) {
-            self::create(
-                $serverId,
-                'ram_critical',
-                'danger',
-                "[{$serverName}] Critical RAM Usage",
-                "RAM usage {$ramPct}% exceeds critical threshold {$ramCritical}%.",
-                ['ram_pct' => $ramPct, 'threshold' => $ramCritical]
-            );
-        } elseif ($ramPct >= $ramThreshold) {
-            self::resolveConditionAlerts($serverId, ['ram_critical']);
-            self::create(
-                $serverId,
-                'ram_high',
-                'warning',
-                "[{$serverName}] High RAM Usage",
-                "RAM usage {$ramPct}% exceeds threshold {$ramThreshold}%.",
-                ['ram_pct' => $ramPct, 'threshold' => $ramThreshold]
-            );
-        } else {
-            self::resolveConditionAlerts($serverId, ['ram_critical', 'ram_high']);
-        }
-
-        if ($diskPct >= $diskCritical) {
-            self::create(
-                $serverId,
-                'disk_critical',
-                'danger',
-                "[{$serverName}] Critical Disk Usage",
-                "Disk usage {$diskPct}% exceeds critical threshold {$diskCritical}%.",
-                ['disk_pct' => $diskPct, 'threshold' => $diskCritical]
-            );
-        } elseif ($diskPct >= $diskThreshold) {
-            self::resolveConditionAlerts($serverId, ['disk_critical']);
-            self::create(
-                $serverId,
-                'disk_high',
-                'warning',
-                "[{$serverName}] High Disk Usage",
-                "Disk usage {$diskPct}% exceeds threshold {$diskThreshold}.",
-                ['disk_pct' => $diskPct, 'threshold' => $diskThreshold]
-            );
-        } else {
-            self::resolveConditionAlerts($serverId, ['disk_critical', 'disk_high']);
+            self::resolveConditionAlerts($serverId, [$criticalType, $warningType]);
         }
     }
 
