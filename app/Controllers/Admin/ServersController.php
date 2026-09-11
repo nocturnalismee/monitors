@@ -139,7 +139,8 @@ final class ServersController
         $page = max(1, (int) ($request->query('page') ?? 1));
         $perPage = max(10, min(200, (int) ($request->query('per_page') ?? 50)));
         $offset = ($page - 1) * $perPage;
-        $totalServers = (int) db_one('SELECT COUNT(*) AS cnt FROM servers')['cnt'] ?? 0;
+        $totalRow = db_one('SELECT COUNT(*) AS cnt FROM servers');
+        $totalServers = (int) ($totalRow['cnt'] ?? 0);
         $totalPages = (int) ceil($totalServers / $perPage);
 
         $rows = db_all(

@@ -19,7 +19,8 @@ namespace App\Controllers\Admin {
             );
 
             $latestMetricJoin = latest_metric_join_sql('s', 'm');
-            $totalServers = (int) db_one('SELECT COUNT(*) AS cnt FROM servers')['cnt'] ?? 0;
+            $totalRow = db_one('SELECT COUNT(*) AS cnt FROM servers');
+            $totalServers = (int) ($totalRow['cnt'] ?? 0);
             $dashboardLimit = 50;
             $rows = db_all(
                 'SELECT s.id, s.name, s.location, s.type, s.active,
