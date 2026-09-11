@@ -343,6 +343,11 @@ foreach ($unhealthyWorkers as $uw) {
                         <td><span class="badge <?= e('badge-' . $status) ?> text-uppercase"><?= e($status) ?></span></td>
                     </tr>
                 <?php endforeach; ?>
+                <?php if (!empty($showAllLink)): ?>
+                    <tr><td colspan="11" class="text-center py-2">
+                        <a href="<?= e(app_url('servers')) ?>" class="btn btn-sm btn-outline-light">View all servers <i class="ti ti-arrow-right ms-1" aria-hidden="true"></i></a>
+                    </td></tr>
+                <?php endif; ?>
                 </tbody>
             </table>
         </div>

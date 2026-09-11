@@ -132,6 +132,12 @@ final class ServersController
             redirect('servers');
         }
 
+        $page = max(1, (int) ($request->query('page') ?? 1));
+        $perPage = max(10, min(200, (int) ($request->query('per_page') ?? 50)));
+        $offset = ($page - 1) * $perPage;
+        $totalServers = (int) db_one('SELECT COUNT(*) AS cnt FROM servers')['cnt'] ?? 0;
+        $totalPages = (int) ceil($totalServers / $perPage);
+
         $rows = db_all(
             'SELECT s.id, s.name, s.location, s.provider, s.label, s.host, s.type, s.agent_mode, s.active, s.maintenance_mode, s.maintenance_until,
                     COALESCE(s.last_seen_at, m.recorded_at) AS last_seen, m.cpu_load, m.panel_profile,
@@ -144,13 +150,18 @@ final class ServersController
                  FROM server_service_states
                  GROUP BY server_id
              ) ss ON ss.server_id = s.id
-             ORDER BY s.created_at DESC'
+             ORDER BY s.created_at DESC
+             LIMIT ' . $perPage . ' OFFSET ' . $offset
         );
 
         $data = [
             'rows' => $rows,
             'canManageServers' => $canManageServers,
             'statusOnlineMinutes' => $statusOnlineMinutes,
+            'page' => $page,
+            'perPage' => $perPage,
+            'totalServers' => $totalServers,
+            'totalPages' => $totalPages,
             'title' => APP_NAME . ' - Server Management',
             'activeNav' => 'servers',
         ];
