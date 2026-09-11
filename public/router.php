@@ -9,6 +9,14 @@ declare(strict_types=1);
  */
 
 $path = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH) ?? '/';
+
+// Reject path traversal attempts
+if (str_contains($path, '..')) {
+    http_response_code(400);
+    echo 'Bad Request';
+    return true;
+}
+
 $file = __DIR__ . $path;
 
 if ($path !== '/' && is_file($file)) {
