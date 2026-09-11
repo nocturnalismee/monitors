@@ -17,7 +17,7 @@
     <section class="card card-neon" data-ui-section>
         <div class="card-header bg-surface-2 border-soft d-flex justify-content-between align-items-center gap-2 flex-wrap">
             <h2 class="h6 mb-0">Servers</h2>
-            <span class="text-secondary small" data-server-result-count></span>
+            <span class="text-secondary small" data-server-result-count><?= e((string) count($rows)) ?> of <?= e((string) $totalServers) ?> shown</span>
         </div>
         <div class="server-list-toolbar" role="search">
             <?php
@@ -196,10 +196,26 @@
             </table>
         </div>
         <div class="server-list-footer">
-            <span class="text-secondary small" data-server-filter-summary></span>
+            <span class="text-secondary small"><?= e((string) $totalServers) ?> server(s)</span>
+            <?php if ($totalPages > 1): ?>
             <nav aria-label="Server pagination">
-                <ul class="pagination pagination-sm mb-0" data-server-pagination></ul>
+                <ul class="pagination pagination-sm mb-0">
+                    <?php if ($page > 1): ?>
+                    <li class="page-item"><a class="page-link" href="?page=<?= e((string) ($page - 1)) ?>&per_page=<?= e((string) $perPage) ?>">&laquo; Prev</a></li>
+                    <?php endif; ?>
+                    <?php
+                    $startPage = max(1, $page - 2);
+                    $endPage = min($totalPages, $page + 2);
+                    for ($p = $startPage; $p <= $endPage; $p++):
+                    ?>
+                    <li class="page-item <?= $p === $page ? 'active' : '' ?>"><a class="page-link" href="?page=<?= e((string) $p) ?>&per_page=<?= e((string) $perPage) ?>"><?= e((string) $p) ?></a></li>
+                    <?php endfor; ?>
+                    <?php if ($page < $totalPages): ?>
+                    <li class="page-item"><a class="page-link" href="?page=<?= e((string) ($page + 1)) ?>&per_page=<?= e((string) $perPage) ?>">Next &raquo;</a></li>
+                    <?php endif; ?>
+                </ul>
             </nav>
+            <?php endif; ?>
         </div>
     </section>
 </main>
