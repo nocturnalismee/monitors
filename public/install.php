@@ -405,13 +405,11 @@ function writeLocalConfig(array $config): void
     if ($bytes === false) {
         throw new RuntimeException('Failed to write config/local.php (check permissions).');
     }
-    // Use 0644 for compatibility with AaPanel/BT where web (www) and CLI (root) run as different users.
-    // 0600 would cause "Permission denied" when CLI tries to read file created by web and vice versa.
-    if (!@chmod($localPath, 0644)) {
-        @chmod($localPath, 0640);
-    }
+    // Use 0640 so web server user and group can read, others cannot.
+    // On AaPanel/BT, ensure web user (www) is in the group owning config/local.php.
+    @chmod($localPath, 0640);
     if (!is_readable($localPath)) {
-        throw new RuntimeException('config/local.php written but not readable (permission denied). Run: chmod 644 ' . $localPath);
+        throw new RuntimeException('config/local.php written but not readable (permission denied). Run: chmod 640 ' . $localPath . ' and verify web server user is in the group that owns the file.');
     }
 }
 
@@ -629,6 +627,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !$installed) {
             $success = true;
             $installed = true;
             $lastOperation = 'install';
+            // Auto-remove installer on successful fresh install for security
+            if ($success && $lastOperation === 'install') {
+                $installPath = __FILE__;
+                if (is_file($installPath)) {
+                    @unlink($installPath);
+                    $summary[] = ['step' => 'cleanup', 'message' => 'Installer auto-deleted for security.'];
+                }
+            }
             $mode = 'upgrade';
         } catch (Throwable $e) {
             $errors[] = 'Installation failed: ' . $e->getMessage();
@@ -892,7 +898,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $installed && ($_POST['action'] ?? 
                     <?php if ($success): ?>
                         <div class="alert alert-success">
                             <?= $lastOperation === 'install' ? 'Installation successful.' : 'Migration upgrade successful (CLI).' ?>
-                            <div class="mt-2">If this is a production server, remove or rename `public/install.php` after setup.</div>
+                            <div class="mt-2">Installer has been auto-deleted. Please verify `config/local.php` is not world-readable.</div>
                         </div>
                     <?php endif; ?>
 
