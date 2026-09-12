@@ -98,6 +98,7 @@ final class PingMonitorsController
                 'paused' => 0,
             ];
             $uptimeBarsByMonitor = is_array($cachedListPayload['uptime_bars_by_monitor'] ?? null) ? $cachedListPayload['uptime_bars_by_monitor'] : [];
+            $uptimeStatsByMonitor = is_array($cachedListPayload['uptime_stats_by_monitor'] ?? null) ? $cachedListPayload['uptime_stats_by_monitor'] : [];
         } else {
             $rows = db_all($sql, $params);
             $summary = [
@@ -116,6 +117,33 @@ final class PingMonitorsController
 
             $uptimeBarsByMonitor = [];
             $monitorIds = array_values(array_filter(array_map(static fn (array $row): int => (int) ($row['id'] ?? 0), $rows), static fn (int $id): bool => $id > 0));
+
+            // Bar-derived stats first, then the 30-day aggregate overrides.
+            // Both live INSIDE the cached payload so repeat page loads in the
+            // cache TTL window do not rescan ping_checks twice per request.
+            foreach ($monitorIds as $monitorId) {
+                $uptimeBarsByMonitor[$monitorId] = array_fill(0, $uptimePoints, ['status' => 'pending', 'checked_at' => null]);
+            }
+            $uptimeStatsByMonitor = [];
+            foreach ($uptimeBarsByMonitor as $monitorId => $segments) {
+                $upChecks = 0;
+                $knownChecks = 0;
+                foreach ((array) $segments as $segment) {
+                    $segmentStatus = (string) ($segment['status'] ?? 'pending');
+                    if (in_array($segmentStatus, ['up', 'down'], true)) {
+                        $knownChecks++;
+                        if ($segmentStatus === 'up') {
+                            $upChecks++;
+                        }
+                    }
+                }
+                $uptimeStatsByMonitor[$monitorId] = [
+                    'up' => $upChecks,
+                    'total' => $knownChecks,
+                    'percent' => $knownChecks > 0 ? ($upChecks / $knownChecks) * 100 : null,
+                ];
+            }
+
             if (!empty($monitorIds)) {
                 $placeholders = implode(',', array_fill(0, count($monitorIds), '?'));
                 $stmt = db()->prepare(
@@ -131,10 +159,6 @@ final class PingMonitorsController
                 );
                 $stmt->execute($monitorIds);
                 $barRows = $stmt->fetchAll();
-
-                foreach ($monitorIds as $monitorId) {
-                    $uptimeBarsByMonitor[$monitorId] = array_fill(0, $uptimePoints, ['status' => 'pending', 'checked_at' => null]);
-                }
 
                 $grouped = [];
                 foreach ($barRows as $barRow) {
@@ -155,62 +179,58 @@ final class PingMonitorsController
                         $slice = array_merge(array_fill(0, $pad, ['status' => 'pending', 'checked_at' => null]), $slice);
                     }
                     $uptimeBarsByMonitor[$mid] = $slice;
+
+                    $upChecks = 0;
+                    $knownChecks = 0;
+                    foreach ($slice as $segment) {
+                        $segmentStatus = (string) ($segment['status'] ?? 'pending');
+                        if (in_array($segmentStatus, ['up', 'down'], true)) {
+                            $knownChecks++;
+                            if ($segmentStatus === 'up') {
+                                $upChecks++;
+                            }
+                        }
+                    }
+                    $uptimeStatsByMonitor[$mid] = [
+                        'up' => $upChecks,
+                        'total' => $knownChecks,
+                        'percent' => $knownChecks > 0 ? ($upChecks / $knownChecks) * 100 : null,
+                    ];
+                }
+
+                $placeholders = implode(',', array_fill(0, count($monitorIds), '?'));
+                $uptimeStmt = db()->prepare(
+                    "SELECT monitor_id,
+                            COUNT(*) AS total_checks,
+                            COALESCE(SUM(CASE WHEN status = 'up' THEN 1 ELSE 0 END), 0) AS up_checks
+                     FROM ping_checks
+                     WHERE monitor_id IN ({$placeholders})
+                       AND checked_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)
+                     GROUP BY monitor_id"
+                );
+                $uptimeStmt->execute($monitorIds);
+                foreach ($uptimeStmt->fetchAll() as $uptimeRow) {
+                    $monitorId = (int) ($uptimeRow['monitor_id'] ?? 0);
+                    $totalChecks = (int) ($uptimeRow['total_checks'] ?? 0);
+                    $upChecks = (int) ($uptimeRow['up_checks'] ?? 0);
+                    $uptimeStatsByMonitor[$monitorId] = [
+                        'up' => $upChecks,
+                        'total' => $totalChecks,
+                        'percent' => $totalChecks > 0 ? ($upChecks / $totalChecks) * 100 : null,
+                    ];
                 }
             }
 
             cache_set(
                 $listCacheKey,
-                ['rows' => $rows, 'summary' => $summary, 'uptime_bars_by_monitor' => $uptimeBarsByMonitor],
+                [
+                    'rows' => $rows,
+                    'summary' => $summary,
+                    'uptime_bars_by_monitor' => $uptimeBarsByMonitor,
+                    'uptime_stats_by_monitor' => $uptimeStatsByMonitor,
+                ],
                 cache_ttl('cache_ttl_status_list', 15)
             );
-        }
-
-        $uptimeStatsByMonitor = [];
-        foreach ($uptimeBarsByMonitor as $monitorId => $segments) {
-            $upChecks = 0;
-            $knownChecks = 0;
-            foreach ((array) $segments as $segment) {
-                $segmentStatus = (string) ($segment['status'] ?? 'pending');
-                if (in_array($segmentStatus, ['up', 'down'], true)) {
-                    $knownChecks++;
-                    if ($segmentStatus === 'up') {
-                        $upChecks++;
-                    }
-                }
-            }
-            $uptimeStatsByMonitor[(int) $monitorId] = [
-                'up' => $upChecks,
-                'total' => $knownChecks,
-                'percent' => $knownChecks > 0 ? ($upChecks / $knownChecks) * 100 : null,
-            ];
-        }
-
-        $monitorIdsForUptime = array_values(array_filter(array_map(
-            static fn (array $row): int => (int) ($row['id'] ?? 0),
-            $rows
-        ), static fn (int $monitorId): bool => $monitorId > 0));
-        if ($monitorIdsForUptime) {
-            $placeholders = implode(',', array_fill(0, count($monitorIdsForUptime), '?'));
-            $uptimeStmt = db()->prepare(
-                "SELECT monitor_id,
-                        COUNT(*) AS total_checks,
-                        COALESCE(SUM(CASE WHEN status = 'up' THEN 1 ELSE 0 END), 0) AS up_checks
-                 FROM ping_checks
-                 WHERE monitor_id IN ({$placeholders})
-                   AND checked_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)
-                 GROUP BY monitor_id"
-            );
-            $uptimeStmt->execute($monitorIdsForUptime);
-            foreach ($uptimeStmt->fetchAll() as $uptimeRow) {
-                $monitorId = (int) ($uptimeRow['monitor_id'] ?? 0);
-                $totalChecks = (int) ($uptimeRow['total_checks'] ?? 0);
-                $upChecks = (int) ($uptimeRow['up_checks'] ?? 0);
-                $uptimeStatsByMonitor[$monitorId] = [
-                    'up' => $upChecks,
-                    'total' => $totalChecks,
-                    'percent' => $totalChecks > 0 ? ($upChecks / $totalChecks) * 100 : null,
-                ];
-            }
         }
 
         $pingStatusBadgeClass = static function (string $status): string {

@@ -22,6 +22,10 @@ final class PingTerminalController
             return Response::text('419 Invalid security token.', 419);
         }
 
+        // Release the session file before any potentially slow probe so the
+        // SSE stream does not block parallel requests in the same browser.
+        session_write_close();
+
         if (!api_rate_check('ping_terminal', get_client_ip(), 12)) {
             return Response::text('429 Too many requests. Try again later.', 429)->withHeader('Retry-After', '60');
         }

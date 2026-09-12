@@ -82,11 +82,25 @@ final class AuditLogsController
 
         $whereSql = $where ? ('WHERE ' . implode(' AND ', $where)) : '';
 
-        $countRow = db_one(
-            'SELECT COUNT(*) AS total FROM admin_audit_logs a ' . $whereSql,
-            $params
-        );
-        $total = (int) ($countRow['total'] ?? 0);
+        // Count depends only on filters (not page). Nested under audit:logs:*
+        // so the existing invalidation pattern clears it together with rows.
+        $countCacheKey = 'audit:logs:count:' . md5(json_encode([
+            'action_type' => $filterAction,
+            'user_id' => $filterUserId,
+            'date_from' => $filterDateFrom,
+            'date_to' => $filterDateTo,
+        ], JSON_UNESCAPED_SLASHES));
+        $cachedCount = cache_get($countCacheKey);
+        if (is_int($cachedCount)) {
+            $total = $cachedCount;
+        } else {
+            $countRow = db_one(
+                'SELECT COUNT(*) AS total FROM admin_audit_logs a ' . $whereSql,
+                $params
+            );
+            $total = (int) ($countRow['total'] ?? 0);
+            cache_set($countCacheKey, $total, cache_ttl('cache_ttl_alert_logs', 20));
+        }
 
         $totalPages = max(1, (int) ceil($total / $perPage));
         if ($page > $totalPages) {

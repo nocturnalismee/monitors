@@ -6,6 +6,7 @@ namespace App\Controllers\Admin;
 use App\Http\Request;
 use App\Http\Response;
 use App\Support\View;
+use Throwable;
 
 final class ServersController
 {
@@ -81,8 +82,16 @@ final class ServersController
                 }
                 flash_set('success', 'Server active status updated.');
             } elseif ($action === 'delete') {
-                db_exec('DELETE FROM metrics WHERE server_id = :id', [':id' => $serverId]);
-                db_exec('DELETE FROM servers WHERE id = :id', [':id' => $serverId]);
+                $pdo = db();
+                $pdo->beginTransaction();
+                try {
+                    db_exec('DELETE FROM metrics WHERE server_id = :id', [':id' => $serverId]);
+                    db_exec('DELETE FROM servers WHERE id = :id', [':id' => $serverId]);
+                    $pdo->commit();
+                } catch (Throwable $e) {
+                    $pdo->rollBack();
+                    throw $e;
+                }
                 invalidate_status_cache($serverId);
                 audit_log('server_delete', 'Deleted server and related metrics', 'server', $serverId);
                 flash_set('success', 'Server and related metrics deleted successfully.');
@@ -113,8 +122,16 @@ final class ServersController
                     $params[':id' . $i] = $id;
                 }
                 $placeholders = implode(',', array_keys($params));
-                db_exec("DELETE FROM metrics WHERE server_id IN ({$placeholders})", $params);
-                db_exec("DELETE FROM servers WHERE id IN ({$placeholders})", $params);
+                $pdo = db();
+                $pdo->beginTransaction();
+                try {
+                    db_exec("DELETE FROM metrics WHERE server_id IN ({$placeholders})", $params);
+                    db_exec("DELETE FROM servers WHERE id IN ({$placeholders})", $params);
+                    $pdo->commit();
+                } catch (Throwable $e) {
+                    $pdo->rollBack();
+                    throw $e;
+                }
                 foreach ($serverIds as $id) {
                     invalidate_status_cache($id);
                 }

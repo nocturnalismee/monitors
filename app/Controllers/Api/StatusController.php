@@ -41,49 +41,11 @@ final class StatusController
                 return Response::json($cached);
             }
 
-            $rows = db_all(
-                'SELECT
-                    s.id AS server_id,
-                    s.name AS server_name,
-                    COUNT(dhs.disk_key) AS disk_count,
-                    ROUND(AVG(dhs.health_score), 2) AS avg_health_score,
-                    ROUND(AVG(dhs.power_on_time), 2) AS avg_power_on_time,
-                    ROUND(AVG(dhs.total_written_bytes), 2) AS avg_tbw_bytes,
-                    DATE_FORMAT(MAX(dhs.updated_at), "%Y-%m-%d %H:%i:%s") AS last_update,
-                    pd.model AS primary_disk_model,
-                    pd.device_name AS primary_disk_device
-                 FROM servers s
-                 LEFT JOIN disk_health_states dhs
-                    ON dhs.server_id = s.id
-                 LEFT JOIN (
-                    SELECT ranked.server_id, ranked.model, ranked.device_name
-                    FROM (
-                        SELECT
-                            server_id,
-                            model,
-                            device_name,
-                            ROW_NUMBER() OVER (
-                                PARTITION BY server_id
-                                ORDER BY
-                                    CASE health_status
-                                        WHEN "critical" THEN 4
-                                        WHEN "warning" THEN 3
-                                        WHEN "ok" THEN 2
-                                        ELSE 1
-                                    END DESC,
-                                    updated_at DESC,
-                                    disk_key ASC
-                            ) AS rn
-                        FROM disk_health_states
-                    ) ranked
-                    WHERE ranked.rn = 1
-                 ) pd
-                    ON pd.server_id = s.id
-                 ' . ($includeInactive ? '' : 'WHERE s.active = 1') . '
-                 GROUP BY
-                    s.id, s.name, pd.model, pd.device_name
-                 ORDER BY s.name ASC'
-            );
+            try {
+                $rows = (new \App\Services\DiskHealthSummaryService())->summaryRows($includeInactive);
+            } catch (Throwable) {
+                $rows = [];
+            }
 
             $result = [];
             foreach ($rows as $row) {
@@ -122,8 +84,16 @@ final class StatusController
 
         if ($serverId !== null && $serverId > 0 && $history !== null) {
             $historyKey = in_array($history, ['5m', '30m', '24h', '7d', '30d'], true) ? $history : '24h';
-            $points = (int) $request->query('points', 2000);
-            $points = max(100, min(5000, $points));
+            // Snap to a fixed point set: bounds cache-key cardinality to 6
+            // variants per (server, range) instead of every arbitrary value,
+            // and keeps the interpolated LIMIT predictable.
+            $requestedPoints = max(100, min(5000, (int) $request->query('points', 2000)));
+            $points = 100;
+            foreach ([100, 200, 500, 1000, 2000, 5000] as $candidatePoint) {
+                if (abs($candidatePoint - $requestedPoints) < abs($points - $requestedPoints)) {
+                    $points = $candidatePoint;
+                }
+            }
             $cacheKey = 'status:history:' . $serverId . ':' . $historyKey . ':p' . $points . status_cache_version($serverId);
             $historyTtl = match ($historyKey) {
                 '5m' => cache_ttl('cache_ttl_history_5m', 5),
