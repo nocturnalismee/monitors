@@ -124,7 +124,7 @@ final class StatusController
             $historyKey = in_array($history, ['5m', '30m', '24h', '7d', '30d'], true) ? $history : '24h';
             $points = (int) $request->query('points', 2000);
             $points = max(100, min(5000, $points));
-            $cacheKey = 'status:history:' . $serverId . ':' . $historyKey . ':p' . $points;
+            $cacheKey = 'status:history:' . $serverId . ':' . $historyKey . ':p' . $points . status_cache_version($serverId);
             $historyTtl = match ($historyKey) {
                 '5m' => cache_ttl('cache_ttl_history_5m', 5),
                 '30m' => cache_ttl('cache_ttl_history_30m', 10),
@@ -268,7 +268,7 @@ final class StatusController
         }
 
         if ($serverId !== null && $serverId > 0) {
-            $singleCacheKey = 'status:single:' . $serverId;
+            $singleCacheKey = 'status:single:' . $serverId . status_cache_version($serverId);
             $singleCached = cache_get($singleCacheKey);
             if (is_array($singleCached) && isset($singleCached['id'])) {
                 return Response::json($singleCached);

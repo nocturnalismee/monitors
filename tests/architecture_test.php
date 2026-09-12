@@ -27,6 +27,17 @@ assert_architecture(!str_contains($push, 'Failed to persist service metrics'), '
 $alerts = source_text('app/Services/AlertService.php');
 assert_architecture(str_contains($alerts, 'alert_delivery_queue'), 'alerts must enqueue delivery work');
 assert_architecture(str_contains($alerts, 'db_exec_count('), 'resolveConditionAlerts must use db_exec_count (db_exec returns bool, which would fake a resolved incident and emit phantom recoveries)');
+
+$cache = source_text('app/Support/Cache.php');
+assert_architecture(str_contains($cache, 'bumpVersion(\'status:sver:'), 'status invalidation must bump per-server version counters');
+assert_architecture(!preg_match('/deletePattern\([\'"]status:/', $cache), 'status invalidation must not SCAN keyspace (exact deletes + version bump only)');
+
+$liveStream = source_text('app/Controllers/Api/LiveStreamController.php');
+assert_architecture(str_contains($liveStream, '$sentMaxByServer'), 'SSE ring path must keep a per-server cursor');
+assert_architecture(!str_contains($liveStream, "lRange(cache_key('ring:' . \$sid), 0, -1)"), 'SSE ring path must not rescan the full ring every tick');
+
+$maintenance = source_text('app/Services/MaintenanceService.php');
+assert_architecture(str_contains($maintenance, 'private static array $memo'), 'maintenance check must memoize per process (hot path: push + per-row worker loops)');
 assert_architecture(is_file(__DIR__ . '/../app/Console/Workers/AlertDeliveryWorker.php'), 'alert delivery worker must exist');
 
 $schema = source_text('database/schema.sql');
