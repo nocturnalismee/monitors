@@ -4,8 +4,8 @@
   const desktopIcon = document.querySelector("[data-sidebar-toggle-icon]");
   const mobileBtn = document.querySelector("[data-sidebar-toggle-mobile]");
   const overlay = document.querySelector("[data-sidebar-overlay]");
-  const stateKey = "servmon_sidebar_collapsed";
-  const cookieKey = "servmon_sidebar_collapsed";
+  const stateKey = "monitors_sidebar_collapsed";
+  const cookieKey = "monitors_sidebar_collapsed";
 
   if (!desktopBtn && !mobileBtn) return;
 
@@ -96,7 +96,7 @@
     closeMobileSidebar(false);
   });
 
-  document.querySelectorAll(".servmon-sidebar .nav-link").forEach((link) => {
+  document.querySelectorAll(".monitors-sidebar .nav-link").forEach((link) => {
     link.addEventListener("click", () => {
       closeMobileSidebar(false);
     });

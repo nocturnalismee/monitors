@@ -21,7 +21,7 @@ final class NotificationService
         }
 
         $fromEmail = trim((string) ($settings['smtp_from_email'] ?? ''));
-        $fromName = trim((string) ($settings['smtp_from_name'] ?? 'servmon'));
+        $fromName = trim((string) ($settings['smtp_from_name'] ?? 'monitors'));
         $smtpHost = trim((string) ($settings['smtp_host'] ?? ''));
 
         if ($smtpHost !== '') {
@@ -40,7 +40,7 @@ final class NotificationService
 
         $ok = @mail($safeTo, $safeSubject, $message, $headers);
         if (!$ok) {
-            servmon_log_error('mail() failed for subject: ' . $subject, 'email', ['to' => $to]);
+            monitors_log_error('mail() failed for subject: ' . $subject, 'email', ['to' => $to]);
         }
         return $ok;
     }
@@ -84,36 +84,36 @@ final class NotificationService
         $transportHost = ($secure === 'ssl') ? "ssl://{$host}" : $host;
         $socket = @stream_socket_client($transportHost . ':' . $port, $errno, $errstr, 3);
         if (!$socket) {
-            servmon_log_error('SMTP connect failed: ' . $errstr, 'email', ['host' => $host, 'port' => $port, 'errno' => $errno]);
+            monitors_log_error('SMTP connect failed: ' . $errstr, 'email', ['host' => $host, 'port' => $port, 'errno' => $errno]);
             return false;
         }
 
         stream_set_timeout($socket, 3);
         if (!self::smtp_expect($socket, [220])) {
-            servmon_log_error('SMTP greeting failed', 'email', ['host' => $host]);
+            monitors_log_error('SMTP greeting failed', 'email', ['host' => $host]);
             fclose($socket);
             return false;
         }
 
-        if (!self::smtp_send_cmd($socket, 'EHLO servmon', [250])) {
-            servmon_log_error('SMTP EHLO failed', 'email', ['host' => $host]);
+        if (!self::smtp_send_cmd($socket, 'EHLO monitors', [250])) {
+            monitors_log_error('SMTP EHLO failed', 'email', ['host' => $host]);
             fclose($socket);
             return false;
         }
 
         if ($secure === 'tls') {
             if (!self::smtp_send_cmd($socket, 'STARTTLS', [220])) {
-                servmon_log_error('SMTP STARTTLS failed', 'email', ['host' => $host]);
+                monitors_log_error('SMTP STARTTLS failed', 'email', ['host' => $host]);
                 fclose($socket);
                 return false;
             }
             if (!stream_socket_enable_crypto($socket, true, STREAM_CRYPTO_METHOD_TLS_CLIENT)) {
-                servmon_log_error('SMTP TLS crypto upgrade failed', 'email', ['host' => $host]);
+                monitors_log_error('SMTP TLS crypto upgrade failed', 'email', ['host' => $host]);
                 fclose($socket);
                 return false;
             }
-            if (!self::smtp_send_cmd($socket, 'EHLO servmon', [250])) {
-                servmon_log_error('SMTP EHLO after STARTTLS failed', 'email', ['host' => $host]);
+            if (!self::smtp_send_cmd($socket, 'EHLO monitors', [250])) {
+                monitors_log_error('SMTP EHLO after STARTTLS failed', 'email', ['host' => $host]);
                 fclose($socket);
                 return false;
             }
@@ -121,17 +121,17 @@ final class NotificationService
 
         if ($username !== '') {
             if (!self::smtp_send_cmd($socket, 'AUTH LOGIN', [334])) {
-                servmon_log_error('SMTP AUTH LOGIN failed', 'email', ['host' => $host, 'username' => $username]);
+                monitors_log_error('SMTP AUTH LOGIN failed', 'email', ['host' => $host, 'username' => $username]);
                 fclose($socket);
                 return false;
             }
             if (!self::smtp_send_cmd($socket, base64_encode($username), [334])) {
-                servmon_log_error('SMTP AUTH username rejected', 'email', ['host' => $host]);
+                monitors_log_error('SMTP AUTH username rejected', 'email', ['host' => $host]);
                 fclose($socket);
                 return false;
             }
             if (!self::smtp_send_cmd($socket, base64_encode($password), [235])) {
-                servmon_log_error('SMTP AUTH password rejected', 'email', ['host' => $host]);
+                monitors_log_error('SMTP AUTH password rejected', 'email', ['host' => $host]);
                 fclose($socket);
                 return false;
             }
@@ -143,17 +143,17 @@ final class NotificationService
         $safeSubject = self::sanitize_email_header($subject);
 
         if (!self::smtp_send_cmd($socket, 'MAIL FROM:<' . $safeFromEmail . '>', [250])) {
-            servmon_log_error('SMTP MAIL FROM rejected', 'email', ['from' => $safeFromEmail]);
+            monitors_log_error('SMTP MAIL FROM rejected', 'email', ['from' => $safeFromEmail]);
             fclose($socket);
             return false;
         }
         if (!self::smtp_send_cmd($socket, 'RCPT TO:<' . $safeTo . '>', [250, 251])) {
-            servmon_log_error('SMTP RCPT TO rejected', 'email', ['to' => $safeTo]);
+            monitors_log_error('SMTP RCPT TO rejected', 'email', ['to' => $safeTo]);
             fclose($socket);
             return false;
         }
         if (!self::smtp_send_cmd($socket, 'DATA', [354])) {
-            servmon_log_error('SMTP DATA command rejected', 'email');
+            monitors_log_error('SMTP DATA command rejected', 'email');
             fclose($socket);
             return false;
         }
@@ -165,7 +165,7 @@ final class NotificationService
             . "Content-Type: text/plain; charset=UTF-8\r\n\r\n"
             . $message . "\r\n.";
         if (!self::smtp_send_cmd($socket, $data, [250])) {
-            servmon_log_error('SMTP DATA send failed', 'email', ['subject' => $subject]);
+            monitors_log_error('SMTP DATA send failed', 'email', ['subject' => $subject]);
             fclose($socket);
             return false;
         }
@@ -173,7 +173,7 @@ final class NotificationService
         self::smtp_send_cmd($socket, 'QUIT', [221]);
         fclose($socket);
 
-        servmon_log_info('Email sent successfully', 'email', ['to' => $to, 'subject' => $subject]);
+        monitors_log_info('Email sent successfully', 'email', ['to' => $to, 'subject' => $subject]);
         return true;
     }
 
@@ -188,7 +188,7 @@ final class NotificationService
             return false;
         }
         if (!function_exists('curl_init')) {
-            servmon_log_error('curl extension not available for Telegram', 'telegram');
+            monitors_log_error('curl extension not available for Telegram', 'telegram');
             return false;
         }
 
@@ -217,7 +217,7 @@ final class NotificationService
         curl_close($ch);
 
         if ($res === false || $code < 200 || $code >= 300) {
-            servmon_log_error('Telegram send failed', 'telegram', [
+            monitors_log_error('Telegram send failed', 'telegram', [
                 'http_code' => $code,
                 'curl_error' => $curlError,
                 'chat_id' => $chatId,
@@ -225,7 +225,7 @@ final class NotificationService
             return false;
         }
 
-        servmon_log_info('Telegram message sent', 'telegram', ['chat_id' => $chatId]);
+        monitors_log_info('Telegram message sent', 'telegram', ['chat_id' => $chatId]);
         return true;
     }
 }

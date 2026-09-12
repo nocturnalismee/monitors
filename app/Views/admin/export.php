@@ -50,7 +50,7 @@ $exportTypeLabels = [
             <span class="text-secondary small"><?= count($exportJobs) ?> job<?= count($exportJobs) === 1 ? '' : 's' ?></span>
         </div>
         <div class="table-responsive">
-            <table class="table servmon-table table-hover mb-0 align-middle">
+            <table class="table monitors-table table-hover mb-0 align-middle">
                 <thead><tr><th>ID</th><th>Dataset</th><th>Format</th><th>Status</th><th>Created</th><th>Action</th></tr></thead>
                 <tbody>
                 <?php foreach ($exportJobs as $job): ?>

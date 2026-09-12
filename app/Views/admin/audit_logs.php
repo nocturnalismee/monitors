@@ -68,10 +68,10 @@
             </form>
         </div>
         <div class="table-responsive table-shell" data-ui-table>
-            <table class="table servmon-table mb-0">
+            <table class="table monitors-table mb-0">
                 <thead>
                 <tr>
-                    <th class="servmon-checkbox-cell"><input type="checkbox" class="form-check-input" data-bulk-checkall aria-label="Select all audit logs"></th>
+                    <th class="monitors-checkbox-cell"><input type="checkbox" class="form-check-input" data-bulk-checkall aria-label="Select all audit logs"></th>
                     <th>ID</th>
                     <th>Time</th>
                     <th>User</th>
@@ -89,7 +89,7 @@
                 <?php foreach ($rows as $row): ?>
                     <?php $targetText = trim((string) ($row['target_type'] ?? '')) !== '' ? ((string) $row['target_type'] . '#' . (string) ($row['target_id'] ?? '-')) : '-'; ?>
                     <tr>
-                        <td class="servmon-checkbox-cell">
+                        <td class="monitors-checkbox-cell">
                             <input type="checkbox" class="form-check-input" name="audit_ids[]" value="<?= e((string) $row['id']) ?>" data-bulk-checkbox aria-label="Select audit log <?= e((string) $row['id']) ?>">
                         </td>
                         <td class="font-mono"><?= e((string) $row['id']) ?></td>

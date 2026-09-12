@@ -1,6 +1,6 @@
 (function () {
   const root = document.querySelector('[data-notification-center]');
-  if (!root || !window.SERVMON_API_ALERTS) return;
+  if (!root || !window.MONITORS_API_ALERTS) return;
 
   const toggle = root.querySelector('[data-notification-toggle]');
   const panel = root.querySelector('[data-notification-panel]');
@@ -10,11 +10,11 @@
   const readAll = root.querySelector('[data-notification-read-all]');
 
   // Viewers are read-only: hide mutation controls (server also enforces admin-only).
-  const canMutateAlerts = window.SERVMON_USER_ROLE === 'admin';
+  const canMutateAlerts = window.MONITORS_USER_ROLE === 'admin';
   if (!canMutateAlerts && readAll) readAll.style.display = 'none';
 
-  // Depends on: common.js (ServMon namespace, loaded via layouts/head.php).
-  const SM = window.ServMon;
+  // Depends on: common.js (Monitors namespace, loaded via layouts/head.php).
+  const SM = window.Monitors;
 
   function escapeHtml(value) {
     return SM.escapeHtml(value);
@@ -56,7 +56,7 @@
 
   async function load() {
     try {
-      const response = await fetch(`${window.SERVMON_API_ALERTS}?recent=1&limit=8`, { headers: { Accept: 'application/json' } });
+      const response = await fetch(`${window.MONITORS_API_ALERTS}?recent=1&limit=8`, { headers: { Accept: 'application/json' } });
       if (response.ok) render(await response.json());
     } catch (error) {
       summary.textContent = 'Unable to load alerts';
@@ -64,16 +64,16 @@
   }
 
   async function acknowledge(action, alertId) {
-    const body = new URLSearchParams({ action, _csrf_token: window.SERVMON_CSRF_TOKEN || '' });
+    const body = new URLSearchParams({ action, _csrf_token: window.MONITORS_CSRF_TOKEN || '' });
     if (alertId) body.set('alert_id', String(alertId));
-    const response = await fetch(window.SERVMON_API_ALERTS, {
+    const response = await fetch(window.MONITORS_API_ALERTS, {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded', Accept: 'application/json' },
       body,
     });
     if (!response.ok) throw new Error('Unable to update alert');
     await load();
-    window.dispatchEvent(new CustomEvent('servmon:alerts-updated'));
+    window.dispatchEvent(new CustomEvent('monitors:alerts-updated'));
   }
 
   let lastFocused = null;
@@ -158,6 +158,6 @@
   });
 
   load();
-  const stopNotif = ServMon.startPoller(load, {baseMs:30000, maxMs:120000});
-  window.servmonNotificationStop = stopNotif;
+  const stopNotif = Monitors.startPoller(load, {baseMs:30000, maxMs:120000});
+  window.monitorsNotificationStop = stopNotif;
 })();

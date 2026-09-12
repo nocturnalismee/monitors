@@ -96,7 +96,7 @@
             <h2 class="h6 mb-0">Recent Checks</h2>
         </div>
         <div class="table-responsive table-shell">
-            <table class="table servmon-table mb-0">
+            <table class="table monitors-table mb-0">
                 <thead>
                 <tr>
                     <th>Checked At</th>
@@ -143,8 +143,8 @@
         <?php endif; ?>
     </section>
 </main>
-<script<?= csp_nonce_attr() ?>>window.SERVMON_PING_HISTORY = <?= json_encode($chartPayload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;</script>
+<script<?= csp_nonce_attr() ?>>window.MONITORS_PING_HISTORY = <?= json_encode($chartPayload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;</script>
 <script src="<?= e(asset_url('assets/js/ping-detail.js')) ?>"></script>
 <script src="<?= e(asset_url('assets/js/forms.js')) ?>"></script>
-<script<?= csp_nonce_attr() ?>>window.SERVMON_AUTO_REFRESH_MS = 15000; window.SERVMON_AUTO_REFRESH_SKIP_TERMINAL = true;</script>
+<script<?= csp_nonce_attr() ?>>window.MONITORS_AUTO_REFRESH_MS = 15000; window.MONITORS_AUTO_REFRESH_SKIP_TERMINAL = true;</script>
 <script src="<?= e(asset_url('assets/js/auto-refresh.js')) ?>"></script>

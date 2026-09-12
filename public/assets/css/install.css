@@ -1,6 +1,6 @@
-/* ServMon installer — standalone page styles. tokens.css must load first. */
+/* Monitors installer — standalone page styles. tokens.css must load first. */
 
-body.servmon-install {
+body.monitors-install {
   font-family: var(--sv-font-sans);
   background: var(--sv-bg);
   color: var(--sv-text);

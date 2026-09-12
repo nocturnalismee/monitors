@@ -58,7 +58,7 @@
                     $inputId = 'filter-search';
                     $inputAttrs = '';
                     $wrapClass = 'admin-search-wrap';
-                    require SERVMON_BASE_DIR . '/app/Views/partials/admin_filter_bar.php';
+                    require MONITORS_BASE_DIR . '/app/Views/partials/admin_filter_bar.php';
                     ?>
                 </div>
                 <div class="col-md-3 col-lg-2">
@@ -92,7 +92,7 @@
         </div>
 
         <div class="table-responsive table-shell ping-table-shell ping-table-responsive" data-ui-table>
-            <table class="table servmon-table mb-0">
+            <table class="table monitors-table mb-0">
                 <thead>
                 <tr>
                     <th>Name</th>
@@ -216,7 +216,7 @@
     </section>
 </main>
 <script src="<?= e(asset_url('assets/js/forms.js')) ?>"></script>
-<script<?= csp_nonce_attr() ?>>window.SERVMON_AUTO_REFRESH_MS = 15000; window.SERVMON_AUTO_REFRESH_SKIP_TERMINAL = true;</script>
+<script<?= csp_nonce_attr() ?>>window.MONITORS_AUTO_REFRESH_MS = 15000; window.MONITORS_AUTO_REFRESH_SKIP_TERMINAL = true;</script>
 <script src="<?= e(asset_url('assets/js/auto-refresh.js')) ?>"></script>
 
 <div class="modal fade" id="pingTerminalModal" tabindex="-1" aria-hidden="true">
@@ -239,5 +239,5 @@
     </div>
 </div>
 
-<script<?= csp_nonce_attr() ?>>window.SERVMON_CSRF_TOKEN = <?= json_encode(csrf_token(), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;</script>
+<script<?= csp_nonce_attr() ?>>window.MONITORS_CSRF_TOKEN = <?= json_encode(csrf_token(), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;</script>
 <script src="<?= e(asset_url('assets/js/ping-terminal.js')) ?>"></script>

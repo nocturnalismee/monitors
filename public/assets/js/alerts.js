@@ -1,22 +1,35 @@
-const STORAGE_KEY = "servmon_last_alert_id";
+const STORAGE_KEY = "monitors_last_alert_id";
 const MAX_POPUPS_PER_POLL = 3;
 const MAX_VISIBLE_TOASTS = 3;
 const FRESH_ALERT_WINDOW_MS = 2 * 60 * 1000;
 
-let servmonLastAlertId = Number(localStorage.getItem(STORAGE_KEY)) || 0;
-let servmonAlertsInitialized = servmonLastAlertId > 0;
+// One-time migration from the pre-rename key (prevents re-toasting old alerts).
+try {
+  if (!localStorage.getItem(STORAGE_KEY)) {
+    const legacy = localStorage.getItem("servmon_last_alert_id");
+    if (legacy !== null) {
+      localStorage.setItem(STORAGE_KEY, legacy);
+      localStorage.removeItem("servmon_last_alert_id");
+    }
+  }
+} catch (err) {
+  console.error(err);
+}
 
-// Depends on: common.js (ServMon namespace, loaded via layouts/head.php).
+let monitorsLastAlertId = Number(localStorage.getItem(STORAGE_KEY)) || 0;
+let monitorsAlertsInitialized = monitorsLastAlertId > 0;
+
+// Depends on: common.js (Monitors namespace, loaded via layouts/head.php).
 // var (not const): dashboard.js / public.js alias the same name on shared pages.
-var SM = window.SM ?? window.ServMon;
+var SM = window.SM ?? window.Monitors;
 
 function playAlertBeep() {
-  if (window.SERVMON_ALERT_SOUND_ENABLED === false) return;
-  const url = window.SERVMON_ALERT_SOUND_URL || "";
+  if (window.MONITORS_ALERT_SOUND_ENABLED === false) return;
+  const url = window.MONITORS_ALERT_SOUND_URL || "";
   if (!url) return;
   try {
     const audio = new Audio(url);
-    const volume = Math.max(0, Math.min(10, Number(window.SERVMON_ALERT_SOUND_VOLUME ?? 8))) / 10;
+    const volume = Math.max(0, Math.min(10, Number(window.MONITORS_ALERT_SOUND_VOLUME ?? 8))) / 10;
     audio.volume = volume;
     const playPromise = audio.play();
     if (playPromise && typeof playPromise.catch === "function") {
@@ -29,14 +42,14 @@ function playAlertBeep() {
 
 function updateLastAlertId(id) {
   const numericId = Number(id);
-  if (numericId > servmonLastAlertId) {
-    servmonLastAlertId = numericId;
-    localStorage.setItem(STORAGE_KEY, servmonLastAlertId);
+  if (numericId > monitorsLastAlertId) {
+    monitorsLastAlertId = numericId;
+    localStorage.setItem(STORAGE_KEY, monitorsLastAlertId);
   }
 }
 
 function showAlertToast(alert) {
-  const container = document.getElementById("servmon-alert-toast-container");
+  const container = document.getElementById("monitors-alert-toast-container");
   if (!container) return;
 
   while (container.children.length >= MAX_VISIBLE_TOASTS) {
@@ -79,11 +92,11 @@ function isFreshAlert(alert) {
 }
 
 async function pollAlerts() {
-  const endpoint = window.SERVMON_API_ALERTS;
+  const endpoint = window.MONITORS_API_ALERTS;
   if (!endpoint) return;
   try {
     // Attempt to grab any missed alerts since the browser last checked in
-    const response = await fetch(`${endpoint}?since_id=${servmonLastAlertId}&limit=20`, { headers: { Accept: "application/json" } });
+    const response = await fetch(`${endpoint}?since_id=${monitorsLastAlertId}&limit=20`, { headers: { Accept: "application/json" } });
     if (!response.ok) return false;
     const rows = await response.json();
     if (!Array.isArray(rows)) return false;
@@ -99,12 +112,12 @@ async function pollAlerts() {
 
 function consumeAlertRows(rows) {
 
-    if (!servmonAlertsInitialized) {
+    if (!monitorsAlertsInitialized) {
       // First ever page load for a brand new browser - fast forward silently
       rows.forEach((row) => {
         updateLastAlertId(row.id);
       });
-      servmonAlertsInitialized = true;
+      monitorsAlertsInitialized = true;
       return;
     }
 
@@ -130,25 +143,25 @@ function consumeAlertRows(rows) {
     }
 }
 
-let servmonStreamFallbackStarted = false;
+let monitorsStreamFallbackStarted = false;
 function startAlertPollingFallback() {
-  if (servmonStreamFallbackStarted) return;
-  servmonStreamFallbackStarted = true;
+  if (monitorsStreamFallbackStarted) return;
+  monitorsStreamFallbackStarted = true;
   pollAlerts();
-  if (window.ServMon?.startPoller) {
-    window.ServMon.startPoller(pollAlerts, { baseMs: 15000, maxMs: 120000 });
+  if (window.Monitors?.startPoller) {
+    window.Monitors.startPoller(pollAlerts, { baseMs: 15000, maxMs: 120000 });
   }
 }
 
 const ALERT_STREAM_RETRY_MS = [2000, 4000, 8000, 16000, 30000, 60000];
 
 function startAlertStream() {
-  const streamEndpoint = window.SERVMON_ALERT_STREAM;
+  const streamEndpoint = window.MONITORS_ALERT_STREAM;
   if (!streamEndpoint || typeof EventSource === "undefined") {
     startAlertPollingFallback();
     return;
   }
-  const stream = new EventSource(`${streamEndpoint}?since_id=${servmonLastAlertId}`, { withCredentials: true });
+  const stream = new EventSource(`${streamEndpoint}?since_id=${monitorsLastAlertId}`, { withCredentials: true });
   let retries = 0;
   stream.addEventListener("alert", (event) => {
     try {

@@ -1,5 +1,5 @@
 
-body.servmon-body {
+body.monitors-body {
   font-family: var(--sv-font-sans);
   color: var(--sv-text);
   background: var(--sv-bg);
@@ -231,7 +231,7 @@ samp,
   letter-spacing: -0.015em;
 }
 
-.servmon-sidebar {
+.monitors-sidebar {
   position: fixed;
   inset: 0 auto 0 0;
   width: 260px;
@@ -248,7 +248,7 @@ samp,
     transform 0.22s cubic-bezier(0.2, 0, 0, 1);
 }
 
-.servmon-sidebar-brand {
+.monitors-sidebar-brand {
   height: 56px;
   min-height: 56px;
   padding: 0 0.75rem;
@@ -260,7 +260,7 @@ samp,
   flex-shrink: 0;
 }
 
-.servmon-brand-link {
+.monitors-brand-link {
   color: var(--sv-text);
   display: inline-flex;
   align-items: center;
@@ -271,12 +271,12 @@ samp,
   text-decoration: none;
 }
 
-.servmon-brand-link i {
+.monitors-brand-link i {
   margin-right: 0 !important;
   font-size: 1.2rem;
 }
 
-.servmon-brand-logo {
+.monitors-brand-logo {
   width: 22px;
   height: 22px;
   object-fit: contain;
@@ -356,7 +356,7 @@ samp,
 }
 
 /* Keep login feedback in its own horizontal lane, clear of the theme toggle. */
-body:has(.auth-login-page) #servmon-flash-toast-container {
+body:has(.auth-login-page) #monitors-flash-toast-container {
   top: 1rem !important;
   right: 5.5rem !important;
   left: auto !important;
@@ -364,41 +364,41 @@ body:has(.auth-login-page) #servmon-flash-toast-container {
   padding: 0 !important;
 }
 
-body:has(.auth-login-page) #servmon-flash-toast-container .toast {
+body:has(.auth-login-page) #monitors-flash-toast-container .toast {
   width: 100%;
   margin: 0;
   border-radius: 0.65rem;
   box-shadow: 0 0.75rem 2rem rgb(0 0 0 / 20%);
 }
 
-.servmon-flash-toast-container {
+.monitors-flash-toast-container {
   z-index: 1105;
   display: flex;
   flex-direction: column;
   gap: 0.7rem;
 }
 
-.servmon-flash-toast-container .toast {
+.monitors-flash-toast-container .toast {
   margin: 0 !important;
 }
 
 /* Dashboard has a notification button in the same top-right area. Keep the toast
    clear of the viewport top edge (Bootstrap top-0 + p-3 alone sits too tight). */
-body:has(.admin-page) #servmon-flash-toast-container {
+body:has(.admin-page) #monitors-flash-toast-container {
   top: 1.5rem !important;
   right: 4.75rem !important;
   width: min(22rem, calc(100vw - 6rem));
   padding: 0 !important;
 }
 
-body:has(.admin-page) #servmon-flash-toast-container .toast {
+body:has(.admin-page) #monitors-flash-toast-container .toast {
   width: 100%;
   border-radius: 0.65rem;
   box-shadow: 0 0.75rem 2rem rgb(0 0 0 / 20%);
 }
 
-/* Confirmation modal — themed to match ServMon design. */
-#servmonConfirmModal .modal-content {
+/* Confirmation modal — themed to match Monitors design. */
+#monitorsConfirmModal .modal-content {
   background: var(--sv-card-bg);
   backdrop-filter: blur(12px);
   border: 1px solid var(--sv-stroke-soft);
@@ -406,22 +406,22 @@ body:has(.admin-page) #servmon-flash-toast-container .toast {
   box-shadow: var(--sv-shadow-2);
 }
 
-#servmonConfirmModal .modal-header {
+#monitorsConfirmModal .modal-header {
   padding: var(--sv-space-3) var(--sv-space-4);
 }
 
-#servmonConfirmModal .modal-title {
+#monitorsConfirmModal .modal-title {
   font-size: 0.95rem;
   font-weight: 600;
 }
 
-#servmonConfirmModal .modal-body {
+#monitorsConfirmModal .modal-body {
   padding: var(--sv-space-4);
   font-size: 0.9rem;
   color: var(--sv-muted);
 }
 
-#servmonConfirmModal .modal-footer {
+#monitorsConfirmModal .modal-footer {
   padding: var(--sv-space-2) var(--sv-space-4);
   gap: 0.5rem;
 }
@@ -471,7 +471,7 @@ body:has(.admin-page) #servmon-flash-toast-container .toast {
   background: color-mix(in srgb, var(--sv-accent) 14%, transparent);
 }
 
-.servmon-sidebar-nav {
+.monitors-sidebar-nav {
   flex: 1 1 auto;
   overflow-y: auto;
   overflow-x: hidden;
@@ -481,21 +481,21 @@ body:has(.admin-page) #servmon-flash-toast-container .toast {
   scrollbar-color: color-mix(in srgb, var(--sv-border) 70%, transparent) transparent;
 }
 
-.servmon-sidebar-nav::-webkit-scrollbar {
+.monitors-sidebar-nav::-webkit-scrollbar {
   width: 4px;
 }
 
-.servmon-sidebar-nav::-webkit-scrollbar-thumb {
+.monitors-sidebar-nav::-webkit-scrollbar-thumb {
   background: color-mix(in srgb, var(--sv-border) 70%, transparent);
   border-radius: 999px;
 }
 
-.servmon-brand-link:hover,
-.servmon-brand-link:focus {
+.monitors-brand-link:hover,
+.monitors-brand-link:focus {
   color: var(--sv-text);
 }
 
-.servmon-sidebar .nav-link {
+.monitors-sidebar .nav-link {
   display: flex;
   align-items: center;
   gap: 0.65rem;
@@ -516,7 +516,7 @@ body:has(.admin-page) #servmon-flash-toast-container .toast {
     color 0.16s ease;
 }
 
-.servmon-sidebar .nav-link i {
+.monitors-sidebar .nav-link i {
   flex: 0 0 20px;
   width: 20px;
   text-align: center;
@@ -524,7 +524,7 @@ body:has(.admin-page) #servmon-flash-toast-container .toast {
   line-height: 1;
 }
 
-.servmon-sidebar .nav-link .sidebar-label {
+.monitors-sidebar .nav-link .sidebar-label {
   flex: 1 1 auto;
   min-width: 0;
   overflow: hidden;
@@ -538,18 +538,18 @@ body:has(.admin-page) #servmon-flash-toast-container .toast {
   width: auto !important;
 }
 
-.servmon-sidebar .nav-link.active,
-.servmon-sidebar .nav-link:hover {
+.monitors-sidebar .nav-link.active,
+.monitors-sidebar .nav-link:hover {
   color: var(--sv-text);
   background: color-mix(in srgb, var(--sv-accent) 14%, transparent);
   border-color: color-mix(in srgb, var(--sv-accent) 32%, var(--sv-border));
 }
 
-.servmon-sidebar .nav-link.active {
+.monitors-sidebar .nav-link.active {
   font-weight: 600;
 }
 
-.servmon-sidebar-footer {
+.monitors-sidebar-footer {
   margin-top: auto;
   padding: 1rem;
   border-top: 1px solid var(--sv-border);
@@ -602,13 +602,13 @@ body:has(.admin-page) #servmon-flash-toast-container .toast {
   padding: 0;
 }
 
-.servmon-sidebar-footer .btn {
+.monitors-sidebar-footer .btn {
   min-height: 2.15rem;
   border-radius: 0.58rem;
   font-weight: 500;
 }
 
-.servmon-sidebar-footer form {
+.monitors-sidebar-footer form {
   margin: 0;
 }
 
@@ -635,7 +635,7 @@ body:has(.admin-page) #servmon-flash-toast-container .toast {
   max-width: none !important;
 }
 
-body.sidebar-collapsed .servmon-sidebar {
+body.sidebar-collapsed .monitors-sidebar {
   width: 72px;
 }
 
@@ -651,29 +651,29 @@ body.sidebar-collapsed .sidebar-external-icon {
   display: none !important;
 }
 
-body.sidebar-collapsed .servmon-sidebar-brand {
+body.sidebar-collapsed .monitors-sidebar-brand {
   padding: 0 0.35rem;
   justify-content: center;
   gap: 0.35rem;
 }
 
-body.sidebar-collapsed .servmon-brand-link {
+body.sidebar-collapsed .monitors-brand-link {
   flex: 0 0 auto;
   width: auto;
   justify-content: center;
 }
 
-body.sidebar-collapsed .servmon-brand-logo {
+body.sidebar-collapsed .monitors-brand-logo {
   width: 20px;
   height: 20px;
 }
 
-body.sidebar-collapsed .servmon-sidebar-nav {
+body.sidebar-collapsed .monitors-sidebar-nav {
   padding: 0.6rem 0.45rem 0.75rem;
   align-items: center;
 }
 
-body.sidebar-collapsed .servmon-sidebar .nav-link {
+body.sidebar-collapsed .monitors-sidebar .nav-link {
   justify-content: center;
   padding: 0;
   width: 42px;
@@ -683,7 +683,7 @@ body.sidebar-collapsed .servmon-sidebar .nav-link {
   margin: 0 auto;
 }
 
-body.sidebar-collapsed .servmon-sidebar .nav-link i {
+body.sidebar-collapsed .monitors-sidebar .nav-link i {
   margin: 0 !important;
   flex: 0 0 auto;
   width: auto;
@@ -708,7 +708,7 @@ body.sidebar-collapsed .nav-alert-count {
   overflow: hidden;
 }
 
-body.sidebar-collapsed .servmon-sidebar-footer {
+body.sidebar-collapsed .monitors-sidebar-footer {
   padding: 0.65rem 0.4rem;
 }
 
@@ -731,7 +731,7 @@ body.sidebar-collapsed .sidebar-user-actions {
   display: none !important;
 }
 
-body.sidebar-collapsed .servmon-sidebar-footer .btn {
+body.sidebar-collapsed .monitors-sidebar-footer .btn {
   padding-left: 0;
   padding-right: 0;
 }
@@ -1003,7 +1003,7 @@ th.is-sorted .sort-icon {
   display: none;
 }
 
-.servmon-checkbox-cell {
+.monitors-checkbox-cell {
   width: 2.75rem;
   text-align: center;
   vertical-align: middle;
@@ -1399,23 +1399,23 @@ body:has(.admin-page) {
   color: var(--sv-accent);
 }
 
-.servmon-body .text-success {
+.monitors-body .text-success {
   color: var(--sv-success) !important;
 }
 
-.servmon-body .text-warning {
+.monitors-body .text-warning {
   color: var(--sv-warning) !important;
 }
 
-.servmon-body .text-danger {
+.monitors-body .text-danger {
   color: var(--sv-danger) !important;
 }
 
-.servmon-body .text-info {
+.monitors-body .text-info {
   color: var(--sv-info) !important;
 }
 
-.servmon-body .text-secondary {
+.monitors-body .text-secondary {
   color: var(--sv-muted) !important;
 }
 
@@ -1446,13 +1446,13 @@ body:has(.admin-page) {
   letter-spacing: 0.01em;
 }
 
-.servmon-body .btn {
+.monitors-body .btn {
   border-radius: 0.62rem;
   font-weight: 500;
   line-height: 1.2;
 }
 
-.servmon-body .btn-sm {
+.monitors-body .btn-sm {
   min-height: 1.95rem;
   padding: 0.28rem 0.62rem;
   font-size: 0.81rem;
@@ -1598,7 +1598,7 @@ body:has(.admin-page) {
   border-top-color: color-mix(in srgb, var(--sv-border) 70%, transparent);
 }
 
-.table.servmon-table {
+.table.monitors-table {
   --bs-table-bg: transparent;
   --bs-table-color: var(--sv-text);
   --bs-table-border-color: color-mix(
@@ -1614,7 +1614,7 @@ body:has(.admin-page) {
   margin-bottom: 0;
 }
 
-.table.servmon-table thead th {
+.table.monitors-table thead th {
   border-bottom-width: 1px;
   border-bottom-color: color-mix(in srgb, var(--sv-border) 55%, transparent);
   background: var(--sv-card-header-bg);
@@ -1626,11 +1626,11 @@ body:has(.admin-page) {
   letter-spacing: 0.03em;
 }
 
-.table-shell > .table-responsive > .table.servmon-table thead th:first-child {
+.table-shell > .table-responsive > .table.monitors-table thead th:first-child {
   border-top-left-radius: calc(var(--sv-radius-md) - 1px);
 }
 
-.table-shell > .table-responsive > .table.servmon-table thead th:last-child {
+.table-shell > .table-responsive > .table.monitors-table thead th:last-child {
   border-top-right-radius: calc(var(--sv-radius-md) - 1px);
 }
 
@@ -1638,14 +1638,14 @@ body:has(.admin-page) {
   .card-header
   + .table-shell
   > .table-responsive
-  > .table.servmon-table
+  > .table.monitors-table
   thead
   th:first-child,
 .card-neon
   .card-body
   + .table-shell
   > .table-responsive
-  > .table.servmon-table
+  > .table.monitors-table
   thead
   th:first-child {
   border-top-left-radius: 0;
@@ -1655,71 +1655,71 @@ body:has(.admin-page) {
   .card-header
   + .table-shell
   > .table-responsive
-  > .table.servmon-table
+  > .table.monitors-table
   thead
   th:last-child,
 .card-neon
   .card-body
   + .table-shell
   > .table-responsive
-  > .table.servmon-table
+  > .table.monitors-table
   thead
   th:last-child {
   border-top-right-radius: 0;
 }
 
-.table.servmon-table tbody tr {
+.table.monitors-table tbody tr {
   transition: none;
 }
 
-.table.servmon-table tbody tr:hover {
+.table.monitors-table tbody tr:hover {
   background-color: inherit;
 }
 
-.table.servmon-table tbody td {
+.table.monitors-table tbody td {
   vertical-align: middle;
   border-color: color-mix(in srgb, var(--sv-border) 55%, transparent);
 }
 
-.table.servmon-table.dashboard-summary-table {
+.table.monitors-table.dashboard-summary-table {
   table-layout: auto;
   width: 100%;
   min-width: 900px;
 }
 
-.table.servmon-table.dashboard-summary-table th,
-.table.servmon-table.dashboard-summary-table td {
+.table.monitors-table.dashboard-summary-table th,
+.table.monitors-table.dashboard-summary-table td {
   white-space: nowrap;
 }
 
-.table.servmon-table.dashboard-summary-table td:nth-child(5),
-.table.servmon-table.dashboard-summary-table td:nth-child(6) {
+.table.monitors-table.dashboard-summary-table td:nth-child(5),
+.table.monitors-table.dashboard-summary-table td:nth-child(6) {
   white-space: normal;
 }
 
-.table.servmon-table.dashboard-summary-table tbody tr.dashboard-row-link {
+.table.monitors-table.dashboard-summary-table tbody tr.dashboard-row-link {
   cursor: pointer;
 }
 
-.table.servmon-table.dashboard-summary-table
+.table.monitors-table.dashboard-summary-table
   tbody
   tr.dashboard-row-link:focus-visible {
   outline: 2px solid color-mix(in srgb, var(--sv-accent) 70%, transparent);
   outline-offset: -2px;
 }
 
-.table.servmon-table.dashboard-summary-table th:first-child,
-.table.servmon-table.dashboard-summary-table td:first-child {
+.table.monitors-table.dashboard-summary-table th:first-child,
+.table.monitors-table.dashboard-summary-table td:first-child {
   width: 13rem;
   max-width: 13rem;
 }
 
-.table.servmon-table.dashboard-summary-table td:first-child,
-.table.servmon-table:not(.dashboard-summary-table) td:first-child {
+.table.monitors-table.dashboard-summary-table td:first-child,
+.table.monitors-table:not(.dashboard-summary-table) td:first-child {
   overflow: hidden;
 }
 
-.table.servmon-table tbody .table-cell-truncate {
+.table.monitors-table tbody .table-cell-truncate {
   display: block;
   width: 100%;
   min-width: 0;
@@ -1729,13 +1729,13 @@ body:has(.admin-page) {
   white-space: nowrap;
 }
 
-.table.servmon-table:not(.dashboard-summary-table)
+.table.monitors-table:not(.dashboard-summary-table)
   td:first-child
   .table-cell-truncate {
   max-width: 20ch;
 }
 
-.table.servmon-table.dashboard-summary-table .net-line {
+.table.monitors-table.dashboard-summary-table .net-line {
   display: flex;
   align-items: center;
   gap: 0.25rem;
@@ -1743,11 +1743,11 @@ body:has(.admin-page) {
   white-space: nowrap;
 }
 
-.table.servmon-table.dashboard-summary-table .net-line + .net-line {
+.table.monitors-table.dashboard-summary-table .net-line + .net-line {
   margin-top: 0.1rem;
 }
 
-.table.servmon-table.public-summary-table {
+.table.monitors-table.public-summary-table {
   table-layout: fixed;
   min-width: 1240px;
   width: 100%;
@@ -1793,61 +1793,61 @@ body:has(.admin-page) {
   width: 6%;
 }
 
-.table.servmon-table.public-summary-table th,
-.table.servmon-table.public-summary-table td {
+.table.monitors-table.public-summary-table th,
+.table.monitors-table.public-summary-table td {
   white-space: nowrap;
   vertical-align: middle;
 }
 
-.table.servmon-table.public-summary-table th {
+.table.monitors-table.public-summary-table th {
   padding: 0.68rem 0.65rem;
   color: color-mix(in srgb, var(--sv-text) 92%, var(--sv-muted));
   font-size: 0.72rem;
   letter-spacing: 0.02em;
 }
 
-.table.servmon-table.public-summary-table td {
+.table.monitors-table.public-summary-table td {
   padding: 0.78rem 0.65rem;
 }
 
-.table.servmon-table.public-summary-table td:nth-child(5),
-.table.servmon-table.public-summary-table td:nth-child(6),
-.table.servmon-table.public-summary-table td:nth-child(9) {
+.table.monitors-table.public-summary-table td:nth-child(5),
+.table.monitors-table.public-summary-table td:nth-child(6),
+.table.monitors-table.public-summary-table td:nth-child(9) {
   white-space: normal;
 }
 
-.table.servmon-table.public-summary-table td:nth-child(8) {
+.table.monitors-table.public-summary-table td:nth-child(8) {
   overflow: hidden;
 }
 
-.table.servmon-table.public-summary-table th:nth-child(7),
-.table.servmon-table.public-summary-table td:nth-child(7) {
+.table.monitors-table.public-summary-table th:nth-child(7),
+.table.monitors-table.public-summary-table td:nth-child(7) {
   text-align: right;
 }
 
-.table.servmon-table.public-summary-table th:nth-child(9),
-.table.servmon-table.public-summary-table td:nth-child(9) {
+.table.monitors-table.public-summary-table th:nth-child(9),
+.table.monitors-table.public-summary-table td:nth-child(9) {
   text-align: center;
 }
 
-.table.servmon-table.public-summary-table th:nth-child(10),
-.table.servmon-table.public-summary-table td:nth-child(10),
-.table.servmon-table.public-summary-table th:nth-child(11),
-.table.servmon-table.public-summary-table td:nth-child(11) {
+.table.monitors-table.public-summary-table th:nth-child(10),
+.table.monitors-table.public-summary-table td:nth-child(10),
+.table.monitors-table.public-summary-table th:nth-child(11),
+.table.monitors-table.public-summary-table td:nth-child(11) {
   text-align: left;
 }
 
-.table.servmon-table.public-summary-table th:first-child,
-.table.servmon-table.public-summary-table td:first-child,
-.table.servmon-table.public-summary-table td:nth-child(2) {
+.table.monitors-table.public-summary-table th:first-child,
+.table.monitors-table.public-summary-table td:first-child,
+.table.monitors-table.public-summary-table td:nth-child(2) {
   overflow: hidden;
 }
 
-.table.servmon-table.public-summary-table td:first-child {
+.table.monitors-table.public-summary-table td:first-child {
   font-weight: 400;
 }
 
-.table.servmon-table.public-summary-table .table-cell-truncate,
+.table.monitors-table.public-summary-table .table-cell-truncate,
 .public-location {
   display: block;
   min-width: 0;
@@ -1856,44 +1856,44 @@ body:has(.admin-page) {
   white-space: nowrap;
 }
 
-.table.servmon-table.public-summary-table .resource-cell {
+.table.monitors-table.public-summary-table .resource-cell {
   min-width: 0;
 }
 
-.table.servmon-table.public-summary-table .resource-label {
+.table.monitors-table.public-summary-table .resource-label {
   gap: 0.45rem;
   margin-bottom: 0.38rem;
   font-size: 0.76rem;
   line-height: 1.25;
 }
 
-.table.servmon-table.public-summary-table .resource-label span:first-child {
+.table.monitors-table.public-summary-table .resource-label span:first-child {
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.table.servmon-table.public-summary-table .resource-label .font-mono,
-.table.servmon-table.public-summary-table .resource-label span:last-child {
+.table.monitors-table.public-summary-table .resource-label .font-mono,
+.table.monitors-table.public-summary-table .resource-label span:last-child {
   flex: 0 0 auto;
 }
 
-.table.servmon-table.public-summary-table .resource-progress {
+.table.monitors-table.public-summary-table .resource-progress {
   height: 0.52rem;
 }
 
-.table.servmon-table.public-summary-table .cpu-cell {
+.table.monitors-table.public-summary-table .cpu-cell {
   align-items: flex-end;
   gap: 0.18rem;
 }
 
-.table.servmon-table.public-summary-table .cpu-value {
+.table.monitors-table.public-summary-table .cpu-value {
   font-size: 0.95rem;
   line-height: 1.1;
 }
 
-.table.servmon-table.public-summary-table .cpu-sparkline {
+.table.monitors-table.public-summary-table .cpu-sparkline {
   width: 52px;
   max-width: 100%;
 }
@@ -1967,7 +1967,7 @@ body:has(.admin-page) {
   line-height: 1;
 }
 
-.table.servmon-table.public-summary-table .net-line {
+.table.monitors-table.public-summary-table .net-line {
   display: flex;
   align-items: center;
   justify-content: flex-start;
@@ -1976,19 +1976,19 @@ body:has(.admin-page) {
   white-space: nowrap;
 }
 
-.table.servmon-table.public-summary-table th:nth-child(10),
-.table.servmon-table.public-summary-table td:nth-child(10) {
+.table.monitors-table.public-summary-table th:nth-child(10),
+.table.monitors-table.public-summary-table td:nth-child(10) {
   padding-left: 0.8rem;
   padding-right: 0.8rem;
 }
 
-.table.servmon-table.public-summary-table th:nth-child(11),
-.table.servmon-table.public-summary-table td:nth-child(11) {
+.table.monitors-table.public-summary-table th:nth-child(11),
+.table.monitors-table.public-summary-table td:nth-child(11) {
   padding-left: 0.8rem;
   padding-right: 1rem;
 }
 
-.table.servmon-table.public-summary-table .net-line + .net-line {
+.table.monitors-table.public-summary-table .net-line + .net-line {
   margin-top: 0.1rem;
 }
 
@@ -2010,7 +2010,7 @@ body:has(.admin-page) {
 }
 
 @media (max-width: 767.98px) {
-  .table.servmon-table.public-summary-table {
+  .table.monitors-table.public-summary-table {
     min-width: 0;
   }
 
@@ -2065,22 +2065,22 @@ body:has(.admin-page) {
     text-transform: uppercase;
   }
 
-  .table.servmon-table.public-summary-table th,
-  .table.servmon-table.public-summary-table td {
+  .table.monitors-table.public-summary-table th,
+  .table.monitors-table.public-summary-table td {
     white-space: normal;
   }
 
-  .table.servmon-table.public-summary-table td:first-child {
+  .table.monitors-table.public-summary-table td:first-child {
     width: auto;
     max-width: none;
     overflow: visible;
   }
 
-  .table.servmon-table.public-summary-table td:nth-child(8) {
+  .table.monitors-table.public-summary-table td:nth-child(8) {
     overflow: visible;
   }
 
-  .table.servmon-table.public-summary-table td .table-cell-truncate {
+  .table.monitors-table.public-summary-table td .table-cell-truncate {
     white-space: normal;
     overflow: visible;
     text-overflow: clip;
@@ -2384,14 +2384,14 @@ body:has(.admin-page) {
   }
 }
 
-.servmon-alert-toast-container {
+.monitors-alert-toast-container {
   right: 0 !important;
   bottom: 3.8rem !important;
   z-index: 1105;
   max-width: min(24rem, calc(100vw - 1rem));
 }
 
-.servmon-alert-toast-container .toast {
+.monitors-alert-toast-container .toast {
   width: min(22rem, calc(100vw - 1rem));
   margin-bottom: 0.55rem;
 }
@@ -3004,7 +3004,7 @@ body:has(.admin-page) {
 }
 
 @media (max-width: 767.98px) {
-  .servmon-sidebar {
+  .monitors-sidebar {
     position: fixed;
     inset: 0 auto 0 0;
     width: 100%;
@@ -3018,17 +3018,17 @@ body:has(.admin-page) {
   }
 
   /* On mobile, ignore desktop collapsed state — sidebar is overlay, always expanded */
-  body.sidebar-collapsed .servmon-sidebar {
+  body.sidebar-collapsed .monitors-sidebar {
     width: 100%;
     max-width: 280px;
   }
 
-  body.sidebar-collapsed .servmon-sidebar-nav {
+  body.sidebar-collapsed .monitors-sidebar-nav {
     padding: 0.75rem 0.75rem 1rem;
     align-items: stretch;
   }
 
-  body.sidebar-collapsed .servmon-sidebar .nav-link {
+  body.sidebar-collapsed .monitors-sidebar .nav-link {
     width: auto;
     height: auto;
     min-height: 40px;
@@ -3037,7 +3037,7 @@ body:has(.admin-page) {
     gap: 0.65rem;
   }
 
-  body.sidebar-collapsed .servmon-sidebar .nav-link i {
+  body.sidebar-collapsed .monitors-sidebar .nav-link i {
     font-size: 1.1rem;
   }
 
@@ -3063,18 +3063,18 @@ body:has(.admin-page) {
     border: 1px solid color-mix(in srgb, var(--sv-danger) 45%, transparent);
   }
 
-  body.sidebar-collapsed .servmon-sidebar-brand {
+  body.sidebar-collapsed .monitors-sidebar-brand {
     padding: 0 0.75rem;
     justify-content: space-between;
   }
 
-  body.sidebar-collapsed .servmon-brand-link {
+  body.sidebar-collapsed .monitors-brand-link {
     flex: 1 1 auto;
     width: auto;
     justify-content: flex-start;
   }
 
-  body.sidebar-collapsed .servmon-sidebar-footer,
+  body.sidebar-collapsed .monitors-sidebar-footer,
   body.sidebar-collapsed .sidebar-user-meta,
   body.sidebar-collapsed .sidebar-user-row {
     justify-content: flex-start;
@@ -3100,7 +3100,7 @@ body:has(.admin-page) {
     margin-left: 0 !important;
   }
 
-  body.sidebar-open-mobile .servmon-sidebar {
+  body.sidebar-open-mobile .monitors-sidebar {
     transform: translateX(0);
   }
 
@@ -3146,13 +3146,13 @@ body:has(.admin-page) {
     right: 0.85rem;
   }
 
-  body:has(.auth-login-page) #servmon-flash-toast-container {
+  body:has(.auth-login-page) #monitors-flash-toast-container {
     top: 4.55rem !important;
     right: 0.85rem !important;
     width: calc(100vw - 1.7rem);
   }
 
-  body:has(.admin-page) #servmon-flash-toast-container {
+  body:has(.admin-page) #monitors-flash-toast-container {
     right: 4.75rem !important;
     width: calc(100vw - 6rem);
   }
@@ -3163,13 +3163,13 @@ body:has(.admin-page) {
 }
 
 @media (max-width: 1199.98px) {
-  .table.servmon-table.dashboard-summary-table col.dashboard-col-panel {
+  .table.monitors-table.dashboard-summary-table col.dashboard-col-panel {
     display: none;
   }
 }
 
 /* ==========================================================================
-   ServMon v2 — UI/UX Modernization & Enhancement Enhancements
+   Monitors v2 — UI/UX Modernization & Enhancement Enhancements
    ========================================================================== */
 
 /* 1. Worker Health Consolidated Banner */

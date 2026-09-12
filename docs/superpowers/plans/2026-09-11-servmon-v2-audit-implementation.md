@@ -1,4 +1,4 @@
-# servmon v2 — Audit Fix Implementation Plan
+# monitors v2 — Audit Fix Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
@@ -8,7 +8,7 @@
 
 **Tech Stack:** PHP 8.2+, MySQL 8.0/MariaDB, vanilla (no Composer)
 
-**Spec:** `docs/superpowers/specs/2026-09-11-servmon-v2-audit-design.md`
+**Spec:** `docs/superpowers/specs/2026-09-11-monitors-v2-audit-design.md`
 
 ## Global Constraints
 - `declare(strict_types=1)` in all PHP files

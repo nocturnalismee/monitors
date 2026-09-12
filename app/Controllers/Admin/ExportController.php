@@ -89,7 +89,7 @@ final class ExportController
                     $params
                 );
 
-                return $this->downloadResponse($rows, $format, 'servmon_alerts_');
+                return $this->downloadResponse($rows, $format, 'monitors_alerts_');
             }
 
             if ($type === 'metrics') {
@@ -123,7 +123,7 @@ final class ExportController
                     $params
                 );
 
-                return $this->downloadResponse($rows, $format, 'servmon_metrics_');
+                return $this->downloadResponse($rows, $format, 'monitors_metrics_');
             }
 
             if ($type === 'services') {
@@ -156,7 +156,7 @@ final class ExportController
                     $params
                 );
 
-                return $this->downloadResponse($rows, $format, 'servmon_services_');
+                return $this->downloadResponse($rows, $format, 'monitors_services_');
             }
 
             if ($type === 'audits') {
@@ -197,7 +197,7 @@ final class ExportController
                     $params
                 );
 
-                return $this->downloadResponse($rows, $format, 'servmon_audits_');
+                return $this->downloadResponse($rows, $format, 'monitors_audits_');
             }
         }
 
@@ -235,7 +235,7 @@ final class ExportController
         if (count($rows) >= self::SYNC_EXPORT_MAX_ROWS) {
             // Signal UIs/consumers that this is a capped preview; the queued
             // export on this page produces the complete dataset.
-            $response = $response->withHeader('X-Servmon-Export-Truncated', '1');
+            $response = $response->withHeader('X-Monitors-Export-Truncated', '1');
         }
         return $response;
     }

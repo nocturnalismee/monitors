@@ -1,12 +1,12 @@
 /**
- * ServMon — Public status page auto-refresh.
+ * Monitors — Public status page auto-refresh.
  *
- * Depends on: common.js (ServMon namespace)
+ * Depends on: common.js (Monitors namespace)
  */
 
 // var (not const): alerts.js aliases the same name on shared pages.
-var SM = window.SM ?? window.ServMon;
-const CPU_HISTORY_KEY = "servmon:cpuHistory:public";
+var SM = window.SM ?? window.Monitors;
+const CPU_HISTORY_KEY = "monitors:cpuHistory:public";
 
 SM.restoreCpuHistory(CPU_HISTORY_KEY);
 
@@ -236,7 +236,7 @@ async function refreshPublicStatusTable() {
   const tableBody = document.querySelector("[data-public-server-table]");
   if (!tableBody) return;
 
-  const endpoint = window.SERVMON_API_STATUS || "/api/status";
+  const endpoint = window.MONITORS_API_STATUS || "/api/status";
   try {
     const response = await fetch(endpoint, {
       headers: { Accept: "application/json" },

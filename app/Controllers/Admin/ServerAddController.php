@@ -45,7 +45,7 @@ final class ServerAddController
             db_exec('INSERT INTO servers (name, url, location, host, type, provider, label, agent_mode, token_hash, active, created_at) VALUES (:name, :url, :location, :host, :type, :provider, :label, :agent_mode, :token_hash, 1, NOW())', $params);
 
             $id = (int) db()->lastInsertId();
-            $_SESSION['servmon_new_server_token_' . $id] = $token;
+            $_SESSION['monitors_new_server_token_' . $id] = $token;
             invalidate_status_cache();
             audit_log('server_add', 'Created new server', 'server', $id, [
                 'name' => $name,

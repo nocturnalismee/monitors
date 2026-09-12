@@ -15,7 +15,7 @@ final class MigrateCommand
             return 1;
         }
 
-        $localPath = SERVMON_BASE_DIR . '/config/local.php';
+        $localPath = MONITORS_BASE_DIR . '/config/local.php';
         if (!is_file($localPath)) {
             fwrite(STDERR, "Error: config/local.php not found. Run install.php first.\n");
             return 1;
@@ -78,7 +78,7 @@ final class MigrateCommand
             }
         }
 
-        $migrationDir = SERVMON_BASE_DIR . '/database/migrations';
+        $migrationDir = MONITORS_BASE_DIR . '/database/migrations';
         if (!is_dir($migrationDir)) {
             echo "No migrations directory found.\n";
             return 0;

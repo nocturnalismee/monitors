@@ -1,10 +1,10 @@
 /**
- * ServMon shared utility functions.
+ * Monitors shared utility functions.
  *
  * Used by both public.js and dashboard.js to avoid code duplication.
- * Exposes functions on the global `ServMon` namespace.
+ * Exposes functions on the global `Monitors` namespace.
  */
-window.ServMon = window.ServMon || {};
+window.Monitors = window.Monitors || {};
 
 (function (ns) {
   "use strict";
@@ -45,9 +45,9 @@ window.ServMon = window.ServMon || {};
 
   // ── Panel brand chip ───────────────────────────────────────────────
   // Mirrors PHP panel_brand_chip(). Brand data comes from
-  // window.SERVMON_PANEL_BRANDS (see panel_brands_for_js()).
+  // window.MONITORS_PANEL_BRANDS (see panel_brands_for_js()).
   ns.panelBrandChip = function (profile, extraClass) {
-    const brands = window.SERVMON_PANEL_BRANDS || {};
+    const brands = window.MONITORS_PANEL_BRANDS || {};
     const raw = String(profile ?? "");
     const key = raw.toLowerCase().trim();
     const fallback = { slug: "generic", label: key === "" ? "generic" : raw, logo: null, logo_dark: null };
@@ -92,7 +92,7 @@ window.ServMon = window.ServMon || {};
 
   // ── CPU load severity (threshold-based) ─────────────────────────────
   ns.cpuThresholds = function () {
-    const t = window.SERVMON_CPU_THRESHOLDS || {};
+    const t = window.MONITORS_CPU_THRESHOLDS || {};
     const warn = Number(t.warn);
     const critical = Number(t.critical);
     return {
@@ -389,7 +389,7 @@ window.ServMon = window.ServMon || {};
   ns.bindIpRepCheckNow = function () {
     document.addEventListener("click", (event) => {
       const btn = event.target.closest("[data-ip-rep-check-now]");
-      const apiUrl = window.SERVMON_IP_REP_API || "";
+      const apiUrl = window.MONITORS_IP_REP_API || "";
       if (!btn || !apiUrl) return;
       const targetId = btn.getAttribute("data-ip-rep-check-now");
       if (!targetId || btn.disabled) return;
@@ -403,7 +403,7 @@ window.ServMon = window.ServMon || {};
         method: "POST",
         credentials: "same-origin",
         headers: { "Content-Type": "application/x-www-form-urlencoded" },
-        body: new URLSearchParams({ _csrf_token: window.SERVMON_CSRF_TOKEN || "" }),
+        body: new URLSearchParams({ _csrf_token: window.MONITORS_CSRF_TOKEN || "" }),
       })
         .then((r) => r.json())
         .then((data) => {
@@ -501,9 +501,9 @@ window.ServMon = window.ServMon || {};
     ns.bindAutoBehaviors();
     ns.bindIpRepCheckNow();
   }
-})(window.ServMon);
+})(window.Monitors);
 
 // Canonical short alias. Page scripts must NOT redeclare top-level
 // `const SM` (it throws "already been declared" when two such scripts load
-// on one page); they use `var SM = window.SM ?? window.ServMon;` instead.
-window.SM = window.ServMon;
+// on one page); they use `var SM = window.SM ?? window.Monitors;` instead.
+window.SM = window.Monitors;

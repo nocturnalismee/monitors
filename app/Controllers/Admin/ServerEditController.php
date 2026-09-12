@@ -27,7 +27,7 @@ final class ServerEditController
             if ($action === 'regen_token') {
                 $newToken = bin2hex(random_bytes(32));
                 db_exec('UPDATE servers SET token_hash = :token_hash WHERE id = :id', [':token_hash' => hash('sha256', $newToken), ':id' => $id]);
-                $_SESSION['servmon_new_server_token_' . $id] = $newToken;
+                $_SESSION['monitors_new_server_token_' . $id] = $newToken;
                 invalidate_status_cache($id);
                 audit_log('server_regen_token', 'Regenerated server token', 'server', $id);
                 flash_set('success', 'Token regenerated successfully.');
@@ -103,7 +103,7 @@ final class ServerEditController
             redirect('servers');
         }
 
-        $sessionTokenKey = 'servmon_new_server_token_' . $id;
+        $sessionTokenKey = 'monitors_new_server_token_' . $id;
         $displayToken = trim((string) ($_SESSION[$sessionTokenKey] ?? ''));
 
         $data = [

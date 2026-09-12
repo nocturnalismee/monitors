@@ -9,7 +9,7 @@
 
   var outputEl = document.getElementById('pingTerminalOutput');
   var cmdInput = document.getElementById('pingTerminalCmd');
-  var csrfToken = window.SERVMON_CSRF_TOKEN || '';
+  var csrfToken = window.MONITORS_CSRF_TOKEN || '';
   var currentEs = null;
   var finished = true;
 
@@ -26,7 +26,7 @@
     line.className = 'terminal-line terminal-cmd';
     var prompt = document.createElement('span');
     prompt.className = 'terminal-prompt-inline';
-    prompt.textContent = 'admin@servmon:~$';
+    prompt.textContent = 'admin@monitors:~$';
     line.appendChild(prompt);
     line.appendChild(document.createTextNode(' ' + cmd));
     outputEl.appendChild(line);

@@ -20,12 +20,12 @@ function csrf_validate(?string $token): bool
 
 function installer_still_present(): bool
 {
-    return is_file(SERVMON_BASE_DIR . '/public/install.php');
+    return is_file(MONITORS_BASE_DIR . '/public/install.php');
 }
 
 function installer_lock_path(): string
 {
-    return SERVMON_BASE_DIR . '/config/.installer-locked';
+    return MONITORS_BASE_DIR . '/config/.installer-locked';
 }
 
 function installer_locked(): bool
@@ -40,7 +40,7 @@ function installer_locked(): bool
  */
 function local_config_perms(): array
 {
-    $path = SERVMON_BASE_DIR . '/config/local.php';
+    $path = MONITORS_BASE_DIR . '/config/local.php';
     if (!is_file($path)) {
         return ['exists' => false, 'octal' => '-', 'world_readable' => false];
     }

@@ -28,7 +28,7 @@
             $inputId = 'filter-servers';
             $inputAttrs = 'aria-label="Search servers" data-server-search';
             $wrapClass = 'server-list-search';
-            require SERVMON_BASE_DIR . '/app/Views/partials/admin_filter_bar.php';
+            require MONITORS_BASE_DIR . '/app/Views/partials/admin_filter_bar.php';
             ?>
             <select class="form-select server-status-filter" aria-label="Filter server status" data-server-status-filter>
                 <option value="all">All statuses</option>
@@ -59,11 +59,11 @@
         </div>
         <?php endif; ?>
         <div class="table-responsive table-shell ping-table-shell ping-table-responsive" data-ui-table>
-            <table class="table servmon-table mb-0">
+            <table class="table monitors-table mb-0">
                 <thead>
                 <tr>
                     <?php if ($canManageServers): ?>
-                    <th class="servmon-checkbox-cell"><input type="checkbox" class="form-check-input" data-bulk-checkall aria-label="Select all servers"></th>
+                    <th class="monitors-checkbox-cell"><input type="checkbox" class="form-check-input" data-bulk-checkall aria-label="Select all servers"></th>
                     <?php endif; ?>
                     <th>Name</th>
                     <th>Host</th>
@@ -100,7 +100,7 @@
                     <?php $status = serverStatusFromLastSeen($row['last_seen'] ?? null, (int) ($row['active'] ?? 0) === 1, $statusOnlineMinutes); ?>
                     <tr data-server-row data-server-status="<?= e($status) ?>" data-server-search="<?= e(strtolower(implode(' ', array_map(static fn ($value): string => (string) ($value ?? ''), [$row['name'], $row['host'], $row['location'], $row['provider'], $row['label'], $row['type'], $row['panel_profile']])) )) ?>">
                         <?php if ($canManageServers): ?>
-                        <td class="servmon-checkbox-cell">
+                        <td class="monitors-checkbox-cell">
                             <input type="checkbox" class="form-check-input" name="server_ids[]" value="<?= e((string) $row['id']) ?>" data-bulk-checkbox aria-label="Select <?= e((string) $row['name']) ?>">
                         </td>
                         <?php endif; ?>

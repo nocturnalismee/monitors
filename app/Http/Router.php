@@ -18,7 +18,7 @@ final class Router
         }
         $this->loaded = true;
 
-        $files = glob(SERVMON_BASE_DIR . '/routes/*.php');
+        $files = glob(MONITORS_BASE_DIR . '/routes/*.php');
         if ($files === false) {
             return;
         }

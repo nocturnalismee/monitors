@@ -143,7 +143,7 @@ export APP_KEY="$(php -r 'echo bin2hex(random_bytes(32)), PHP_EOL;')"
 docker compose up -d --build
 ```
 
-Then open `http://localhost:8010/install.php` (Database host: `db`, port: `3306`, name: `servmon`, user: `servmon`, password: your `DB_PASSWORD`) and follow the wizard. See [`docs/docker.md`](docs/docker.md) for details, updates, and useful commands.
+Then open `http://localhost:8010/install.php` (Database host: `db`, port: `3306`, name: `monitors`, user: `monitors`, password: your `DB_PASSWORD`) and follow the wizard. See [`docs/docker.md`](docs/docker.md) for details, updates, and useful commands.
 
 ---
 

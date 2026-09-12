@@ -64,7 +64,7 @@
         </div>
 
         <div class="table-responsive table-shell" data-ui-table>
-            <table class="table servmon-table mb-0">
+            <table class="table monitors-table mb-0">
                 <thead>
                 <tr>
                     <th>IP Address</th>
@@ -182,8 +182,8 @@
     </section>
 </main>
 <script<?= csp_nonce_attr() ?>>
-window.SERVMON_IP_REP_API = <?= json_encode(app_url('api/ip-reputation'), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;
-window.SERVMON_CSRF_TOKEN = <?= json_encode(csrf_token(), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;
+window.MONITORS_IP_REP_API = <?= json_encode(app_url('api/ip-reputation'), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;
+window.MONITORS_CSRF_TOKEN = <?= json_encode(csrf_token(), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;
 </script>
 <script src="<?= e(asset_url('assets/js/forms.js')) ?>"></script>
 <script src="<?= e(asset_url('assets/js/ip-reputation.js')) ?>"></script>

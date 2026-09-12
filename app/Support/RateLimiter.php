@@ -7,7 +7,7 @@ final class RateLimiter
 {
     public static function api_rate_limit_dir(): string
     {
-        $dir = SERVMON_BASE_DIR . '/storage/rate-limit';
+        $dir = MONITORS_BASE_DIR . '/storage/rate-limit';
         if (!is_dir($dir)) {
             @mkdir($dir, 0775, true);
         }

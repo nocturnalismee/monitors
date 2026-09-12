@@ -11,15 +11,15 @@ services:
       APP_KEY: ${APP_KEY:-}
       DB_HOST: db
       DB_PORT: 3306
-      DB_NAME: servmon
-      DB_USER: servmon
+      DB_NAME: monitors
+      DB_USER: monitors
       DB_PASS: ${DB_PASSWORD:-changeme}
       REDIS_ENABLED: 1
       REDIS_HOST: redis
       REDIS_PORT: 6379
     volumes:
-      - servmon_storage:/var/www/html/storage
-      - servmon_config:/var/www/html/config
+      - monitors_storage:/var/www/html/storage
+      - monitors_config:/var/www/html/config
     depends_on:
       db:
         condition: service_healthy
@@ -29,14 +29,14 @@ services:
     image: mysql:8.0
     command: --default-authentication-plugin=mysql_native_password
     environment:
-      MYSQL_DATABASE: servmon
-      MYSQL_USER: servmon
+      MYSQL_DATABASE: monitors
+      MYSQL_USER: monitors
       MYSQL_PASSWORD: ${DB_PASSWORD:-changeme}
       MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-root-changeme}
     volumes:
       - db_data:/var/lib/mysql
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "servmon", "-p${DB_PASSWORD:-changeme}"]
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "monitors", "-p${DB_PASSWORD:-changeme}"]
       interval: 10s
       timeout: 5s
       retries: 10
@@ -49,7 +49,7 @@ services:
     restart: unless-stopped
 
 volumes:
-  servmon_storage:
-  servmon_config:
+  monitors_storage:
+  monitors_config:
   db_data:
   redis_data:

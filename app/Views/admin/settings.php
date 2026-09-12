@@ -529,7 +529,7 @@
             </form>
 
             <div class="table-responsive table-shell" data-ui-table>
-                <table class="table servmon-table settings-user-table mb-0">
+                <table class="table monitors-table settings-user-table mb-0">
                     <thead>
                     <tr>
                         <th>Username</th>
@@ -590,7 +590,7 @@
                 <div class="card-header bg-surface-2 border-soft"><h2 class="h6 mb-0">Worker Health</h2></div>
                 <div class="card-body">
                     <div class="table-responsive table-shell" data-ui-table>
-                        <table class="table servmon-table mb-0">
+                        <table class="table monitors-table mb-0">
                             <thead>
                             <tr>
                                 <th>Worker</th>

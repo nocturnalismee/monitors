@@ -17,6 +17,6 @@ return [
     'REDIS_PORT' => '6379',
     'REDIS_PASSWORD' => '',
     'REDIS_DB' => '0',
-    'REDIS_PREFIX' => 'servmon',
+    'REDIS_PREFIX' => 'monitors',
     'TRUSTED_PROXIES' => '127.0.0.1,::1',
 ];

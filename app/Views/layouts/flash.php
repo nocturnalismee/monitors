@@ -3,7 +3,7 @@ declare(strict_types=1);
 $flashes = flash_get_all();
 if (!empty($flashes)):
 ?>
-<div id="servmon-flash-toast-container" class="servmon-flash-toast-container toast-container position-fixed top-0 end-0 p-3">
+<div id="monitors-flash-toast-container" class="monitors-flash-toast-container toast-container position-fixed top-0 end-0 p-3">
 <?php foreach ($flashes as $flash): ?>
     <?php
     $type = (string) ($flash['type'] ?? 'info');
@@ -32,7 +32,7 @@ if (!empty($flashes)):
         role="alert"
         aria-live="assertive"
         aria-atomic="true"
-        data-servmon-flash-toast="1"
+        data-monitors-flash-toast="1"
         data-bs-delay="<?= e((string) $autoDismissMs) ?>"
         data-bs-autohide="true"
     >

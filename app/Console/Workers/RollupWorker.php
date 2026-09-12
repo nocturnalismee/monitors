@@ -28,7 +28,7 @@ final class RollupWorker
             $cutoff300 = date('Y-m-d H:i:s', strtotime("-{$days300} days"));
             $cutoff3600 = date('Y-m-d H:i:s', strtotime("-{$days3600} days"));
 
-            servmon_log_info("Starting metrics rollup: raw<{$cutoffRaw}, 5m<{$cutoff300}, 1h<{$cutoff3600}", 'rollup');
+            monitors_log_info("Starting metrics rollup: raw<{$cutoffRaw}, 5m<{$cutoff300}, 1h<{$cutoff3600}", 'rollup');
 
             $historyExists = retention_table_exists('metrics_history');
 
@@ -53,7 +53,7 @@ final class RollupWorker
                     if (function_exists('metrics_is_partitioned') && metrics_is_partitioned()) {
                         // Partitioned table: raw expiry is owned by retention_drop_metrics_partitions()
                         // (DROP PARTITION). Row-DELETE here would race it and scan every partition.
-                        servmon_log_info('Skipping metrics row-DELETE (partitioned; retention drops partitions)', 'rollup');
+                        monitors_log_info('Skipping metrics row-DELETE (partitioned; retention drops partitions)', 'rollup');
                     } else {
                         $deleted += retention_batch_delete('metrics', 'recorded_at', $deleteCutoff);
                     }
@@ -62,7 +62,7 @@ final class RollupWorker
                 }
             }
 
-            servmon_log_info("Rollup complete: aggregated={$aggregated}, source_deleted={$deleted}", 'rollup');
+            monitors_log_info("Rollup complete: aggregated={$aggregated}, source_deleted={$deleted}", 'rollup');
             worker_mark_run_success($workerName);
 
             echo "rollup_metrics completed: raw_cutoff={$cutoffRaw}, 5m_cutoff={$cutoff300}, 1h_cutoff={$cutoff3600}, aggregated={$aggregated}, source_deleted={$deleted}" . PHP_EOL;

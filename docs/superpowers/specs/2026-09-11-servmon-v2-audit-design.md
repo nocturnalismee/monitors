@@ -1,4 +1,4 @@
-# servmon v2 — Full Audit & Improvement Design
+# monitors v2 — Full Audit & Improvement Design
 
 ## Meta
 - **Date:** 2026-09-11
@@ -31,7 +31,7 @@ Front controller (`public/index.php`) → Kernel → Router (route matching + mi
 - **CRITICAL:** `public/install.php` accessible post-install (no auto-delete)
 - **CRITICAL:** No `session_regenerate_id(true)` after login (session fixation)
 - `config/local.php` permission 0644 — world-readable DB credentials and APP_KEY
-- CSRF token exposed in JS global (`SERVMON_CSRF_TOKEN`)
+- CSRF token exposed in JS global (`MONITORS_CSRF_TOKEN`)
 - No exponential backoff on login rate limiting
 - Settings encryption (`ENC:` prefix) compromised if APP_KEY leaked
 

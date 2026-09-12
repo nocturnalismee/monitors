@@ -68,7 +68,7 @@ $pushApi = source_text('app/Controllers/Api/PushController.php');
 assert_architecture(str_contains($pushApi, "'cpanel' => ['apache', 'nginx'"), 'cpanel push profile must allow nginx service detection');
 
 $bootstrap = source_text('config/bootstrap.php');
-assert_architecture(str_contains($bootstrap, 'SERVMON_CSP_NONCE'), 'csp nonce must be generated per request');
+assert_architecture(str_contains($bootstrap, 'MONITORS_CSP_NONCE'), 'csp nonce must be generated per request');
 assert_architecture(str_contains($bootstrap, "'nonce-"), 'csp header must carry the nonce for inline scripts');
 
 $alertLogsAdmin = source_text('app/Controllers/Admin/AlertLogsController.php');

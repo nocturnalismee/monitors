@@ -50,7 +50,7 @@ final class SettingsController
 
         // @see DashboardController for dedup note — cron/worker logic unified here
         $cronSvc = new \App\Services\Settings\CronWorkerService();
-        $recommendedCron = $cronSvc->recommendedCron(SERVMON_BASE_DIR);
+        $recommendedCron = $cronSvc->recommendedCron(MONITORS_BASE_DIR);
         $workerStatuses = $cronSvc->workerStatuses();
         $metricsStorage = (new \App\Services\Settings\StorageStatsService())->collect();
         // Reliability overview (ops tab only — SLO COUNT queries are heavy for other tabs).
@@ -207,7 +207,7 @@ final class SettingsController
     private static function handleTestEmail(Request $request): never
     {
         $settings = settings_get_all();
-        $ok = notify_email('servmon Test Notification', 'This is a test email notification from servmon.', $settings);
+        $ok = notify_email('monitors Test Notification', 'This is a test email notification from monitors.', $settings);
         audit_log('settings_test_email', 'Ran test email notification', 'settings');
         flash_set($ok ? 'success' : 'warning', $ok ? 'Test email sent.' : 'Test email failed. Check configuration or server mail() support.');
         redirect(self::settingsUrl('notifications'));
@@ -220,7 +220,7 @@ final class SettingsController
         $settings['telegram_bot_token'] = trim((string) ($request->input('telegram_bot_token') ?? $settings['telegram_bot_token'] ?? ''));
         $settings['telegram_chat_id'] = trim((string) ($request->input('telegram_chat_id') ?? $settings['telegram_chat_id'] ?? ''));
         $settings['telegram_thread_id'] = trim((string) ($request->input('telegram_thread_id') ?? $settings['telegram_thread_id'] ?? ''));
-        $ok = notify_telegram("<b>servmon Test Notification</b>\nThis is a Telegram test notification.", $settings);
+        $ok = notify_telegram("<b>monitors Test Notification</b>\nThis is a Telegram test notification.", $settings);
         audit_log('settings_test_telegram', 'Ran test telegram notification', 'settings');
         flash_set($ok ? 'success' : 'warning', $ok ? 'Test Telegram message sent.' : 'Test Telegram failed. Check bot token and chat ID. Thread ID is optional.');
         redirect(self::settingsUrl('notifications'));

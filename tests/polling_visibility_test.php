@@ -6,8 +6,8 @@ $ok = true;
 if (strpos($detail, 'setInterval') !== false && strpos($detail, 'loadHistory') !== false) {
     echo "FAIL: server_detail.php still uses setInterval for loadHistory\n"; $ok = false;
 } else { echo "PASS: no raw setInterval for history\n"; }
-if (strpos($detail, 'ServMon.startPoller') === false) {
-    echo "FAIL: server_detail.php must use ServMon.startPoller\n"; $ok = false;
+if (strpos($detail, 'Monitors.startPoller') === false) {
+    echo "FAIL: server_detail.php must use Monitors.startPoller\n"; $ok = false;
 } else { echo "PASS: uses startPoller\n"; }
 if (strpos($js, 'document.hidden') === false) {
     echo "FAIL: detail.js loadHistory must guard document.hidden\n"; $ok = false;

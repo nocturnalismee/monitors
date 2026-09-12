@@ -15,7 +15,7 @@ jobs:
         image: mysql:8.0
         env:
           MYSQL_ROOT_PASSWORD: root
-          MYSQL_DATABASE: servmon_test
+          MYSQL_DATABASE: monitors_test
         ports:
           - 3306:3306
         options: >-
@@ -38,7 +38,7 @@ jobs:
       APP_KEY: ci00000000000000000000000000000000000000000000000000000000000000
       DB_HOST: 127.0.0.1
       DB_PORT: 3306
-      DB_NAME: servmon_test
+      DB_NAME: monitors_test
       DB_USER: root
       DB_PASS: root
       REDIS_ENABLED: 1
@@ -62,8 +62,8 @@ jobs:
 
       - name: Import schema
         run: |
-          mysql -h 127.0.0.1 -uroot -proot servmon_test < database/schema.sql
-          mysql -h 127.0.0.1 -uroot -proot servmon_test < database/seed.sql
+          mysql -h 127.0.0.1 -uroot -proot monitors_test < database/schema.sql
+          mysql -h 127.0.0.1 -uroot -proot monitors_test < database/seed.sql
 
       - name: Lint PHP
         run: find app config public routes tests workers -name '*.php' -print0 | xargs -0 -n1 php -l

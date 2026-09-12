@@ -30,7 +30,7 @@ final class AgentDownloadController
             return Response::text('Not Found', 404);
         }
 
-        return $this->serveFile(SERVMON_BASE_DIR . '/agents/systemd/' . $name);
+        return $this->serveFile(MONITORS_BASE_DIR . '/agents/systemd/' . $name);
     }
 
     public function downloadRoot(Request $request): Response
@@ -40,7 +40,7 @@ final class AgentDownloadController
             return Response::text('Not Found', 404);
         }
 
-        return $this->serveFile(SERVMON_BASE_DIR . '/agents/' . $name);
+        return $this->serveFile(MONITORS_BASE_DIR . '/agents/' . $name);
     }
 
     private function serveFile(string $path): Response

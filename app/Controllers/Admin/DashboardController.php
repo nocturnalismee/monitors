@@ -47,9 +47,9 @@ namespace App\Controllers\Admin {
             $rollupWorkerHealth = worker_health_status('rollup_metrics', \App\Services\Settings\CronWorkerService::TTL['rollup_metrics']);
             $diskCleanupWorkerHealth = worker_health_status('disk_retention_cleanup', \App\Services\Settings\CronWorkerService::TTL['disk_retention_cleanup']);
             $partitionMaintainWorkerHealth = worker_health_status('partition_maintain', \App\Services\Settings\CronWorkerService::TTL['partition_maintain']);
-            $projectRoot = realpath(SERVMON_BASE_DIR);
+            $projectRoot = realpath(MONITORS_BASE_DIR);
             if (!is_string($projectRoot) || $projectRoot === '') {
-                $projectRoot = dirname(SERVMON_BASE_DIR);
+                $projectRoot = dirname(MONITORS_BASE_DIR);
             }
             $workersRoot = rtrim(str_replace('\\', '/', $projectRoot), '/');
             $alertCronCmd = '* * * * * /usr/bin/php ' . $workersRoot . '/workers/alert-check.php >/dev/null 2>&1';

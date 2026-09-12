@@ -135,7 +135,7 @@
             <h2 class="h6 mb-0">Service Status</h2>
         </div>
         <div class="table-responsive table-shell" data-ui-table>
-            <table class="table servmon-table mb-0">
+            <table class="table monitors-table mb-0">
                 <thead>
                 <tr>
                     <th>Group</th>
@@ -245,15 +245,15 @@
     </section>
 </main>
 <script<?= csp_nonce_attr() ?>>
-window.SERVMON_HISTORY_BOOTSTRAP = <?= json_encode($historyBootstrap, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;
-window.SERVMON_SERVER_STATUS_ENDPOINT = <?= json_encode(app_url('api/status?id=' . $id), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;
-window.SERVMON_CPU_THRESHOLDS = <?= json_encode(['warn' => (float) ($cpuWarnThreshold ?? 2), 'critical' => (float) ($cpuCriticalThreshold ?? 4)]) ?>;
+window.MONITORS_HISTORY_BOOTSTRAP = <?= json_encode($historyBootstrap, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;
+window.MONITORS_SERVER_STATUS_ENDPOINT = <?= json_encode(app_url('api/status?id=' . $id), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;
+window.MONITORS_CPU_THRESHOLDS = <?= json_encode(['warn' => (float) ($cpuWarnThreshold ?? 2), 'critical' => (float) ($cpuCriticalThreshold ?? 4)]) ?>;
 </script>
 <script src="<?= e(asset_url('assets/js/detail.js')) ?>"></script>
   <script<?= csp_nonce_attr() ?>>
   const baseHistoryEndpoint = <?= json_encode(app_url('api/status?id=' . $id . '&points=1200'), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;
-  if (typeof bootstrapHistory === 'function' && Array.isArray(window.SERVMON_HISTORY_BOOTSTRAP) && window.SERVMON_HISTORY_BOOTSTRAP.length > 0) {
-    bootstrapHistory(window.SERVMON_HISTORY_BOOTSTRAP);
+  if (typeof bootstrapHistory === 'function' && Array.isArray(window.MONITORS_HISTORY_BOOTSTRAP) && window.MONITORS_HISTORY_BOOTSTRAP.length > 0) {
+    bootstrapHistory(window.MONITORS_HISTORY_BOOTSTRAP);
   }
   let activeRange = "30m";
   const initialHistoryEndpoint = <?= json_encode($historyEndpoint, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;
@@ -272,11 +272,11 @@ window.SERVMON_CPU_THRESHOLDS = <?= json_encode(['warn' => (float) ($cpuWarnThre
       loadHistory(initialHistoryEndpoint);
     }
   }, { once: true });
-  const stopDetailHistory = ServMon.startPoller(() => {
+  const stopDetailHistory = Monitors.startPoller(() => {
     if (areChartsPaused() || document.hidden) return Promise.resolve();
     return loadHistory(baseHistoryEndpoint + "&history=" + activeRange);
   }, {baseMs:30000, maxMs:120000});
-  const stopDetailStatus = ServMon.startPoller(refreshServerDetailStatus, {baseMs:30000, maxMs:120000});
-  window.servmonDetailHistoryStop = stopDetailHistory;
-  window.servmonDetailStatusStop = stopDetailStatus;
+  const stopDetailStatus = Monitors.startPoller(refreshServerDetailStatus, {baseMs:30000, maxMs:120000});
+  window.monitorsDetailHistoryStop = stopDetailHistory;
+  window.monitorsDetailStatusStop = stopDetailStatus;
 </script>

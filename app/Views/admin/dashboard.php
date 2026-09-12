@@ -201,7 +201,7 @@ foreach ($unhealthyWorkers as $uw) {
         </div>
         <div class="table-responsive table-shell" data-ui-table>
             <div class="table-skeleton-overlay" aria-hidden="true"></div>
-            <table class="table servmon-table dashboard-summary-table mb-0">
+            <table class="table monitors-table dashboard-summary-table mb-0">
                 <colgroup>
                     <col style="width: 9rem;">
                     <col style="width: 8.5rem;">
@@ -355,15 +355,15 @@ foreach ($unhealthyWorkers as $uw) {
 
 </main>
 <script<?= csp_nonce_attr() ?>>
-window.SERVMON_API_STATUS = <?= json_encode(app_url('api/status?include_inactive=1'), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;
-window.SERVMON_API_STREAM = <?= json_encode(app_url('api/stream'), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;
-window.SERVMON_SERVERS_LIST = <?= json_encode(app_url('servers'), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;
-window.SERVMON_ADMIN_DETAIL_BASE = <?= json_encode(app_url('servers/'), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;
-window.SERVMON_API_ALERTS = <?= json_encode(app_url('api/alerts'), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;
-window.SERVMON_CSRF_TOKEN = <?= json_encode(csrf_token(), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;
-window.SERVMON_USER_ROLE = <?= json_encode((string) (current_user()['role'] ?? ''), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;
-window.SERVMON_CPU_THRESHOLDS = <?= json_encode(['warn' => (float) ($cpuWarnThreshold ?? 2), 'critical' => (float) ($cpuCriticalThreshold ?? 4)]) ?>;
-window.SERVMON_PANEL_BRANDS = <?= json_encode(panel_brands_for_js(), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;
+window.MONITORS_API_STATUS = <?= json_encode(app_url('api/status?include_inactive=1'), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;
+window.MONITORS_API_STREAM = <?= json_encode(app_url('api/stream'), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;
+window.MONITORS_SERVERS_LIST = <?= json_encode(app_url('servers'), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;
+window.MONITORS_ADMIN_DETAIL_BASE = <?= json_encode(app_url('servers/'), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;
+window.MONITORS_API_ALERTS = <?= json_encode(app_url('api/alerts'), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;
+window.MONITORS_CSRF_TOKEN = <?= json_encode(csrf_token(), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;
+window.MONITORS_USER_ROLE = <?= json_encode((string) (current_user()['role'] ?? ''), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;
+window.MONITORS_CPU_THRESHOLDS = <?= json_encode(['warn' => (float) ($cpuWarnThreshold ?? 2), 'critical' => (float) ($cpuCriticalThreshold ?? 4)]) ?>;
+window.MONITORS_PANEL_BRANDS = <?= json_encode(panel_brands_for_js(), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;
 </script>
 <script src="<?= e(asset_url('assets/js/dashboard.js')) ?>"></script>
 <script src="<?= e(asset_url('assets/js/notification-center.js')) ?>"></script>

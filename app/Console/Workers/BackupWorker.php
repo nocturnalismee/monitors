@@ -28,12 +28,12 @@ final class BackupWorker
         worker_mark_run_start($workerName);
 
         try {
-            $dir = SERVMON_BASE_DIR . '/storage/backups';
+            $dir = MONITORS_BASE_DIR . '/storage/backups';
             if (!is_dir($dir) && !@mkdir($dir, 0750, true) && !is_dir($dir)) {
                 throw new \RuntimeException('Cannot create backup dir: ' . $dir);
             }
 
-            $file = $dir . '/servmon-' . date('Ymd-His') . '.sql.gz';
+            $file = $dir . '/monitors-' . date('Ymd-His') . '.sql.gz';
             $this->dump($file);
             $this->verify($file);
 
@@ -112,13 +112,13 @@ final class BackupWorker
     }
 
     /**
-     * Delete servmon-*.sql.gz files older than $days. Returns deleted count.
+     * Delete monitors-*.sql.gz files older than $days. Returns deleted count.
      */
     public static function pruneBackups(string $dir, int $days): int
     {
         $cutoff = time() - max(1, $days) * 86400;
         $deleted = 0;
-        foreach ((array) glob($dir . '/servmon-*.sql.gz') as $path) {
+        foreach ((array) glob($dir . '/monitors-*.sql.gz') as $path) {
             if (is_file($path) && filemtime($path) !== false && filemtime($path) < $cutoff) {
                 if (@unlink($path)) {
                     $deleted++;

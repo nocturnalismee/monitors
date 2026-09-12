@@ -196,7 +196,7 @@
             <h2 class="h6 mb-0"><i class="ti ti-history me-2"></i>Check History</h2>
         </div>
         <div class="table-responsive table-shell" data-ui-table>
-            <table class="table servmon-table mb-0">
+            <table class="table monitors-table mb-0">
                 <thead>
                 <tr>
                     <th>Checked At</th>
@@ -239,9 +239,9 @@
     </section>
 </main>
 <script<?= csp_nonce_attr() ?>>
-window.SERVMON_IP_REP_API = <?= json_encode(app_url('api/ip-reputation'), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;
-window.SERVMON_CSRF_TOKEN = <?= json_encode(csrf_token(), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;
-window.SERVMON_IP_REP_CHART_DATA = <?= json_encode(array_map(static fn(array $c) => [
+window.MONITORS_IP_REP_API = <?= json_encode(app_url('api/ip-reputation'), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;
+window.MONITORS_CSRF_TOKEN = <?= json_encode(csrf_token(), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;
+window.MONITORS_IP_REP_CHART_DATA = <?= json_encode(array_map(static fn(array $c) => [
     'time'    => $c['checked_at'],
     'listed'  => (int) ($c['listed_count'] ?? 0),
     'total'   => (int) ($c['total_checked'] ?? 0),

@@ -12,9 +12,9 @@ if ($brandingFaviconRaw !== '') {
         $brandingFaviconUrl = app_url(ltrim($brandingFaviconRaw, '/'));
     }
 }
-$sidebarCollapsedCookie = (string) ($_COOKIE['servmon_sidebar_collapsed'] ?? '');
-$bodyClasses = ['servmon-body'];
-if (defined('SERVMON_PUBLIC_VIEW') && SERVMON_PUBLIC_VIEW === true) {
+$sidebarCollapsedCookie = (string) ($_COOKIE['monitors_sidebar_collapsed'] ?? '');
+$bodyClasses = ['monitors-body'];
+if (defined('MONITORS_PUBLIC_VIEW') && MONITORS_PUBLIC_VIEW === true) {
     $bodyClasses[] = 'public-status-page';
 }
 if ($sidebarCollapsedCookie === '1') {
@@ -40,7 +40,7 @@ if ($sidebarCollapsedCookie === '1') {
     <script<?= csp_nonce_attr() ?>>
       (function () {
         try {
-          var stored = localStorage.getItem('servmon_theme');
+          var stored = localStorage.getItem('monitors_theme');
           var systemDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
           var theme = stored === 'dark' || stored === 'light' ? stored : (systemDark ? 'dark' : 'light');
           document.documentElement.setAttribute('data-bs-theme', theme);

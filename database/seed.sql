@@ -81,7 +81,7 @@ INSERT INTO app_settings (setting_key, setting_value) VALUES
 ('smtp_password', ''),
 ('smtp_secure', 'tls'),
 ('smtp_from_email', ''),
-('smtp_from_name', 'servmon'),
+('smtp_from_name', 'monitors'),
 ('smtp_to_email', ''),
 ('telegram_bot_token', ''),
 ('telegram_chat_id', ''),

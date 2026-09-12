@@ -7,7 +7,7 @@
 
   function getModal() {
     if (modal) return modal;
-    modalEl = document.getElementById("servmonConfirmModal");
+    modalEl = document.getElementById("monitorsConfirmModal");
     if (!modalEl || typeof bootstrap === "undefined") return null;
     modal = bootstrap.Modal.getOrCreateInstance(modalEl);
     return modal;
@@ -31,11 +31,11 @@
     pendingTarget = target;
 
     var message = target.getAttribute("data-confirm") || "Are you sure you want to continue?";
-    var bodyEl = document.getElementById("servmonConfirmModalBody");
+    var bodyEl = document.getElementById("monitorsConfirmModalBody");
     if (bodyEl) bodyEl.textContent = message;
 
     /* Determine proceed button label from the triggering element. */
-    var proceedBtn = document.getElementById("servmonConfirmModalProceed");
+    var proceedBtn = document.getElementById("monitorsConfirmModalProceed");
     if (proceedBtn) {
       var btnText = (target.textContent || "").trim();
       var label = "Confirm";
@@ -51,7 +51,7 @@
 
   /* When the user clicks the proceed button inside the modal. */
   document.addEventListener("click", function (event) {
-    if (!event.target.closest("#servmonConfirmModalProceed")) return;
+    if (!event.target.closest("#monitorsConfirmModalProceed")) return;
     if (!pendingTarget) return;
 
     var bsModal = getModal();
@@ -68,7 +68,7 @@
 
   /* Reset state when modal is dismissed without confirming. */
   document.addEventListener("hidden.bs.modal", function (event) {
-    if (event.target && event.target.id === "servmonConfirmModal") {
+    if (event.target && event.target.id === "monitorsConfirmModal") {
       pendingTarget = null;
     }
   });

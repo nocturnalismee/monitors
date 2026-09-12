@@ -73,7 +73,7 @@ final class DiskRollupWorker
             $stmt->execute([':cutoff' => $cutoffStr]);
             $affected = $stmt->rowCount();
 
-            servmon_log_info(
+            monitors_log_info(
                 'Disk history rollup completed',
                 'disk_rollup',
                 ['cutoff_at' => $cutoffStr, 'affected_rows' => $affected, 'days' => $days]

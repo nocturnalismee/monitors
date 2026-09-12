@@ -1,13 +1,13 @@
 /**
  * IP Reputation list page – summary auto-refresh.
- * (Check-Now is bound once by ServMon.bindIpRepCheckNow in common.js.)
+ * (Check-Now is bound once by Monitors.bindIpRepCheckNow in common.js.)
  */
 (function () {
   'use strict';
 
-  var API_URL = window.SERVMON_IP_REP_API || '';
+  var API_URL = window.MONITORS_IP_REP_API || '';
 
-  /* Check-Now buttons are bound once by ServMon.bindIpRepCheckNow()
+  /* Check-Now buttons are bound once by Monitors.bindIpRepCheckNow()
    * (common.js), shared with the detail page. */
 
   /* ── Auto-refresh (every 30s) ──────────────────────────── */

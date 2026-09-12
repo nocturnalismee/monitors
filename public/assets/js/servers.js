@@ -16,7 +16,7 @@
   function refreshBulkBar() {
     // Bulk selection (check-all, counter bar, confirm submit) is handled by
     // bulk-select.js; filtering only enables/disables row checkboxes here.
-    document.dispatchEvent(new CustomEvent("servmon:bulk-refresh"));
+    document.dispatchEvent(new CustomEvent("monitors:bulk-refresh"));
   }
 
   function getFilteredRows() {

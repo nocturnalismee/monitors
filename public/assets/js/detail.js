@@ -1,16 +1,16 @@
-const servmonCharts = {
+const monitorsCharts = {
   ram: null,
   disk: null,
   cpu: null,
   network: null,
 };
 
-let servmonHistoryRequest = null;
-let servmonHistorySeq = 0;
-let servmonLastRows = [];
-let servmonChartEngineRetryTimer = null;
-let servmonResizeBound = false;
-let servmonChartsPaused = false;
+let monitorsHistoryRequest = null;
+let monitorsHistorySeq = 0;
+let monitorsLastRows = [];
+let monitorsChartEngineRetryTimer = null;
+let monitorsResizeBound = false;
+let monitorsChartsPaused = false;
 
 function updateDetailLiveState(isLive) {
   const state = document.querySelector("[data-detail-live-state]");
@@ -28,11 +28,11 @@ function hasEcharts() {
 }
 
 function areChartsPaused() {
-  return servmonChartsPaused;
+  return monitorsChartsPaused;
 }
 
 function setChartPaused(paused) {
-  servmonChartsPaused = paused;
+  monitorsChartsPaused = paused;
   document.querySelectorAll("[data-chart-pause]").forEach((button) => {
     button.setAttribute("aria-pressed", String(paused));
     button.setAttribute("title", paused ? "Resume updates" : "Pause updates");
@@ -109,18 +109,18 @@ function getChartPalette() {
   const theme = document.documentElement.getAttribute("data-bs-theme") || "dark";
   const isLight = theme === "light";
   return {
-    text: ServMon.getThemeColor("--sv-text", isLight ? "#0f172a" : "#e5e7eb"),
-    textMuted: ServMon.getThemeColor("--sv-muted", isLight ? "#475569" : "#94a3b8"),
+    text: Monitors.getThemeColor("--sv-text", isLight ? "#0f172a" : "#e5e7eb"),
+    textMuted: Monitors.getThemeColor("--sv-muted", isLight ? "#475569" : "#94a3b8"),
     grid: isLight ? "rgba(15,23,42,0.08)" : "rgba(148,163,184,0.14)",
     axis: isLight ? "rgba(15,23,42,0.18)" : "rgba(148,163,184,0.22)",
-    tooltipBg: ServMon.getThemeColor("--sv-surface-2", isLight ? "#f1f5f9" : "#1f2937"),
-    tooltipBorder: ServMon.getThemeColor("--sv-border", isLight ? "#cbd5e1" : "#334155"),
-    tooltipText: ServMon.getThemeColor("--sv-text", isLight ? "#0f172a" : "#e5e7eb"),
-    series1: ServMon.getThemeColor("--sv-chart-1", "#38bdf8"),
-    series2: ServMon.getThemeColor("--sv-chart-2", "#f59e0b"),
-    series3: ServMon.getThemeColor("--sv-chart-3", "#ef4444"),
-    series4: ServMon.getThemeColor("--sv-chart-4", "#22c55e"),
-    series5: ServMon.getThemeColor("--sv-chart-5", "#a78bfa"),
+    tooltipBg: Monitors.getThemeColor("--sv-surface-2", isLight ? "#f1f5f9" : "#1f2937"),
+    tooltipBorder: Monitors.getThemeColor("--sv-border", isLight ? "#cbd5e1" : "#334155"),
+    tooltipText: Monitors.getThemeColor("--sv-text", isLight ? "#0f172a" : "#e5e7eb"),
+    series1: Monitors.getThemeColor("--sv-chart-1", "#38bdf8"),
+    series2: Monitors.getThemeColor("--sv-chart-2", "#f59e0b"),
+    series3: Monitors.getThemeColor("--sv-chart-3", "#ef4444"),
+    series4: Monitors.getThemeColor("--sv-chart-4", "#22c55e"),
+    series5: Monitors.getThemeColor("--sv-chart-5", "#a78bfa"),
   };
 }
 
@@ -136,7 +136,7 @@ function normalizeRows(payload) {
     const recorded_at = String(row.recorded_at || "");
     return {
       recorded_at,
-      ts: ServMon.parseTimestampMs(recorded_at),
+      ts: Monitors.parseTimestampMs(recorded_at),
       ram_used: toNumber(row.ram_used, 0),
       hdd_used: toNumber(row.hdd_used, 0),
       cpu_load: toNumber(row.cpu_load, 0),
@@ -187,7 +187,7 @@ function updateServerDetailServices(services) {
     tbody.innerHTML = '<tr><td colspan="5" class="table-empty">No service data yet.</td></tr>';
     return;
   }
-  const escape = window.ServMon?.escapeHtml || ((value) => String(value ?? ""));
+  const escape = window.Monitors?.escapeHtml || ((value) => String(value ?? ""));
   tbody.innerHTML = services.map((service) => {
     const status = String(service.status || "unknown").toLowerCase();
     const badge = status === "up" ? "badge-online" : status === "down" ? "badge-down" : "badge-pending";
@@ -202,7 +202,7 @@ function updateServerDetailServices(services) {
 }
 
 async function refreshServerDetailStatus() {
-  const endpoint = window.SERVMON_SERVER_STATUS_ENDPOINT;
+  const endpoint = window.MONITORS_SERVER_STATUS_ENDPOINT;
   if (!endpoint) {
     updateDetailLiveState(false);
     return false;
@@ -292,14 +292,14 @@ function getOrCreateChart(chartKey, containerId) {
   const container = document.getElementById(containerId);
   if (!container || !hasEcharts()) return null;
 
-  if (servmonCharts[chartKey] && !servmonCharts[chartKey].isDisposed()) {
-    return servmonCharts[chartKey];
+  if (monitorsCharts[chartKey] && !monitorsCharts[chartKey].isDisposed()) {
+    return monitorsCharts[chartKey];
   }
 
-  servmonCharts[chartKey] = window.echarts.init(container);
-  servmonCharts[chartKey].group = "servmon-metric-charts";
-  window.echarts.connect("servmon-metric-charts");
-  return servmonCharts[chartKey];
+  monitorsCharts[chartKey] = window.echarts.init(container);
+  monitorsCharts[chartKey].group = "monitors-metric-charts";
+  window.echarts.connect("monitors-metric-charts");
+  return monitorsCharts[chartKey];
 }
 
 function buildEchartsLineOption({
@@ -431,8 +431,8 @@ function renderCharts(rows) {
 
   const cpuChart = getOrCreateChart("cpu", "cpuHistoryChart");
   if (cpuChart) {
-    const warnThresh = Number(window.SERVMON_CPU_THRESHOLDS?.warn || 2.0);
-    const critThresh = Number(window.SERVMON_CPU_THRESHOLDS?.critical || 4.0);
+    const warnThresh = Number(window.MONITORS_CPU_THRESHOLDS?.warn || 2.0);
+    const critThresh = Number(window.MONITORS_CPU_THRESHOLDS?.critical || 4.0);
     const cpuMarkLines = {
       symbol: "none",
       silent: true,
@@ -483,29 +483,29 @@ function renderCharts(rows) {
 }
 
 function scheduleChartRenderRetry() {
-  if (servmonChartEngineRetryTimer !== null) return;
+  if (monitorsChartEngineRetryTimer !== null) return;
 
-  servmonChartEngineRetryTimer = window.setInterval(() => {
-    if (!Array.isArray(servmonLastRows) || servmonLastRows.length === 0) return;
+  monitorsChartEngineRetryTimer = window.setInterval(() => {
+    if (!Array.isArray(monitorsLastRows) || monitorsLastRows.length === 0) return;
     if (!hasEcharts()) return;
-    window.clearInterval(servmonChartEngineRetryTimer);
-    servmonChartEngineRetryTimer = null;
-    renderCharts(servmonLastRows);
+    window.clearInterval(monitorsChartEngineRetryTimer);
+    monitorsChartEngineRetryTimer = null;
+    renderCharts(monitorsLastRows);
   }, 200);
 
   window.setTimeout(() => {
-    if (servmonChartEngineRetryTimer === null) return;
-    window.clearInterval(servmonChartEngineRetryTimer);
-    servmonChartEngineRetryTimer = null;
+    if (monitorsChartEngineRetryTimer === null) return;
+    window.clearInterval(monitorsChartEngineRetryTimer);
+    monitorsChartEngineRetryTimer = null;
   }, 20000);
 }
 
 function bindChartResize() {
-  if (servmonResizeBound) return;
-  servmonResizeBound = true;
+  if (monitorsResizeBound) return;
+  monitorsResizeBound = true;
 
   window.addEventListener("resize", () => {
-    Object.values(servmonCharts).forEach((chart) => {
+    Object.values(monitorsCharts).forEach((chart) => {
       if (chart && typeof chart.resize === "function") {
         chart.resize();
       }
@@ -514,7 +514,7 @@ function bindChartResize() {
 }
 
 function resetHistoryZoom() {
-  Object.values(servmonCharts).forEach((chart) => {
+  Object.values(monitorsCharts).forEach((chart) => {
     if (!chart || typeof chart.setOption !== "function") return;
     chart.setOption({
       dataZoom: [
@@ -527,9 +527,9 @@ function resetHistoryZoom() {
 
 function bootstrapHistory(payload) {
   if (!Array.isArray(payload) || payload.length === 0) return;
-  servmonLastRows = normalizeRows(payload);
-  renderCharts(servmonLastRows);
-  updateCpuSummary(servmonLastRows);
+  monitorsLastRows = normalizeRows(payload);
+  renderCharts(monitorsLastRows);
+  updateCpuSummary(monitorsLastRows);
   bindChartResize();
 }
 
@@ -537,33 +537,33 @@ async function loadHistory(endpoint) {
   if (document.hidden) return;
   if (!endpoint) return;
 
-  if (!areChartsPaused() && servmonLastRows.length === 0) {
+  if (!areChartsPaused() && monitorsLastRows.length === 0) {
     showChartSkeletons();
   }
 
-  const seq = ++servmonHistorySeq;
-  if (servmonHistoryRequest) {
-    servmonHistoryRequest.abort();
+  const seq = ++monitorsHistorySeq;
+  if (monitorsHistoryRequest) {
+    monitorsHistoryRequest.abort();
   }
-  servmonHistoryRequest = new AbortController();
+  monitorsHistoryRequest = new AbortController();
 
   let payload = [];
   let timeoutId = null;
   try {
     timeoutId = setTimeout(() => {
-      if (servmonHistoryRequest) {
-        servmonHistoryRequest.abort();
+      if (monitorsHistoryRequest) {
+        monitorsHistoryRequest.abort();
       }
     }, 10000);
 
     const url = endpoint.includes("?") ? `${endpoint}&_t=${Date.now()}` : `${endpoint}?_t=${Date.now()}`;
     const response = await fetch(url, {
       headers: { Accept: "application/json" },
-      signal: servmonHistoryRequest.signal,
+      signal: monitorsHistoryRequest.signal,
       cache: "no-store",
     });
     if (!response.ok) {
-      if (servmonLastRows.length > 0) hideChartSkeletons();
+      if (monitorsLastRows.length > 0) hideChartSkeletons();
       return;
     }
     payload = await response.json();
@@ -571,7 +571,7 @@ async function loadHistory(endpoint) {
     if (err && err.name !== "AbortError") {
       console.error(err);
     }
-    if (servmonLastRows.length > 0) hideChartSkeletons();
+    if (monitorsLastRows.length > 0) hideChartSkeletons();
     return;
   } finally {
     if (timeoutId) {
@@ -579,11 +579,11 @@ async function loadHistory(endpoint) {
     }
   }
 
-  if (seq !== servmonHistorySeq) return;
+  if (seq !== monitorsHistorySeq) return;
 
-  servmonLastRows = normalizeRows(payload);
-  renderCharts(servmonLastRows);
-  updateCpuSummary(servmonLastRows);
+  monitorsLastRows = normalizeRows(payload);
+  renderCharts(monitorsLastRows);
+  updateCpuSummary(monitorsLastRows);
 
   if (!hasEcharts()) {
     scheduleChartRenderRetry();
@@ -604,8 +604,8 @@ document.addEventListener("click", (event) => {
   setChartPaused(!areChartsPaused());
 });
 
-document.addEventListener("servmon:theme-changed", () => {
-  if (!Array.isArray(servmonLastRows) || servmonLastRows.length === 0) return;
-  renderCharts(servmonLastRows);
-  updateCpuSummary(servmonLastRows);
+document.addEventListener("monitors:theme-changed", () => {
+  if (!Array.isArray(monitorsLastRows) || monitorsLastRows.length === 0) return;
+  renderCharts(monitorsLastRows);
+  updateCpuSummary(monitorsLastRows);
 });

@@ -1,11 +1,11 @@
 /**
  * IP Reputation detail page – ECharts listing history chart.
- * (Check-Now is bound once by ServMon.bindIpRepCheckNow in common.js.)
+ * (Check-Now is bound once by Monitors.bindIpRepCheckNow in common.js.)
  */
 (function () {
   'use strict';
 
-  var chartData = window.SERVMON_IP_REP_CHART_DATA || [];
+  var chartData = window.MONITORS_IP_REP_CHART_DATA || [];
   var chartDom  = document.getElementById('ip-rep-history-chart');
 
   /* ── ECharts Timeline ──────────────────────────────────── */

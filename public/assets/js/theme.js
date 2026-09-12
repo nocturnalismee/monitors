@@ -5,7 +5,7 @@ const themeMediaQuery =
 
 function getStoredTheme() {
   try {
-    const stored = localStorage.getItem("servmon_theme");
+    const stored = localStorage.getItem("monitors_theme");
     return stored === "dark" || stored === "light" ? stored : null;
   } catch (e) {
     return null;
@@ -24,7 +24,7 @@ function applyTheme(theme) {
   document
     .querySelectorAll("[data-theme-toggle]")
     .forEach((el) => setThemeLabel(el, theme));
-  document.dispatchEvent(new CustomEvent("servmon:theme-changed", { detail: { theme } }));
+  document.dispatchEvent(new CustomEvent("monitors:theme-changed", { detail: { theme } }));
 }
 
 document.addEventListener("click", (event) => {
@@ -34,7 +34,7 @@ document.addEventListener("click", (event) => {
   const current = document.documentElement.getAttribute("data-bs-theme") || getPreferredTheme();
   const next = current === "dark" ? "light" : "dark";
   try {
-    localStorage.setItem("servmon_theme", next);
+    localStorage.setItem("monitors_theme", next);
   } catch (e) {}
   applyTheme(next);
 });

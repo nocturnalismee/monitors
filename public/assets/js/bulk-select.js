@@ -43,18 +43,18 @@
 
   // Lets client-filtered pages (servers.js) refresh the bar after they
   // enable/disable checkboxes without firing change events.
-  document.addEventListener("servmon:bulk-refresh", refreshAllScopes);
+  document.addEventListener("monitors:bulk-refresh", refreshAllScopes);
 
   function showConfirm(message, onProceed, proceedLabel, proceedClass) {
-    const modalEl = document.getElementById("servmonConfirmModal");
+    const modalEl = document.getElementById("monitorsConfirmModal");
     if (!modalEl || typeof bootstrap === "undefined") {
       if (window.confirm(message)) onProceed();
       return;
     }
     const bsModal = bootstrap.Modal.getOrCreateInstance(modalEl);
-    const bodyEl = document.getElementById("servmonConfirmModalBody");
+    const bodyEl = document.getElementById("monitorsConfirmModalBody");
     if (bodyEl) bodyEl.textContent = message;
-    const proceedBtn = document.getElementById("servmonConfirmModalProceed");
+    const proceedBtn = document.getElementById("monitorsConfirmModalProceed");
     if (proceedBtn) {
       proceedBtn.textContent = proceedLabel || "Delete";
       proceedBtn.className = proceedClass || "btn btn-danger";

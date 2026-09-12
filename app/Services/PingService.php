@@ -165,7 +165,7 @@ final class PingService
             CURLOPT_MAXREDIRS => 5,
             CURLOPT_TIMEOUT => $timeoutSeconds,
             CURLOPT_CONNECTTIMEOUT => $timeoutSeconds,
-            CURLOPT_USERAGENT => 'servmon-ping-http-check/1.0',
+            CURLOPT_USERAGENT => 'monitors-ping-http-check/1.0',
         ];
         if (defined('CURLOPT_PROTOCOLS')) {
             $baseOptions[CURLOPT_PROTOCOLS] = CURLPROTO_HTTP | CURLPROTO_HTTPS;

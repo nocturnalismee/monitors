@@ -29,7 +29,7 @@
                 $idPrefix = 'edit-server';
                 $providerPlaceholder = 'e.g. AWS, DigitalOcean, Proxmox';
                 $labelPlaceholder = 'e.g. web-prod, mail';
-                require SERVMON_BASE_DIR . '/app/Views/partials/server_identity_form.php';
+                require MONITORS_BASE_DIR . '/app/Views/partials/server_identity_form.php';
                 ?>
                 <div class="col-md-6">
                     <label class="form-label" for="edit-server-notify-email">Notify Email</label>

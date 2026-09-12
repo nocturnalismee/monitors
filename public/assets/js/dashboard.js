@@ -1,12 +1,12 @@
 /**
- * ServMon — Admin dashboard auto-refresh.
+ * Monitors — Admin dashboard auto-refresh.
  *
- * Depends on: common.js (ServMon namespace)
+ * Depends on: common.js (Monitors namespace)
  */
 
 // var (not const): alerts.js aliases the same name on shared pages.
-var SM = window.SM ?? window.ServMon;
-const CPU_HISTORY_KEY = "servmon:cpuHistory:admin";
+var SM = window.SM ?? window.Monitors;
+const CPU_HISTORY_KEY = "monitors:cpuHistory:admin";
 const SORTABLE_KEYS = ["cpu", "ram", "disk", "queue"];
 
 let sortState = null;
@@ -139,7 +139,7 @@ function renderAdminRowCells(s) {
 
 function buildDashboardEmptyRow() {
   const row = document.createElement("tr");
-  const manageUrl = window.SERVMON_SERVERS_LIST || "/servers";
+  const manageUrl = window.MONITORS_SERVERS_LIST || "/servers";
   row.innerHTML = `
     <td colspan="11" class="table-empty">
       <div class="table-empty-inner">
@@ -172,7 +172,7 @@ function syncAdminTableRows(tableBody, servers) {
       row.setAttribute("data-server-id", key);
       rowsByKey.set(key, row);
     }
-    const detailBase = window.SERVMON_ADMIN_DETAIL_BASE || "/servers/";
+    const detailBase = window.MONITORS_ADMIN_DETAIL_BASE || "/servers/";
     row.setAttribute(
       "data-detail-url",
       `${detailBase}${encodeURIComponent(String(s.id ?? ""))}`,
@@ -379,7 +379,7 @@ async function refreshServerTable() {
   const tableBody = document.querySelector("[data-server-table]");
   if (!tableBody) return;
   const endpoint =
-    window.SERVMON_API_STATUS || "/api/status?include_inactive=1";
+    window.MONITORS_API_STATUS || "/api/status?include_inactive=1";
 
   let skeletonTimer = null;
   const tableShell = tableBody.closest(".table-shell");
@@ -476,7 +476,7 @@ function startLiveStream() {
     return;
   }
   const url = new URL(
-    window.SERVMON_API_STREAM || "/api/stream",
+    window.MONITORS_API_STREAM || "/api/stream",
     window.location.origin,
   );
   url.searchParams.set("limit", "50");
