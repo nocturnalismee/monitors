@@ -146,6 +146,11 @@ try {
     } else {
         $pdo->beginTransaction();
         try {
+            // Hermetic run: seed.sql plants sample metric rows for the seeded
+            // servers. Clear this server's rows inside the transaction (rolled
+            // back below) so bucket counts are deterministic.
+            $pdo->prepare('DELETE FROM metrics WHERE server_id = ?')->execute([$sid]);
+            $pdo->prepare('DELETE FROM metrics_history WHERE server_id = ?')->execute([$sid]);
             $rawIns = $pdo->prepare(
                 'INSERT INTO metrics (server_id, recorded_at, uptime, ram_total, ram_used, hdd_total, hdd_used, cpu_load, network_in_bps, network_out_bps, mail_mta, mail_queue_total)
                  VALUES (?, NOW() - INTERVAL ? MINUTE, 100, 2048, ?, 50000, 25000, ?, 100000, 90000, 0, 3)'
