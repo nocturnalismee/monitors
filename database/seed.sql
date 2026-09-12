@@ -1,4 +1,5 @@
-USE servmon;
+-- No USE statement: seed imports into the database chosen by the caller
+-- (installer / CI / README CLI all pass it explicitly).
 
 INSERT INTO servers (id, name, url, location, host, type, agent_mode, token_hash, notify_email, active)
 VALUES
