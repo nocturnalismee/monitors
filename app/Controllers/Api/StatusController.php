@@ -78,7 +78,7 @@ final class StatusController
                 ];
             }
 
-            cache_set($cacheKey, $result, cache_ttl('cache_ttl_disk_health_list', 15));
+            cache_set($cacheKey, $result, cache_ttl('cache_ttl_disk_health_list', 60));
             return Response::json($result);
         }
 
@@ -107,129 +107,13 @@ final class StatusController
                 return Response::json($cached);
             }
 
-            $sql = match ($historyKey) {
-                '5m' => 'SELECT * FROM (
-                        SELECT
-                            DATE_FORMAT(recorded_at, "%Y-%m-%d %H:%i:%s") AS recorded_at,
-                            uptime, ram_total, ram_used, hdd_total, hdd_used,
-                            ROUND(cpu_load, 4) AS cpu_load, network_in_bps, network_out_bps,
-                            mail_mta, mail_queue_total
-                        FROM metrics
-                        WHERE server_id = :server_id AND recorded_at >= DATE_SUB(NOW(), INTERVAL 5 MINUTE)
-                        ORDER BY recorded_at DESC
-                        LIMIT {$points}
-                    ) AS latest_points
-                    ORDER BY recorded_at ASC',
-                '30m' => 'SELECT * FROM (
-                        SELECT
-                            DATE_FORMAT(recorded_at, "%Y-%m-%d %H:%i:%s") AS recorded_at,
-                            uptime, ram_total, ram_used, hdd_total, hdd_used,
-                            ROUND(cpu_load, 4) AS cpu_load, network_in_bps, network_out_bps,
-                            mail_mta, mail_queue_total
-                        FROM metrics
-                        WHERE server_id = :server_id AND recorded_at >= DATE_SUB(NOW(), INTERVAL 30 MINUTE)
-                        ORDER BY recorded_at DESC
-                        LIMIT {$points}
-                    ) AS latest_points
-                    ORDER BY recorded_at ASC',
-                '7d' => 'SELECT * FROM (
-                    SELECT
-                        recorded_at,
-                        MAX(uptime) AS uptime,
-                        MAX(ram_total) AS ram_total,
-                        ROUND(AVG(ram_used)) AS ram_used,
-                        MAX(hdd_total) AS hdd_total,
-                        ROUND(AVG(hdd_used)) AS hdd_used,
-                        ROUND(AVG(cpu_load), 4) AS cpu_load,
-                        ROUND(AVG(network_in_bps)) AS network_in_bps,
-                        ROUND(AVG(network_out_bps)) AS network_out_bps,
-                        MAX(mail_mta) AS mail_mta,
-                        ROUND(AVG(mail_queue_total)) AS mail_queue_total
-                    FROM (
-                        SELECT
-                            DATE_FORMAT(FROM_UNIXTIME(FLOOR(UNIX_TIMESTAMP(recorded_at) / 300) * 300), "%Y-%m-%d %H:%i:00") AS recorded_at,
-                            MAX(uptime) AS uptime, MAX(ram_total) AS ram_total, ROUND(AVG(ram_used)) AS ram_used,
-                            MAX(hdd_total) AS hdd_total, ROUND(AVG(hdd_used)) AS hdd_used, ROUND(AVG(cpu_load), 4) AS cpu_load,
-                            ROUND(AVG(network_in_bps)) AS network_in_bps, ROUND(AVG(network_out_bps)) AS network_out_bps,
-                            MAX(mail_mta) AS mail_mta, ROUND(AVG(mail_queue_total)) AS mail_queue_total
-                        FROM metrics
-                        WHERE server_id = :server_id AND recorded_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)
-                        GROUP BY DATE_FORMAT(FROM_UNIXTIME(FLOOR(UNIX_TIMESTAMP(recorded_at) / 300) * 300), "%Y-%m-%d %H:%i:00")
-                        UNION ALL
-                        SELECT
-                            DATE_FORMAT(FROM_UNIXTIME(FLOOR(UNIX_TIMESTAMP(recorded_at) / 300) * 300), "%Y-%m-%d %H:%i:00") AS recorded_at,
-                            MAX(uptime) AS uptime, MAX(ram_total) AS ram_total, ROUND(AVG(ram_used)) AS ram_used,
-                            MAX(hdd_total) AS hdd_total, ROUND(AVG(hdd_used)) AS hdd_used, ROUND(AVG(cpu_load), 4) AS cpu_load,
-                            ROUND(AVG(network_in_bps)) AS network_in_bps, ROUND(AVG(network_out_bps)) AS network_out_bps,
-                            MAX(mail_mta) AS mail_mta, ROUND(AVG(mail_queue_total)) AS mail_queue_total
-                        FROM metrics_history
-                        WHERE server_id = :server_id2 AND recorded_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)
-                        GROUP BY DATE_FORMAT(FROM_UNIXTIME(FLOOR(UNIX_TIMESTAMP(recorded_at) / 300) * 300), "%Y-%m-%d %H:%i:00")
-                    ) combined_metrics
-                    GROUP BY recorded_at
-                    ORDER BY recorded_at DESC
-                    LIMIT {$points}
-                 ) AS latest_points
-                 ORDER BY recorded_at ASC',
-                '30d' => 'SELECT * FROM (
-                    SELECT
-                        recorded_at,
-                        MAX(uptime) AS uptime,
-                        MAX(ram_total) AS ram_total,
-                        ROUND(AVG(ram_used)) AS ram_used,
-                        MAX(hdd_total) AS hdd_total,
-                        ROUND(AVG(hdd_used)) AS hdd_used,
-                        ROUND(AVG(cpu_load), 4) AS cpu_load,
-                        ROUND(AVG(network_in_bps)) AS network_in_bps,
-                        ROUND(AVG(network_out_bps)) AS network_out_bps,
-                        MAX(mail_mta) AS mail_mta,
-                        ROUND(AVG(mail_queue_total)) AS mail_queue_total
-                    FROM (
-                        SELECT
-                            DATE_FORMAT(FROM_UNIXTIME(FLOOR(UNIX_TIMESTAMP(recorded_at) / 900) * 900), "%Y-%m-%d %H:%i:00") AS recorded_at,
-                            MAX(uptime) AS uptime, MAX(ram_total) AS ram_total, ROUND(AVG(ram_used)) AS ram_used,
-                            MAX(hdd_total) AS hdd_total, ROUND(AVG(hdd_used)) AS hdd_used, ROUND(AVG(cpu_load), 4) AS cpu_load,
-                            ROUND(AVG(network_in_bps)) AS network_in_bps, ROUND(AVG(network_out_bps)) AS network_out_bps,
-                            MAX(mail_mta) AS mail_mta, ROUND(AVG(mail_queue_total)) AS mail_queue_total
-                        FROM metrics
-                        WHERE server_id = :server_id AND recorded_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)
-                        GROUP BY DATE_FORMAT(FROM_UNIXTIME(FLOOR(UNIX_TIMESTAMP(recorded_at) / 900) * 900), "%Y-%m-%d %H:%i:00")
-                        UNION ALL
-                        SELECT
-                            DATE_FORMAT(FROM_UNIXTIME(FLOOR(UNIX_TIMESTAMP(recorded_at) / 900) * 900), "%Y-%m-%d %H:%i:00") AS recorded_at,
-                            MAX(uptime) AS uptime, MAX(ram_total) AS ram_total, ROUND(AVG(ram_used)) AS ram_used,
-                            MAX(hdd_total) AS hdd_total, ROUND(AVG(hdd_used)) AS hdd_used, ROUND(AVG(cpu_load), 4) AS cpu_load,
-                            ROUND(AVG(network_in_bps)) AS network_in_bps, ROUND(AVG(network_out_bps)) AS network_out_bps,
-                            MAX(mail_mta) AS mail_mta, ROUND(AVG(mail_queue_total)) AS mail_queue_total
-                        FROM metrics_history
-                        WHERE server_id = :server_id2 AND recorded_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)
-                        GROUP BY DATE_FORMAT(FROM_UNIXTIME(FLOOR(UNIX_TIMESTAMP(recorded_at) / 900) * 900), "%Y-%m-%d %H:%i:00")
-                    ) combined_metrics
-                    GROUP BY recorded_at
-                    ORDER BY recorded_at DESC
-                    LIMIT {$points}
-                  ) AS latest_points
-                  ORDER BY recorded_at ASC',
-                default => 'SELECT * FROM (
-                        SELECT
-                            DATE_FORMAT(recorded_at, "%Y-%m-%d %H:%i:%s") AS recorded_at,
-                            uptime, ram_total, ram_used, hdd_total, hdd_used,
-                            ROUND(cpu_load, 4) AS cpu_load, network_in_bps, network_out_bps,
-                            mail_mta, mail_queue_total
-                        FROM metrics
-                        WHERE server_id = :server_id AND recorded_at >= DATE_SUB(NOW(), INTERVAL 24 HOUR)
-                        ORDER BY recorded_at DESC
-                        LIMIT {$points}
-                    ) AS latest_points
-                    ORDER BY recorded_at ASC',
-            };
+            ['sql' => $sql, 'params' => $historyParams] = self::historyQuery($historyKey);
             // $points is clamped above to a numeric range before being inserted into
             // the SQL. MariaDB native prepares do not support LIMIT placeholders.
             $sql = str_replace('{$points}', (string) $points, $sql);
             $stmt = db()->prepare($sql);
-            $stmt->bindValue(':server_id', $serverId, PDO::PARAM_INT);
-            if ($historyKey === '7d' || $historyKey === '30d') {
-                $stmt->bindValue(':server_id2', $serverId, PDO::PARAM_INT);
+            foreach ($historyParams as $paramName => [$paramValue, $paramType]) {
+                $stmt->bindValue($paramName, $paramValue, $paramType);
             }
             $stmt->execute();
             $rows = $stmt->fetchAll();
@@ -362,5 +246,152 @@ final class StatusController
         }
 
         return $ready;
+    }
+
+    /**
+     * Build the history SQL for a range together with its bind map.
+     *
+     * Data-coverage model (mirrors RollupWorker):
+     *   metrics (raw)        -> newest data, kept `metrics_raw_hours` (default 24h)
+     *   metrics_history 300  -> aggregates raw older than rawHours, kept `metrics_5m_days` (default 14d)
+     *   metrics_history 3600 -> aggregates bucket-300 older than 5m-days, kept `metrics_1h_days` (default 90d)
+     *
+     * Ranges are assembled from DISJOINT slices (each slice filtered on the
+     * boundary the next one starts at), so overlapping windows are never
+     * double-counted and the raw table is only scanned for the fresh tail:
+     *   7d  -> bucket-300 (7d .. rawHours) UNION raw (rawHours .. now), re-bucketed to 300s
+     *   30d -> bucket-3600 (30d .. 5m-days) UNION bucket-300 (5m-days .. rawHours)
+     *          UNION raw (rawHours .. now), re-bucketed to 3600s
+     * On a fresh install with no rollup rows yet only the raw slice yields
+     * rows, degrading gracefully to the recent window.
+     *
+     * @return array{sql: string, params: array<string, array{0: int|string, 1: int}>}
+     */
+    public static function historyQuery(string $historyKey, int $serverId): array
+    {
+        $params = [':server_id' => [$serverId, PDO::PARAM_INT]];
+
+        if ($historyKey !== '7d' && $historyKey !== '30d') {
+            // 5m / 30m / 24h always live inside the raw retention window.
+            $minutes = match ($historyKey) {
+                '5m' => 5,
+                '30m' => 30,
+                default => 24 * 60,
+            };
+            $sql = 'SELECT * FROM (
+                        SELECT
+                            DATE_FORMAT(recorded_at, "%Y-%m-%d %H:%i:%s") AS recorded_at,
+                            uptime, ram_total, ram_used, hdd_total, hdd_used,
+                            ROUND(cpu_load, 4) AS cpu_load, network_in_bps, network_out_bps,
+                            mail_mta, mail_queue_total
+                        FROM metrics
+                        WHERE server_id = :server_id AND recorded_at >= DATE_SUB(NOW(), INTERVAL ' . $minutes . ' MINUTE)
+                        ORDER BY recorded_at DESC
+                        LIMIT {$points}
+                    ) AS latest_points
+                    ORDER BY recorded_at ASC';
+            return ['sql' => $sql, 'params' => $params];
+        }
+
+        try {
+            $rawHoursSetting = (int) setting_get('metrics_raw_hours');
+            $days5mSetting = (int) setting_get('metrics_5m_days');
+        } catch (Throwable) {
+            // Settings live in the DB too; fall back to the documented
+            // defaults when they are unreachable (fresh/broken install).
+            $rawHoursSetting = 0;
+            $days5mSetting = 0;
+        }
+        $rawHours = max(1, $rawHoursSetting ?: 24);
+        $days5m = max(1, $days5mSetting ?: 14);
+        $boundaryRaw = date('Y-m-d H:i:s', strtotime("-{$rawHours} hours"));
+
+        if ($historyKey === '7d') {
+            $params[':boundary_7d_hist'] = [$boundaryRaw, PDO::PARAM_STR];
+            $params[':boundary_7d_raw'] = [$boundaryRaw, PDO::PARAM_STR];
+            $params[':server_id2'] = [$serverId, PDO::PARAM_INT];
+            $inner = 'SELECT
+                        DATE_FORMAT(recorded_at, "%Y-%m-%d %H:%i:00") AS recorded_at,
+                        uptime, ram_total, ram_used, hdd_total, hdd_used, cpu_load,
+                        network_in_bps, network_out_bps, mail_mta, mail_queue_total
+                    FROM metrics_history
+                    WHERE server_id = :server_id AND bucket_seconds = 300
+                      AND recorded_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)
+                      AND recorded_at < :boundary_7d_hist
+                    UNION ALL
+                    SELECT
+                        DATE_FORMAT(FROM_UNIXTIME(FLOOR(UNIX_TIMESTAMP(recorded_at) / 300) * 300), "%Y-%m-%d %H:%i:00"),
+                        MAX(uptime), MAX(ram_total), ROUND(AVG(ram_used)),
+                        MAX(hdd_total), ROUND(AVG(hdd_used)), ROUND(AVG(cpu_load), 4),
+                        ROUND(AVG(network_in_bps)), ROUND(AVG(network_out_bps)),
+                        MAX(mail_mta), ROUND(AVG(mail_queue_total))
+                    FROM metrics
+                    WHERE server_id = :server_id2
+                      AND recorded_at >= :boundary_7d_raw
+                    GROUP BY DATE_FORMAT(FROM_UNIXTIME(FLOOR(UNIX_TIMESTAMP(recorded_at) / 300) * 300), "%Y-%m-%d %H:%i:00")';
+        } else {
+            $boundary5m = date('Y-m-d H:i:s', strtotime("-{$days5m} days"));
+            $params[':boundary_5m_30d_hist'] = [$boundary5m, PDO::PARAM_STR];
+            $params[':boundary_5m_30d_raw'] = [$boundary5m, PDO::PARAM_STR];
+            $params[':boundary_raw_30d_hist'] = [$boundaryRaw, PDO::PARAM_STR];
+            $params[':boundary_raw_30d_next'] = [$boundaryRaw, PDO::PARAM_STR];
+            $params[':server_id2'] = [$serverId, PDO::PARAM_INT];
+            $params[':server_id3'] = [$serverId, PDO::PARAM_INT];
+            $inner = 'SELECT
+                        DATE_FORMAT(recorded_at, "%Y-%m-%d %H:%i:00") AS recorded_at,
+                        uptime, ram_total, ram_used, hdd_total, hdd_used, cpu_load,
+                        network_in_bps, network_out_bps, mail_mta, mail_queue_total
+                    FROM metrics_history
+                    WHERE server_id = :server_id AND bucket_seconds = 3600
+                      AND recorded_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)
+                      AND recorded_at < :boundary_5m_30d_hist
+                    UNION ALL
+                    SELECT
+                        DATE_FORMAT(FROM_UNIXTIME(FLOOR(UNIX_TIMESTAMP(recorded_at) / 3600) * 3600), "%Y-%m-%d %H:%i:00"),
+                        MAX(uptime), MAX(ram_total), ROUND(AVG(ram_used)),
+                        MAX(hdd_total), ROUND(AVG(hdd_used)), ROUND(AVG(cpu_load), 4),
+                        ROUND(AVG(network_in_bps)), ROUND(AVG(network_out_bps)),
+                        MAX(mail_mta), ROUND(AVG(mail_queue_total))
+                    FROM metrics_history
+                    WHERE server_id = :server_id2 AND bucket_seconds = 300
+                      AND recorded_at >= :boundary_5m_30d_raw
+                      AND recorded_at < :boundary_raw_30d_hist
+                    GROUP BY DATE_FORMAT(FROM_UNIXTIME(FLOOR(UNIX_TIMESTAMP(recorded_at) / 3600) * 3600), "%Y-%m-%d %H:%i:00")
+                    UNION ALL
+                    SELECT
+                        DATE_FORMAT(FROM_UNIXTIME(FLOOR(UNIX_TIMESTAMP(recorded_at) / 3600) * 3600), "%Y-%m-%d %H:%i:00"),
+                        MAX(uptime), MAX(ram_total), ROUND(AVG(ram_used)),
+                        MAX(hdd_total), ROUND(AVG(hdd_used)), ROUND(AVG(cpu_load), 4),
+                        ROUND(AVG(network_in_bps)), ROUND(AVG(network_out_bps)),
+                        MAX(mail_mta), ROUND(AVG(mail_queue_total))
+                    FROM metrics
+                    WHERE server_id = :server_id3
+                      AND recorded_at >= :boundary_raw_30d_next
+                    GROUP BY DATE_FORMAT(FROM_UNIXTIME(FLOOR(UNIX_TIMESTAMP(recorded_at) / 3600) * 3600), "%Y-%m-%d %H:%i:00")';
+        }
+
+        $sql = 'SELECT * FROM (
+                    SELECT
+                        recorded_at,
+                        MAX(uptime) AS uptime,
+                        MAX(ram_total) AS ram_total,
+                        ROUND(AVG(ram_used)) AS ram_used,
+                        MAX(hdd_total) AS hdd_total,
+                        ROUND(AVG(hdd_used)) AS hdd_used,
+                        ROUND(AVG(cpu_load), 4) AS cpu_load,
+                        ROUND(AVG(network_in_bps)) AS network_in_bps,
+                        ROUND(AVG(network_out_bps)) AS network_out_bps,
+                        MAX(mail_mta) AS mail_mta,
+                        ROUND(AVG(mail_queue_total)) AS mail_queue_total
+                    FROM (
+                        ' . $inner . '
+                    ) combined_metrics
+                    GROUP BY recorded_at
+                    ORDER BY recorded_at DESC
+                    LIMIT {$points}
+                 ) AS latest_points
+                 ORDER BY recorded_at ASC';
+
+        return ['sql' => $sql, 'params' => $params];
     }
 }

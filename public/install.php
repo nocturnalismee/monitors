@@ -284,7 +284,7 @@ function defaultAppSettings(): array
         'cache_ttl_history_7d' => '120',
         'cache_ttl_history_30d' => '180',
         'cache_ttl_alert_logs' => '20',
-        'cache_ttl_disk_health_list' => '15',
+        'cache_ttl_disk_health_list' => '60',
         'disk_rollup_days' => '2',
         'disk_push_max_body_bytes' => '1048576',
         'disk_push_max_items' => '64',
