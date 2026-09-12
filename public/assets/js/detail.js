@@ -537,7 +537,7 @@ async function loadHistory(endpoint) {
   if (document.hidden) return;
   if (!endpoint) return;
 
-  if (!areChartsPaused()) {
+  if (!areChartsPaused() && servmonLastRows.length === 0) {
     showChartSkeletons();
   }
 
@@ -562,12 +562,16 @@ async function loadHistory(endpoint) {
       signal: servmonHistoryRequest.signal,
       cache: "no-store",
     });
-    if (!response.ok) return;
+    if (!response.ok) {
+      if (servmonLastRows.length > 0) hideChartSkeletons();
+      return;
+    }
     payload = await response.json();
   } catch (err) {
     if (err && err.name !== "AbortError") {
       console.error(err);
     }
+    if (servmonLastRows.length > 0) hideChartSkeletons();
     return;
   } finally {
     if (timeoutId) {
