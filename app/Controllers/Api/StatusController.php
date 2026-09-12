@@ -107,7 +107,7 @@ final class StatusController
                 return Response::json($cached);
             }
 
-            ['sql' => $sql, 'params' => $historyParams] = self::historyQuery($historyKey);
+            ['sql' => $sql, 'params' => $historyParams] = self::historyQuery($historyKey, $serverId);
             // $points is clamped above to a numeric range before being inserted into
             // the SQL. MariaDB native prepares do not support LIMIT placeholders.
             $sql = str_replace('{$points}', (string) $points, $sql);

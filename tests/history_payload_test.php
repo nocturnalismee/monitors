@@ -16,6 +16,7 @@ declare(strict_types=1);
 require_once __DIR__ . '/../config/bootstrap.php';
 
 use App\Controllers\Api\StatusController;
+use App\Http\Request;
 
 $failures = [];
 
@@ -204,6 +205,31 @@ try {
             $pdo->rollBack();
         }
         check(true, 'runtime: transaction rolled back cleanly');
+    }
+
+    // Controller wiring: the HTTP history branch must reach historyQuery()
+    // with BOTH arguments (regression: a missing $serverId here 500s every
+    // range on prod while direct historyQuery() calls stay green).
+    try {
+        $pdo = db();
+        $pdo->beginTransaction();
+        try {
+            for ($i = 0; $i < 3; $i++) {
+                $ts = date('Y-m-d H:i:s', time() - $i * 60);
+                $pdo->prepare('INSERT INTO metrics (server_id, recorded_at, uptime, ram_total, ram_used, hdd_total, hdd_used, cpu_load, network_in_bps, network_out_bps, mail_mta, mail_queue_total) VALUES (1, ?, 100, 1000, 500, 2000, 1000, 1.5, 100, 50, \'postfix\', 3)')->execute([$ts]);
+            }
+            foreach (['5m', '30m', '24h', '7d', '30d'] as $range) {
+                $req = new Request('GET', '/api/status', ['id' => '1', 'points' => '1200', 'history' => $range], [], []);
+                $resp = (new StatusController())->index($req);
+                check($resp->status === 200, 'controller ' . $range . ': HTTP 200 (got ' . $resp->status . ')');
+                $decoded = json_decode((string) $resp->body, true);
+                check(is_array($decoded), 'controller ' . $range . ': body is JSON array');
+            }
+        } finally {
+            $pdo->rollBack();
+        }
+    } catch (Throwable $wiringError) {
+        $failures[] = 'controller wiring: ' . $wiringError->getMessage();
     }
 } catch (Throwable $dbError) {
     echo 'SKIP runtime (db unavailable): ' . $dbError->getMessage() . PHP_EOL;
