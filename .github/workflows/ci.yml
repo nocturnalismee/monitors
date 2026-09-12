@@ -1,0 +1,82 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: servmon_test
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h localhost -uroot -proot"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd="redis-cli ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
+
+    env:
+      APP_ENV: testing
+      APP_KEY: ci00000000000000000000000000000000000000000000000000000000000000
+      DB_HOST: 127.0.0.1
+      DB_PORT: 3306
+      DB_NAME: servmon_test
+      DB_USER: root
+      DB_PASS: root
+      REDIS_ENABLED: 1
+      REDIS_HOST: 127.0.0.1
+      REDIS_PORT: 6379
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup PHP 8.2
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: pdo_mysql, mbstring, openssl, curl, redis
+          coverage: none
+
+      - name: Setup Node (JS syntax checks)
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Import schema
+        run: |
+          mysql -h 127.0.0.1 -uroot -proot servmon_test < database/schema.sql
+          mysql -h 127.0.0.1 -uroot -proot servmon_test < database/seed.sql
+
+      - name: Lint PHP
+        run: find app config public routes tests workers -name '*.php' -print0 | xargs -0 -n1 php -l
+
+      - name: Lint JS
+        run: for f in public/assets/js/*.js; do node --check "$f"; done
+
+      - name: Run test suite
+        run: |
+          fail=0
+          for f in tests/*_test.php; do
+            echo "::group::$f"
+            php "$f" || fail=1
+            echo "::endgroup::"
+          done
+          exit $fail
