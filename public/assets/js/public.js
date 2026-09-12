@@ -4,7 +4,8 @@
  * Depends on: common.js (ServMon namespace)
  */
 
-const SM = window.ServMon;
+// var (not const): alerts.js aliases the same name on shared pages.
+var SM = window.SM ?? window.ServMon;
 const CPU_HISTORY_KEY = "servmon:cpuHistory:public";
 
 SM.restoreCpuHistory(CPU_HISTORY_KEY);

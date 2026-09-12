@@ -502,3 +502,8 @@ window.ServMon = window.ServMon || {};
     ns.bindIpRepCheckNow();
   }
 })(window.ServMon);
+
+// Canonical short alias. Page scripts must NOT redeclare top-level
+// `const SM` (it throws "already been declared" when two such scripts load
+// on one page); they use `var SM = window.SM ?? window.ServMon;` instead.
+window.SM = window.ServMon;

@@ -7,7 +7,8 @@ let servmonLastAlertId = Number(localStorage.getItem(STORAGE_KEY)) || 0;
 let servmonAlertsInitialized = servmonLastAlertId > 0;
 
 // Depends on: common.js (ServMon namespace, loaded via layouts/head.php).
-const SM = window.ServMon;
+// var (not const): dashboard.js / public.js alias the same name on shared pages.
+var SM = window.SM ?? window.ServMon;
 
 function playAlertBeep() {
   if (window.SERVMON_ALERT_SOUND_ENABLED === false) return;
