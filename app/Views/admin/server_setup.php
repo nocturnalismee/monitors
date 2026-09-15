@@ -55,7 +55,7 @@
         <span class="term-title">root@server:~</span>
         <button class="btn btn-sm term-copy" type="button" data-term-copy><i class="ti ti-copy me-1" aria-hidden="true"></i>Copy</button>
     </div>
-<pre class="term-body mb-0"><code># 1) Install agent (daemon real-time)
+<pre class="term-body mb-0"><code># 1) Install Script Bash agent
 wget <?= e($agentUrl) ?> -O /usr/local/bin/monitoring-agent.sh
 chmod +x /usr/local/bin/monitoring-agent.sh
 
@@ -72,6 +72,11 @@ sed -i "s|^SERVER_ID=.*|SERVER_ID=<?= e((string) $server['id']) ?>|" /etc/system
 
 # 4) Install systemd service (daemon, auto-restart, pushes every 10 seconds)
 wget <?= e($systemdServiceUrl) ?> -O /etc/systemd/system/monitoring-agent.service
+
+# Manual test (one-shot; the daemon only runs every 10 seconds once the service is active)
+/usr/local/bin/monitoring-agent.sh
+
+# 5) Run service systemd
 systemctl daemon-reload
 systemctl enable --now monitoring-agent.service
 systemctl status monitoring-agent.service --no-pager
