@@ -469,6 +469,45 @@ window.Monitors = window.Monitors || {};
       }, 1000);
     });
 
+    // server_setup.php terminal windows: dim `#` comment lines, copy per block.
+    document.querySelectorAll("[data-term] .term-body code").forEach((code) => {
+      const lines = code.textContent.split("\n");
+      const frag = document.createDocumentFragment();
+      lines.forEach((line, idx) => {
+        const span = document.createElement("span");
+        if (/^\s*#/.test(line)) span.className = "term-comment";
+        span.textContent = line;
+        frag.appendChild(span);
+        if (idx < lines.length - 1) frag.appendChild(document.createTextNode("\n"));
+      });
+      code.replaceChildren(frag);
+    });
+
+    document.addEventListener("click", async (event) => {
+      const btn = event.target.closest("[data-term-copy]");
+      if (!btn) return;
+      const term = btn.closest("[data-term]");
+      const code = term ? term.querySelector(".term-body code") : null;
+      const value = code ? code.textContent : "";
+      const origHtml = btn.innerHTML;
+      try {
+        await navigator.clipboard.writeText(value);
+      } catch (e) {
+        const textarea = document.createElement("textarea");
+        textarea.value = value;
+        textarea.style.position = "fixed";
+        textarea.style.opacity = "0";
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand("copy");
+        document.body.removeChild(textarea);
+      }
+      btn.innerHTML = "Copied";
+      window.setTimeout(() => {
+        btn.innerHTML = origHtml;
+      }, 1000);
+    });
+
     const alertModal = document.getElementById("alertDetailModal");
     if (alertModal) {
       alertModal.addEventListener("show.bs.modal", (event) => {

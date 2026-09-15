@@ -49,7 +49,13 @@
         </div>
         <div class="card-body">
             <p class="text-secondary mb-2">Run on the target server:</p>
-<pre class="code-block rounded p-3 border-soft mb-0"><code># 1) Install agent (daemon real-time)
+<div class="term" data-term>
+    <div class="term-bar">
+        <span class="term-dots" aria-hidden="true"><i></i><i></i><i></i></span>
+        <span class="term-title">root@server:~</span>
+        <button class="btn btn-sm term-copy" type="button" data-term-copy><i class="ti ti-copy me-1" aria-hidden="true"></i>Copy</button>
+    </div>
+<pre class="term-body mb-0"><code># 1) Install agent (daemon real-time)
 wget <?= e($agentUrl) ?> -O /usr/local/bin/monitoring-agent.sh
 chmod +x /usr/local/bin/monitoring-agent.sh
 
@@ -70,6 +76,7 @@ systemctl daemon-reload
 systemctl enable --now monitoring-agent.service
 systemctl status monitoring-agent.service --no-pager
 </code></pre>
+</div>
         </div>
     </section>
 
@@ -80,7 +87,13 @@ systemctl status monitoring-agent.service --no-pager
         </div>
         <div class="card-body">
             <p class="text-secondary mb-2">Use this profile specifically for mail/cPanel email nodes:</p>
-<pre class="code-block rounded p-3 border-soft mb-0"><code># 1) Special email agent script
+<div class="term" data-term>
+    <div class="term-bar">
+        <span class="term-dots" aria-hidden="true"><i></i><i></i><i></i></span>
+        <span class="term-title">root@server:~</span>
+        <button class="btn btn-sm term-copy" type="button" data-term-copy><i class="ti ti-copy me-1" aria-hidden="true"></i>Copy</button>
+    </div>
+<pre class="term-body mb-0"><code># 1) Special email agent script
 wget <?= e($agentEmailUrl) ?> -O /usr/local/bin/monitoring-agent-cpanel-mail.sh
 chmod +x /usr/local/bin/monitoring-agent-cpanel-mail.sh
 
@@ -103,6 +116,7 @@ systemctl enable --now monitoring-agent-cpanel-email.timer
 systemctl status monitoring-agent-cpanel-email.service --no-pager
 systemctl list-timers --all | grep monitoring-agent-cpanel-email
 </code></pre>
+</div>
         </div>
     </section>
 
@@ -113,8 +127,15 @@ systemctl list-timers --all | grep monitoring-agent-cpanel-email
         </div>
         <div class="card-body">
             <p class="text-secondary mb-2">Use this if the server does not support systemd service (daemon):</p>
-<pre class="code-block rounded p-3 border-soft mb-0"><code>(crontab -l 2>/dev/null; echo "* * * * * /usr/local/bin/monitoring-agent.sh") | crontab -
+<div class="term" data-term>
+    <div class="term-bar">
+        <span class="term-dots" aria-hidden="true"><i></i><i></i><i></i></span>
+        <span class="term-title">root@server:~</span>
+        <button class="btn btn-sm term-copy" type="button" data-term-copy><i class="ti ti-copy me-1" aria-hidden="true"></i>Copy</button>
+    </div>
+<pre class="term-body mb-0"><code>(crontab -l 2>/dev/null; echo "* * * * * /usr/local/bin/monitoring-agent.sh") | crontab -
 </code></pre>
+</div>
         </div>
     </section>
 
