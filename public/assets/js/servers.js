@@ -8,7 +8,9 @@
   const pagination = document.querySelector("[data-server-pagination]");
   const emptyRow = document.querySelector("[data-server-empty]");
   const filterEmptyRow = document.querySelector("[data-server-filter-empty]");
-  if (!searchInput || !statusFilter || !pagination) return;
+  if (!searchInput || !statusFilter) return;
+  // Pagination nav only exists when there is more than one server-side page;
+  // search + status filter must keep working without it.
 
   const pageSize = 20;
   let currentPage = 1;
@@ -30,6 +32,7 @@
   }
 
   function renderPagination(totalPages) {
+    if (!pagination) return;
     pagination.replaceChildren();
     if (totalPages <= 1) return;
 
@@ -108,12 +111,14 @@
       searchInput.focus();
     });
   });
-  pagination.addEventListener("click", (event) => {
-    const button = event.target.closest("[data-server-page]");
-    if (!button || button.disabled) return;
-    currentPage = Number(button.dataset.serverPage || 1);
-    render();
-  });
+  if (pagination) {
+    pagination.addEventListener("click", (event) => {
+      const button = event.target.closest("[data-server-page]");
+      if (!button || button.disabled) return;
+      currentPage = Number(button.dataset.serverPage || 1);
+      render();
+    });
+  }
 
   render();
 })();
