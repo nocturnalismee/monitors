@@ -68,7 +68,8 @@ sed -i "s|^SERVER_ID=.*|SERVER_ID=<?= e((string) $server['id']) ?>|" /etc/system
 # Manual test (one-shot; the daemon only runs every 10 seconds once the service is active)
 /usr/local/bin/monitoring-agent.sh
 
-# 3) mkdir /var/lib/monitoring-agent
+# 3) Create Direktory Monitoring Agent
+mkdir /var/lib/monitoring-agent
 
 # 4) Install systemd service (daemon, auto-restart, pushes every 10 seconds)
 wget <?= e($systemdServiceUrl) ?> -O /etc/systemd/system/monitoring-agent.service
@@ -80,6 +81,7 @@ wget <?= e($systemdServiceUrl) ?> -O /etc/systemd/system/monitoring-agent.servic
 systemctl daemon-reload
 systemctl enable --now monitoring-agent.service
 systemctl status monitoring-agent.service --no-pager
+
 </code></pre>
 </div>
         </div>
@@ -88,7 +90,7 @@ systemctl status monitoring-agent.service --no-pager
     <section class="card card-neon" data-ui-section>
         <div class="card-header bg-surface-2 border-soft d-flex justify-content-between align-items-center flex-wrap gap-2">
             <h2 class="h6 mb-0">Profile B: cPanel Email Host</h2>
-            <span class="badge text-bg-warning">systemd service (real-time)</span>
+            <span class="badge text-bg-warning">systemd service</span>
         </div>
         <div class="card-body">
             <p class="text-secondary mb-2">Use this profile specifically for mail/cPanel email nodes:</p>
@@ -102,22 +104,26 @@ systemctl status monitoring-agent.service --no-pager
 wget <?= e($agentEmailUrl) ?> -O /usr/local/bin/monitoring-agent-cpanel-mail.sh
 chmod +x /usr/local/bin/monitoring-agent-cpanel-mail.sh
 
-# 2) Configuration: everything lives in /etc/monitoring-agent-cpanel-mail.conf
-wget <?= e($confEmailExampleUrl) ?> -O /etc/monitoring-agent-cpanel-mail.conf
-sed -i "s|^MASTER_URL=.*|MASTER_URL=<?= e($pushEndpoint) ?>|" /etc/monitoring-agent-cpanel-mail.conf
-sed -i "s|^SERVER_TOKEN=.*|SERVER_TOKEN=<?= e($setupToken) ?>|" /etc/monitoring-agent-cpanel-mail.conf
-sed -i "s|^SERVER_ID=.*|SERVER_ID=<?= e((string) $server['id']) ?>|" /etc/monitoring-agent-cpanel-mail.conf
+# 2) Configuration
+wget <?= e($confEmailExampleUrl) ?> -O /etc/systemd/monitoring-agent-cpanel-mail.conf
+sed -i "s|^MASTER_URL=.*|MASTER_URL=<?= e($pushEndpoint) ?>|" /etc/systemd/monitoring-agent-cpanel-mail.conf
+sed -i "s|^SERVER_TOKEN=.*|SERVER_TOKEN=<?= e($setupToken) ?>|" /etc/systemd/monitoring-agent-cpanel-mail.conf
+sed -i "s|^SERVER_ID=.*|SERVER_ID=<?= e((string) $server['id']) ?>|" /etc/systemd/monitoring-agent-cpanel-mail.conf
 
-# 3) mkdir /var/lib/monitoring-agent
+# 3) Create Direktory Monitoring Agent
+mkdir /var/lib/monitoring-agent
 
-# 4) Install systemd service (daemon, auto-restart, pushes every 10 seconds)
+# 4) Install systemd service
 wget <?= e($systemdEmailServiceUrl) ?> -O /etc/systemd/system/monitoring-agent-cpanel-email.service
+
+# Manual test
+/usr/local/bin/monitoring-agent-cpanel-mail.sh
+
+# 5) Run service systemd
 systemctl daemon-reload
 systemctl enable --now monitoring-agent-cpanel-email.service
 systemctl status monitoring-agent-cpanel-email.service --no-pager
 
-# 5) Watch live logs (optional)
-journalctl -u monitoring-agent-cpanel-email.service -f
 </code></pre>
 </div>
         </div>
