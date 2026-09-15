@@ -37,8 +37,13 @@
 
   function renderPagination(totalPages) {
     if (!pagination || serverPages > 1) return;
+    const nav = pagination.closest("nav");
     pagination.replaceChildren();
-    if (totalPages <= 1) return;
+    if (totalPages <= 1) {
+      if (nav) nav.hidden = true;
+      return;
+    }
+    if (nav) nav.hidden = false;
 
     const addButton = (label, page, disabled = false, active = false) => {
       const item = document.createElement("li");
