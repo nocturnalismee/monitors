@@ -3385,6 +3385,12 @@ body:has(.admin-page) {
   border-radius: var(--sv-radius-sm);
 }
 
+/* Hide the native type="search" clear button: the custom .dashboard-search-clear already handles it. */
+.dashboard-search-wrap input[type="search"]::-webkit-search-cancel-button,
+.dashboard-search-wrap input[type="search"]::-webkit-search-decoration {
+  display: none;
+}
+
 .dashboard-search-clear {
   position: absolute;
   right: 0.55rem;
