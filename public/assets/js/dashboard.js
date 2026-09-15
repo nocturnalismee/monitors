@@ -4,6 +4,25 @@
  * Depends on: common.js (Monitors namespace)
  */
 
+// Clear-search handler is registered FIRST (before any init below) so the
+// toolbar X button keeps working even if later init code throws.
+document.addEventListener("click", (event) => {
+  const clearBtn =
+    event.target instanceof Element
+      ? event.target.closest("[data-dashboard-search-clear]")
+      : null;
+  if (!clearBtn) return;
+  event.preventDefault();
+  const searchInput = document.querySelector("[data-dashboard-search]");
+  if (searchInput) {
+    searchInput.value = "";
+    searchInput.focus();
+  }
+  if (typeof applyDashboardStatusFilter === "function") {
+    applyDashboardStatusFilter();
+  }
+});
+
 // var (not const): alerts.js aliases the same name on shared pages.
 var SM = window.SM ?? window.Monitors;
 const CPU_HISTORY_KEY = "monitors:cpuHistory:admin";
@@ -597,26 +616,14 @@ document.querySelectorAll("[data-summary-filter]").forEach((card) => {
   });
 });
 
-// Wire Instant Search & Clear Button
+// Wire Instant Search input (the clear button is handled by the delegated
+// listener at the top of this file).
 const dashboardSearch = document.querySelector("[data-dashboard-search]");
 if (dashboardSearch) {
   dashboardSearch.addEventListener("input", () => {
     applyDashboardStatusFilter();
   });
 }
-// Delegated (same pattern as the reset button below): immune to binding-order
-// issues and keeps working even if the toolbar is re-rendered later.
-document.addEventListener("click", (event) => {
-  const clearBtn = event.target.closest("[data-dashboard-search-clear]");
-  if (!clearBtn) return;
-  event.preventDefault();
-  if (dashboardSearch) {
-    dashboardSearch.value = "";
-    dashboardSearch.focus();
-  }
-  applyDashboardStatusFilter();
-});
-
 // Wire Reset Filter Button on empty state
 document.addEventListener("click", (event) => {
   const resetBtn = event.target.closest("[data-dashboard-filter-reset]");
