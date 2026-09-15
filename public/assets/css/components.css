@@ -3397,10 +3397,12 @@ body:has(.admin-page) {
   right: 0.55rem;
   top: 50%;
   transform: translateY(-50%);
+  z-index: 2;
   background: none;
   border: none;
   color: var(--sv-muted);
   cursor: pointer;
+  pointer-events: auto;
   padding: 0;
   display: none;
   font-size: 0.9rem;

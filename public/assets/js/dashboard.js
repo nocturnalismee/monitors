@@ -599,21 +599,23 @@ document.querySelectorAll("[data-summary-filter]").forEach((card) => {
 
 // Wire Instant Search & Clear Button
 const dashboardSearch = document.querySelector("[data-dashboard-search]");
-const dashboardSearchClear = document.querySelector("[data-dashboard-search-clear]");
 if (dashboardSearch) {
   dashboardSearch.addEventListener("input", () => {
     applyDashboardStatusFilter();
   });
 }
-if (dashboardSearchClear) {
-  dashboardSearchClear.addEventListener("click", () => {
-    if (dashboardSearch) {
-      dashboardSearch.value = "";
-      dashboardSearch.focus();
-    }
-    applyDashboardStatusFilter();
-  });
-}
+// Delegated (same pattern as the reset button below): immune to binding-order
+// issues and keeps working even if the toolbar is re-rendered later.
+document.addEventListener("click", (event) => {
+  const clearBtn = event.target.closest("[data-dashboard-search-clear]");
+  if (!clearBtn) return;
+  event.preventDefault();
+  if (dashboardSearch) {
+    dashboardSearch.value = "";
+    dashboardSearch.focus();
+  }
+  applyDashboardStatusFilter();
+});
 
 // Wire Reset Filter Button on empty state
 document.addEventListener("click", (event) => {
