@@ -21,7 +21,7 @@ namespace App\Controllers\Admin {
 
             $latestMetricJoin = latest_metric_join_sql('s', 'm');
             $rows = db_all(
-                'SELECT s.id, s.name, s.location, s.type, s.active,
+                'SELECT s.id, s.name, s.location, s.host, s.type, s.provider, s.label, s.active,
                         COALESCE(s.last_seen_at, m.recorded_at) AS last_seen, m.uptime, m.cpu_load, m.ram_total, m.ram_used, m.hdd_total, m.hdd_used, m.network_in_bps, m.network_out_bps, m.mail_mta, m.mail_queue_total, m.panel_profile
                  FROM servers s' . $latestMetricJoin . '
                  ORDER BY s.name ASC'

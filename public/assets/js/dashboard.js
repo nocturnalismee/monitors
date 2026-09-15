@@ -178,7 +178,7 @@ function syncAdminTableRows(tableBody, servers) {
     );
     row.classList.add("dashboard-row-link");
     row.dataset.serverStatus = String(s.status || "pending");
-    row.dataset.serverSearch = `${s.name || ""} ${s.host || ""} ${s.location || ""} ${s.panel_profile || ""}`.toLowerCase();
+    row.dataset.serverSearch = `${s.name || ""} ${s.label || ""} ${s.host || ""} ${s.location || ""} ${s.provider || ""} ${s.type || ""} ${s.panel_profile || ""}`.toLowerCase();
     row.setAttribute("tabindex", "0");
     row.setAttribute("role", "link");
     row.setAttribute(

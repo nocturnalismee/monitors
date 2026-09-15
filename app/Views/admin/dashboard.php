@@ -113,7 +113,7 @@ foreach ($unhealthyWorkers as $uw) {
         <div class="toolbar-actions">
             <div class="dashboard-search-wrap">
                 <i class="ti ti-search" aria-hidden="true"></i>
-                <input class="form-control" type="search" placeholder="Search servers..." aria-label="Search servers" data-dashboard-search autocomplete="off">
+                <input class="form-control" type="search" placeholder="Search name, label, host, location..." aria-label="Search by name, label, host, location, provider, or type" data-dashboard-search autocomplete="off">
                 <button type="button" class="dashboard-search-clear" data-dashboard-search-clear aria-label="Clear search" title="Clear search"><i class="ti ti-x"></i></button>
             </div>
             <label class="visually-hidden" for="dashboardStatusFilter">Filter server status</label>
@@ -272,8 +272,11 @@ foreach ($unhealthyWorkers as $uw) {
                     }
                     $searchIndex = strtolower(implode(' ', array_filter([
                         $row['name'] ?? '',
+                        $row['label'] ?? '',
                         $row['host'] ?? '',
                         $row['location'] ?? '',
+                        $row['provider'] ?? '',
+                        $row['type'] ?? '',
                         $row['panel_profile'] ?? '',
                     ])));
                     ?>

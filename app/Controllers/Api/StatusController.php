@@ -275,7 +275,7 @@ final class StatusController
             }
 
             $row = db_one(
-                'SELECT s.id, s.name, s.location, s.type, s.active, s.maintenance_mode, s.maintenance_until,
+                'SELECT s.id, s.name, s.location, s.host, s.type, s.provider, s.label, s.active, s.maintenance_mode, s.maintenance_until,
                         COALESCE(s.last_seen_at, m.recorded_at) AS last_seen, m.uptime, m.ram_total, m.ram_used, m.hdd_total, m.hdd_used, m.cpu_load, m.network_in_bps, m.network_out_bps, m.mail_mta, m.mail_queue_total, m.panel_profile
                  FROM servers s' . latest_metric_join_sql('s', 'm') . '
                  WHERE s.id = :id
@@ -323,7 +323,7 @@ final class StatusController
         }
 
         $rows = db_all(
-            'SELECT s.id, s.name, s.location, s.type, s.active, s.maintenance_mode, s.maintenance_until,
+            'SELECT s.id, s.name, s.location, s.host, s.type, s.provider, s.label, s.active, s.maintenance_mode, s.maintenance_until,
                     COALESCE(s.last_seen_at, m.recorded_at) AS last_seen, m.uptime, m.ram_total, m.ram_used, m.hdd_total, m.hdd_used, m.cpu_load, m.network_in_bps, m.network_out_bps, m.mail_mta, m.mail_queue_total, m.panel_profile
              FROM servers s' . latest_metric_join_sql('s', 'm') . '
              ' . ($includeInactive ? '' : 'WHERE s.active = 1') . '
@@ -338,7 +338,10 @@ final class StatusController
                 'id' => $sid,
                 'name' => $row['name'],
                 'location' => $row['location'],
+                'host' => $row['host'] ?? null,
                 'type' => $row['type'],
+                'provider' => $row['provider'] ?? null,
+                'label' => $row['label'] ?? null,
                 'active' => (int) ($row['active'] ?? 0),
                 'maintenance_mode' => (int) ($row['maintenance_mode'] ?? 0),
                 'maintenance_until' => $row['maintenance_until'] ?? null,
