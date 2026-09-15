@@ -197,9 +197,9 @@
         </div>
         <div class="server-list-footer">
             <span class="text-secondary small"><?= e((string) $totalServers) ?> server(s)</span>
-            <?php if ($totalPages > 1): ?>
-            <nav aria-label="Server pagination">
-                <ul class="pagination pagination-sm mb-0" data-server-pagination>
+            <nav aria-label="Server pagination"<?= $totalPages > 1 ? '' : ' hidden' ?>>
+                <ul class="pagination pagination-sm mb-0" data-server-pagination data-server-pages="<?= e((string) $totalPages) ?>">
+                    <?php if ($totalPages > 1): ?>
                     <?php if ($page > 1): ?>
                     <li class="page-item"><a class="page-link" href="?page=<?= e((string) ($page - 1)) ?>&per_page=<?= e((string) $perPage) ?>">&laquo; Prev</a></li>
                     <?php endif; ?>
@@ -213,9 +213,9 @@
                     <?php if ($page < $totalPages): ?>
                     <li class="page-item"><a class="page-link" href="?page=<?= e((string) ($page + 1)) ?>&per_page=<?= e((string) $perPage) ?>">Next &raquo;</a></li>
                     <?php endif; ?>
+                    <?php endif; ?>
                 </ul>
             </nav>
-            <?php endif; ?>
         </div>
     </section>
 </main>

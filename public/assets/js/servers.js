@@ -6,6 +6,10 @@
   const countLabel = document.querySelector("[data-server-result-count]");
   const summaryLabel = document.querySelector("[data-server-filter-summary]");
   const pagination = document.querySelector("[data-server-pagination]");
+  // Server renders Prev/Next links when data spans multiple server-side pages.
+  // In that case client-side paging must stay out of the way: it only covers
+  // rows already in the DOM and must not wipe the server navigation.
+  const serverPages = Number((pagination && pagination.dataset.serverPages) || 1);
   const emptyRow = document.querySelector("[data-server-empty]");
   const filterEmptyRow = document.querySelector("[data-server-filter-empty]");
   if (!searchInput || !statusFilter) return;
@@ -32,9 +36,14 @@
   }
 
   function renderPagination(totalPages) {
-    if (!pagination) return;
+    if (!pagination || serverPages > 1) return;
+    const nav = pagination.closest("nav");
     pagination.replaceChildren();
-    if (totalPages <= 1) return;
+    if (totalPages <= 1) {
+      if (nav) nav.hidden = true;
+      return;
+    }
+    if (nav) nav.hidden = false;
 
     const addButton = (label, page, disabled = false, active = false) => {
       const item = document.createElement("li");
@@ -69,10 +78,11 @@
 
   function render() {
     const filteredRows = getFilteredRows();
+    const clientPaged = serverPages <= 1;
     const totalPages = Math.max(1, Math.ceil(filteredRows.length / pageSize));
     currentPage = Math.min(currentPage, totalPages);
     const start = (currentPage - 1) * pageSize;
-    const visibleRows = new Set(filteredRows.slice(start, start + pageSize));
+    const visibleRows = new Set(clientPaged ? filteredRows.slice(start, start + pageSize) : filteredRows);
 
     rows.forEach((row) => {
     row.hidden = !visibleRows.has(row);
@@ -86,7 +96,9 @@
     const hasFilter = String(searchInput.value || "").trim() !== "" || statusFilter.value !== "all";
     const rangeStart = filteredRows.length === 0 ? 0 : start + 1;
     const rangeEnd = Math.min(start + pageSize, filteredRows.length);
-    if (countLabel) countLabel.textContent = `${filteredRows.length} of ${rows.length} servers`;
+    if (countLabel) countLabel.textContent = serverPages > 1
+      ? `${filteredRows.length} of ${rows.length} on this page`
+      : `${filteredRows.length} of ${rows.length} servers`;
     if (summaryLabel) summaryLabel.textContent = filteredRows.length === 0
       ? (hasFilter ? "No servers match the current filter." : "No servers available yet.")
       : `Showing ${rangeStart}–${rangeEnd}`;

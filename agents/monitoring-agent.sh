@@ -118,7 +118,7 @@ SERVICE_REGISTRY["imunifyav"]="firewall|imunifyav|imunify-antivirus|imunify-anti
 #  Urutan menentukan urutan output JSON
 # ─────────────────────────────────────────────
 declare -A PANEL_SERVICES
-PANEL_SERVICES["cpanel"]="apache nginx csf mariadb pureftpd dovecot exim sshd"
+PANEL_SERVICES["cpanel"]="apache litespeed csf mariadb pureftpd dovecot exim sshd"
 PANEL_SERVICES["plesk"]="apache litespeed mariadb postfix dovecot xinetd sshd imunify360 fail2ban"
 PANEL_SERVICES["directadmin"]="apache nginx litespeed mariadb exim postfix dovecot pureftpd sshd csf imunify360 fail2ban"
 PANEL_SERVICES["cyberpanel"]="litespeed mariadb postfix dovecot pureftpd sshd imunify360 fail2ban"

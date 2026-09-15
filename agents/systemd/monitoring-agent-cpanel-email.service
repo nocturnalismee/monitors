@@ -4,26 +4,33 @@ Wants=network-online.target
 After=network-online.target
 
 [Service]
-Type=oneshot
+Type=simple
 User=root
 Group=root
-EnvironmentFile=-/etc/monitoring-agent-cpanel-mail.conf
+EnvironmentFile=/etc/systemd/monitoring-agent-cpanel-mail.conf
+# NOTE: the cpanel-mail agent always runs its internal daemon loop
+# (push every PUSH_INTERVAL seconds from the conf). There is no
+# DAEMON_MODE switch in this script — do not copy one from
+# monitoring-agent.service.
 ExecStart=/usr/local/bin/monitoring-agent-cpanel-mail.sh
+Restart=always
+RestartSec=5
 TimeoutStartSec=20
-# ---------------------------------------------------------------------------
-# CATATAN: direktif sandboxing namespace di bawah ini NONAKTIF secara default.
-# Pada sebagian VPS/container (OpenVZ/LXC/Virtualizor, dll) systemd tidak dapat
-# menyiapkan mount namespace sehingga unit gagal start dengan
-# "status=226/NAMESPACE". Bila server Anda mendukung, aktifkan (hapus tanda #)
-# untuk keamanan tambahan:
-# NoNewPrivileges=true
-# PrivateTmp=true
-# ProtectSystem=full
-# ProtectHome=true
-# ReadWritePaths=/tmp /var/tmp
-# ---------------------------------------------------------------------------
-# Hardening opsional lain untuk server sibuk:
-# Nice=10
 UMask=0077
-StandardOutput=journal
-StandardError=journal
+# ---------------------------------------------------------------------------
+# Sandboxing ENABLED. On some VPS/containers (OpenVZ/LXC/Virtualizor, etc.)
+# systemd cannot set up the mount namespace and the unit fails to start with
+# "status=226/NAMESPACE" — if that happens, comment the directives below out.
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+ProtectHome=true
+ReadWritePaths=/var/lib/monitoring-agent
+# ---------------------------------------------------------------------------
+# Another optional hardening measure for busy servers:
+# Nice=10
+# IOSchedulingClass=idle
+# CPUQuota=30%
+
+[Install]
+WantedBy=multi-user.target
