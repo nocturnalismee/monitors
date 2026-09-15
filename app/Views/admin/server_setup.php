@@ -53,7 +53,7 @@
     <div class="term-bar">
         <span class="term-dots" aria-hidden="true"><i></i><i></i><i></i></span>
         <span class="term-title">root@server:~</span>
-        <button class="btn btn-sm term-copy" type="button" data-term-copy><i class="ti ti-copy me-1" aria-hidden="true"></i>Copy</button>
+        <button class="btn btn-sm term-copy" type="button" data-term-copy title="Copy commands only (comment lines skipped)"><i class="ti ti-copy me-1" aria-hidden="true"></i>Copy</button>
     </div>
 <pre class="term-body mb-0"><code># 1) Install Script Bash agent
 wget <?= e($agentUrl) ?> -O /usr/local/bin/monitoring-agent.sh
@@ -96,7 +96,7 @@ systemctl status monitoring-agent.service --no-pager
     <div class="term-bar">
         <span class="term-dots" aria-hidden="true"><i></i><i></i><i></i></span>
         <span class="term-title">root@server:~</span>
-        <button class="btn btn-sm term-copy" type="button" data-term-copy><i class="ti ti-copy me-1" aria-hidden="true"></i>Copy</button>
+        <button class="btn btn-sm term-copy" type="button" data-term-copy title="Copy commands only (comment lines skipped)"><i class="ti ti-copy me-1" aria-hidden="true"></i>Copy</button>
     </div>
 <pre class="term-body mb-0"><code># 1) Special email agent script
 wget <?= e($agentEmailUrl) ?> -O /usr/local/bin/monitoring-agent-cpanel-mail.sh
@@ -136,7 +136,7 @@ systemctl list-timers --all | grep monitoring-agent-cpanel-email
     <div class="term-bar">
         <span class="term-dots" aria-hidden="true"><i></i><i></i><i></i></span>
         <span class="term-title">root@server:~</span>
-        <button class="btn btn-sm term-copy" type="button" data-term-copy><i class="ti ti-copy me-1" aria-hidden="true"></i>Copy</button>
+        <button class="btn btn-sm term-copy" type="button" data-term-copy title="Copy commands only (comment lines skipped)"><i class="ti ti-copy me-1" aria-hidden="true"></i>Copy</button>
     </div>
 <pre class="term-body mb-0"><code>(crontab -l 2>/dev/null; echo "* * * * * /usr/local/bin/monitoring-agent.sh") | crontab -
 </code></pre>

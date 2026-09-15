@@ -469,7 +469,7 @@ window.Monitors = window.Monitors || {};
       }, 1000);
     });
 
-    // server_setup.php terminal windows: dim `#` comment lines, copy per block.
+    // server_setup.php terminal windows: dim `#` comment lines, copy commands only.
     document.querySelectorAll("[data-term] .term-body code").forEach((code) => {
       const lines = code.textContent.split("\n");
       const frag = document.createDocumentFragment();
@@ -488,7 +488,12 @@ window.Monitors = window.Monitors || {};
       if (!btn) return;
       const term = btn.closest("[data-term]");
       const code = term ? term.querySelector(".term-body code") : null;
-      const value = code ? code.textContent : "";
+      const value = code
+        ? code.textContent
+            .split("\n")
+            .filter((line) => line.trim() !== "" && !/^\s*#/.test(line))
+            .join("\n")
+        : "";
       const origHtml = btn.innerHTML;
       try {
         await navigator.clipboard.writeText(value);
