@@ -7,7 +7,7 @@ After=network-online.target
 Type=simple
 User=root
 Group=root
-EnvironmentFile=-/etc/systemd/monitoring-agent.conf
+EnvironmentFile=/etc/systemd/monitoring-agent.conf
 Environment=DAEMON_MODE=1
 # WARNING: EnvironmentFile overrides the Environment= setting above. If
 # /etc/monitoring-agent.conf contains DAEMON_MODE=0 (the old default in conf.example),

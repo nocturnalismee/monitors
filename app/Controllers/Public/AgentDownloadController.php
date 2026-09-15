@@ -16,7 +16,6 @@ final class AgentDownloadController
 
     private const ALLOWED_SYSTEMD = [
         'monitoring-agent.service',
-        'monitoring-agent.timer',
         'monitoring-agent-cpanel-email.service',
         'monitoring-agent.conf.example',
         'monitoring-agent-cpanel-mail.conf.example',

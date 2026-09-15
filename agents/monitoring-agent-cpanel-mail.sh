@@ -3,19 +3,12 @@
 #  SERVSTATS - Monitoring Server Agent (cPanel Email Host)
 #  Version: 3.1
 #  Created by: Arief Efriyan
-#  Description: Monitor service email, firewall & SSH pada
-#               server cPanel khusus email, lalu push ke API.
-#               v3 = konfigurasi via /etc/monitoring-agent-cpanel-mail.conf
-#               + signing HMAC (SIGN_REQUESTS) + log rotation.
-#               v3.1 = daemon loop (push tiap PUSH_INTERVAL detik,
-#               dijalankan sebagai systemd service tanpa timer/cron).
 # ============================================================
 set -euo pipefail
 export PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:$PATH"
 
 # ─────────────────────────────────────────────
 #  CONFIG FILE (opsional)
-#  Format: KEY=value per baris (# = komentar). Env var yang sudah diset menang.
 # ─────────────────────────────────────────────
 CONFIG_FILE="${CONFIG_FILE:-/etc/monitoring-agent-cpanel-mail.conf}"
 
