@@ -155,13 +155,24 @@ final class AuthService
         );
 
         $attempt = Database::one(
-            'SELECT COUNT(*) AS total FROM login_attempts
+            'SELECT COUNT(*) AS total, MIN(attempted_at) AS first_attempt FROM login_attempts
              WHERE ip_address = :ip
              AND attempted_at > :cutoff',
             [':ip' => $ip, ':cutoff' => $cutoff]
         );
 
-        return ((int) ($attempt['total'] ?? 0)) >= LOGIN_MAX_ATTEMPTS;
+        $total = (int) ($attempt['total'] ?? 0);
+        if ($total < LOGIN_MAX_ATTEMPTS) {
+            return false;
+        }
+
+        $waitSeconds = min((int) pow(2, $total - LOGIN_MAX_ATTEMPTS), 3600);
+        $firstAttempt = (string) ($attempt['first_attempt'] ?? '');
+        $firstTs = strtotime($firstAttempt);
+        if ($firstTs === false) {
+            return true;
+        }
+        return (time() - $firstTs) < $waitSeconds;
     }
 
     public static function registerLoginAttempt(string $ip, ?string $username): void

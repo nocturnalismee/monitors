@@ -2,7 +2,7 @@
 declare(strict_types=1);
 require_once __DIR__.'/../config/bootstrap.php';
 function ae($a, $b, $m) { if ($a !== $b) { echo "FAIL $m ".var_export($a, true)." vs ".var_export($b, true)."\n"; exit(1); } echo "PASS $m\n"; }
-ae(defined('SERVMON_CSP_NONCE'), true, 'nonce constant defined');
+ae(defined('MONITORS_CSP_NONCE'), true, 'nonce constant defined');
 ae(csp_nonce_attr(), '', 'cli returns empty attr');
 $views = new RecursiveIteratorIterator(new RecursiveDirectoryIterator(__DIR__.'/../app/Views', FilesystemIterator::SKIP_DOTS));
 $bare = 0; $nonce = 0;

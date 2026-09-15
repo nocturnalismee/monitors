@@ -105,17 +105,58 @@ final class Cache
         return $v;
     }
 
+    /**
+     * Read a monotonic version counter (0 when absent). Counter keys expire
+     * after 24h; every cache key carrying a version has a TTL far below that,
+     * so a reset-to-0 can only collide with already-expired keys.
+     */
+    public static function version(string $name): int
+    {
+        $redis = self::client();
+        if (!$redis) {
+            return 0;
+        }
+        $v = $redis->get(self::key('ver:' . $name));
+        return $v === false ? 0 : (int) $v;
+    }
+
+    /**
+     * Invalidate everything keyed under $name in O(1): keys embed the version,
+     * so bumping it orphans the old ones until their own TTL expires.
+     */
+    public static function bumpVersion(string $name): void
+    {
+        $redis = self::client();
+        if (!$redis) {
+            return;
+        }
+        $key = self::key('ver:' . $name);
+        $redis->incr($key);
+        $redis->expire($key, 86400);
+    }
+
+    /**
+     * Suffix embedding both the global and the per-server status version, so
+     * callers build self-invalidating cache keys without any SCAN.
+     */
+    public static function statusVersionSuffix(?int $serverId = null): string
+    {
+        $suffix = '.v' . self::version('status:gver');
+        if ($serverId !== null) {
+            $suffix .= '.v' . self::version('status:sver:' . $serverId);
+        }
+        return $suffix;
+    }
+
     public static function invalidateStatus(?int $serverId = null): void
     {
         self::delete('status:list');
         self::delete('status:list:active');
         self::delete('status:list:all');
         if ($serverId !== null) {
-            self::delete('status:single:' . $serverId);
-            self::deletePattern('status:history:' . $serverId . ':*');
+            self::bumpVersion('status:sver:' . $serverId);
         } else {
-            self::deletePattern('status:single:*');
-            self::deletePattern('status:history:*');
+            self::bumpVersion('status:gver');
         }
     }
 

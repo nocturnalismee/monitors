@@ -2,14 +2,14 @@ function getChartPalette() {
   const theme = document.documentElement.getAttribute("data-bs-theme") || "dark";
   const isLight = theme === "light";
   return {
-    text: ServMon.getThemeColor("--sv-text", isLight ? "#0f172a" : "#e9e9e9"),
-    muted: ServMon.getThemeColor("--sv-muted", isLight ? "#475569" : "#9a9a9a"),
+    text: Monitors.getThemeColor("--sv-text", isLight ? "#0f172a" : "#e9e9e9"),
+    muted: Monitors.getThemeColor("--sv-muted", isLight ? "#475569" : "#9a9a9a"),
     grid: isLight ? "rgba(15,23,42,0.08)" : "rgba(148,163,184,0.16)",
     axis: isLight ? "rgba(15,23,42,0.2)" : "rgba(148,163,184,0.25)",
-    surface: ServMon.getThemeColor("--sv-surface-2", isLight ? "#f1f5f9" : "#232323"),
-    border: ServMon.getThemeColor("--sv-border", isLight ? "#cbd5e1" : "#333333"),
-    accent: ServMon.getThemeColor("--sv-chart-1", "#2dd4bf"),
-    danger: ServMon.getThemeColor("--sv-danger", "#ef4444"),
+    surface: Monitors.getThemeColor("--sv-surface-2", isLight ? "#f1f5f9" : "#232323"),
+    border: Monitors.getThemeColor("--sv-border", isLight ? "#cbd5e1" : "#333333"),
+    accent: Monitors.getThemeColor("--sv-chart-1", "#2dd4bf"),
+    danger: Monitors.getThemeColor("--sv-danger", "#ef4444"),
   };
 }
 
@@ -31,7 +31,7 @@ function normalizeRows(payload) {
   if (!Array.isArray(payload)) return [];
   return payload
     .map((row) => {
-      const ts = ServMon.parseTimestampMs(row.checked_at);
+      const ts = Monitors.parseTimestampMs(row.checked_at);
       const status = String(row.status || "down");
       const latency = Number(row.latency_ms);
       return {
@@ -55,7 +55,7 @@ function renderPingHistory() {
     return;
   }
 
-  const rows = normalizeRows(window.SERVMON_PING_HISTORY);
+  const rows = normalizeRows(window.MONITORS_PING_HISTORY);
   if (rows.length === 0) return;
 
   const palette = getChartPalette();
@@ -177,5 +177,5 @@ function schedulePingChartRetry() {
 }
 
 document.addEventListener("DOMContentLoaded", renderPingHistory);
-document.addEventListener("servmon:theme-changed", renderPingHistory);
+document.addEventListener("monitors:theme-changed", renderPingHistory);
 window.addEventListener("load", renderPingHistory);

@@ -7,10 +7,20 @@ use App\Repositories\Database;
 
 final class MaintenanceService
 {
+    /**
+     * Per-process memo. Maintenance toggles are rare and workers are short
+     * lived, so one SELECT per server per request/run is enough; push ingest
+     * and per-row worker loops previously hit the DB on every call.
+     */
+    private static array $memo = [];
+
     public static function isServerInMaintenance(int $serverId): bool
     {
         if ($serverId <= 0) {
             return false;
+        }
+        if (array_key_exists($serverId, self::$memo)) {
+            return self::$memo[$serverId];
         }
 
         $row = Database::one(
@@ -20,21 +30,22 @@ final class MaintenanceService
              LIMIT 1',
             [':id' => $serverId]
         );
-        if ($row === null || (int) ($row['maintenance_mode'] ?? 0) !== 1) {
-            return false;
+        $inMaintenance = false;
+        if ($row !== null && (int) ($row['maintenance_mode'] ?? 0) === 1) {
+            $until = (string) ($row['maintenance_until'] ?? '');
+            $untilTs = $until === '' ? false : strtotime($until);
+            // Empty/unparseable "until" = open-ended maintenance window.
+            $inMaintenance = $untilTs === false || time() <= $untilTs;
         }
 
-        $until = (string) ($row['maintenance_until'] ?? '');
-        if ($until === '') {
-            return true;
-        }
+        self::$memo[$serverId] = $inMaintenance;
+        return $inMaintenance;
+    }
 
-        $untilTs = strtotime($until);
-        if ($untilTs === false) {
-            return true;
-        }
-
-        return time() <= $untilTs;
+    /** Test hook: clears the per-process memo. */
+    public static function resetMemo(): void
+    {
+        self::$memo = [];
     }
 
     public static function displayText(array $server): string

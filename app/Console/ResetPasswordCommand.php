@@ -15,7 +15,7 @@ final class ResetPasswordCommand
             return 1;
         }
 
-        $localPath = SERVMON_BASE_DIR . '/config/local.php';
+        $localPath = MONITORS_BASE_DIR . '/config/local.php';
         if (!is_file($localPath)) {
             fwrite(STDERR, "Error: config/local.php not found. Run install.php first.\n");
             return 1;

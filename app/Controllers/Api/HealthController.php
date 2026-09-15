@@ -133,7 +133,7 @@ final class HealthController
 
         $payload = [
             'status' => $status,
-            'service' => 'servmon',
+            'service' => 'monitors',
             'time' => date('Y-m-d H:i:s'),
             'checks' => $checks,
         ];
@@ -149,7 +149,7 @@ final class HealthController
      */
     private static function healthFilePath(): string
     {
-        return SERVMON_BASE_DIR . '/storage/cache/health-summary.json';
+        return MONITORS_BASE_DIR . '/storage/cache/health-summary.json';
     }
 
     private static function readFileCache(): ?array

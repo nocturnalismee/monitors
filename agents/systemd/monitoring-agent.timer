@@ -1,5 +1,5 @@
 [Unit]
-Description=Run ServMon Agent every minute (cron-style fallback, DAEMON_MODE=0)
+Description=Run Monitors Agent every minute (cron-style fallback, DAEMON_MODE=0)
 # NOTE (v3): Untuk mode real-time gunakan monitoring-agent.service (Type=simple daemon).
 # Jangan aktifkan timer ini bersama service daemon (bisa spawn daemon ganda).
 # Bila memakai timer ini, pastikan monitoring-agent.service memakai DAEMON_MODE=0.

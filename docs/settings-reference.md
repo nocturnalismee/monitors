@@ -12,7 +12,7 @@ This is intentional: exposing everything would be scope creep.
 | `cache_ttl_history_30m` | `10` | `Api\StatusController`, ping detail | History cache TTL (minutes) |
 | `cache_ttl_ip_rep_list` | `30` | `IpReputationApiController` | IP-rep list cache TTL |
 | `cache_ttl_ip_rep_detail` | `15` | `IpReputationApiController` | IP-rep detail cache TTL |
-| `cache_ttl_disk_health_list` | `15` | `Api\StatusController` | Disk health cache TTL |
+| `cache_ttl_disk_health_list` | `60` | `Api\StatusController` | Disk health cache TTL |
 | `metrics_raw_hours` | `24` | `RollupWorker`, `RetentionService` | Raw metrics window |
 | `metrics_5m_days` | `14` | `RollupWorker`, `RetentionService` | 5-minute rollup window |
 | `metrics_1h_days` | `90` | `RollupWorker`, `RetentionService` | 1-hour rollup window |

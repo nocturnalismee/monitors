@@ -1,6 +1,6 @@
-# servmon v2 — Agent Guide (restrukturisasi)
+# monitors v2 — Agent Guide (restrukturisasi)
 
-Versi ini adalah restrukturisasi servmon. JANGAN ubah root legacy `D:\php-server-monitoring\`. Semua pekerjaan di direktori ini (`monitoring-v2/`).
+Versi ini adalah restrukturisasi monitors. JANGAN ubah root legacy `D:\php-server-monitoring\`. Semua pekerjaan di direktori ini (`monitoring-v2/`).
 
 ## Stack
 - **PHP 8.2+**, vanilla, tanpa Composer/autoloader pihak ketiga
@@ -10,7 +10,7 @@ Versi ini adalah restrukturisasi servmon. JANGAN ubah root legacy `D:\php-server
 ## Bootstrap chain
 - `config/bootstrap.php` → load `config/env.php` (loader `env()`, membaca `config/local.php` lalu env var), definisikan konstanta, set timezone, header keamanan, session. Lalu register autoloader + `app/Support/functions.php`.
 - `config/local.php` dihasilkan installer `public/install.php`. Env var menang atas `local.php`. Tidak ada `.env`.
-- Guard `SERVMON_BOOTSTRAPPED` mencegah double-bootstrap. Semua file wajib `require config/bootstrap.php` lebih dulu.
+- Guard `MONITORS_BOOTSTRAPPED` mencegah double-bootstrap. Semua file wajib `require config/bootstrap.php` lebih dulu.
 
 ## Autoload
 - Autoloader custom: `app/Support/Autoloader.php` (`register()`), map `App\` → `app/`. Dipanggil dari bootstrap.

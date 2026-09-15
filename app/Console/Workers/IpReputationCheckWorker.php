@@ -44,7 +44,7 @@ final class IpReputationCheckWorker
 
                     $checked++;
                 } catch (\Throwable $e) {
-                    servmon_log_error('IP reputation check failed for target ' . $targetId . ': ' . $e->getMessage(), 'ip_reputation');
+                    monitors_log_error('IP reputation check failed for target ' . $targetId . ': ' . $e->getMessage(), 'ip_reputation');
                 }
 
                 // Throttle: VirusTotal allows 4 req/min, we wait 1 second between targets

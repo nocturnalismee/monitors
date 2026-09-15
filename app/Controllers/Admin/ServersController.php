@@ -6,6 +6,7 @@ namespace App\Controllers\Admin;
 use App\Http\Request;
 use App\Http\Response;
 use App\Support\View;
+use Throwable;
 
 final class ServersController
 {
@@ -81,8 +82,16 @@ final class ServersController
                 }
                 flash_set('success', 'Server active status updated.');
             } elseif ($action === 'delete') {
-                db_exec('DELETE FROM metrics WHERE server_id = :id', [':id' => $serverId]);
-                db_exec('DELETE FROM servers WHERE id = :id', [':id' => $serverId]);
+                $pdo = db();
+                $pdo->beginTransaction();
+                try {
+                    db_exec('DELETE FROM metrics WHERE server_id = :id', [':id' => $serverId]);
+                    db_exec('DELETE FROM servers WHERE id = :id', [':id' => $serverId]);
+                    $pdo->commit();
+                } catch (Throwable $e) {
+                    $pdo->rollBack();
+                    throw $e;
+                }
                 invalidate_status_cache($serverId);
                 audit_log('server_delete', 'Deleted server and related metrics', 'server', $serverId);
                 flash_set('success', 'Server and related metrics deleted successfully.');
@@ -113,8 +122,16 @@ final class ServersController
                     $params[':id' . $i] = $id;
                 }
                 $placeholders = implode(',', array_keys($params));
-                db_exec("DELETE FROM metrics WHERE server_id IN ({$placeholders})", $params);
-                db_exec("DELETE FROM servers WHERE id IN ({$placeholders})", $params);
+                $pdo = db();
+                $pdo->beginTransaction();
+                try {
+                    db_exec("DELETE FROM metrics WHERE server_id IN ({$placeholders})", $params);
+                    db_exec("DELETE FROM servers WHERE id IN ({$placeholders})", $params);
+                    $pdo->commit();
+                } catch (Throwable $e) {
+                    $pdo->rollBack();
+                    throw $e;
+                }
                 foreach ($serverIds as $id) {
                     invalidate_status_cache($id);
                 }
@@ -132,6 +149,13 @@ final class ServersController
             redirect('servers');
         }
 
+        $page = max(1, (int) ($request->query('page') ?? 1));
+        $perPage = max(10, min(200, (int) ($request->query('per_page') ?? 50)));
+        $offset = ($page - 1) * $perPage;
+        $totalRow = db_one('SELECT COUNT(*) AS cnt FROM servers');
+        $totalServers = (int) ($totalRow['cnt'] ?? 0);
+        $totalPages = (int) ceil($totalServers / $perPage);
+
         $rows = db_all(
             'SELECT s.id, s.name, s.location, s.provider, s.label, s.host, s.type, s.agent_mode, s.active, s.maintenance_mode, s.maintenance_until,
                     COALESCE(s.last_seen_at, m.recorded_at) AS last_seen, m.cpu_load, m.panel_profile,
@@ -144,13 +168,18 @@ final class ServersController
                  FROM server_service_states
                  GROUP BY server_id
              ) ss ON ss.server_id = s.id
-             ORDER BY s.created_at DESC'
+             ORDER BY s.created_at DESC
+             LIMIT ' . $perPage . ' OFFSET ' . $offset
         );
 
         $data = [
             'rows' => $rows,
             'canManageServers' => $canManageServers,
             'statusOnlineMinutes' => $statusOnlineMinutes,
+            'page' => $page,
+            'perPage' => $perPage,
+            'totalServers' => $totalServers,
+            'totalPages' => $totalPages,
             'title' => APP_NAME . ' - Server Management',
             'activeNav' => 'servers',
         ];

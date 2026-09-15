@@ -45,7 +45,7 @@ function app_url(string $path = ''): string
 function asset_url(string $path): string
 {
     $relative = ltrim($path, '/');
-    $fullPath = SERVMON_BASE_DIR . DIRECTORY_SEPARATOR . 'public' . DIRECTORY_SEPARATOR
+    $fullPath = MONITORS_BASE_DIR . DIRECTORY_SEPARATOR . 'public' . DIRECTORY_SEPARATOR
         . str_replace('/', DIRECTORY_SEPARATOR, $relative);
     $version = is_file($fullPath) ? (string) filemtime($fullPath) : (string) time();
     return app_url($relative) . '?v=' . rawurlencode($version);
@@ -247,7 +247,7 @@ function json_response(array $payload, int $statusCode = 200): never
 
 function csp_nonce_attr(): string
 {
-    $nonce = defined('SERVMON_CSP_NONCE') ? (string) SERVMON_CSP_NONCE : '';
+    $nonce = defined('MONITORS_CSP_NONCE') ? (string) MONITORS_CSP_NONCE : '';
     if ($nonce === '') {
         return '';
     }

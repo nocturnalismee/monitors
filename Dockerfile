@@ -19,10 +19,10 @@ RUN a2enmod rewrite headers
 # Serve public/ as document root; allow the bundled .htaccess (clean URLs).
 ENV APACHE_DOCUMENT_ROOT=/var/www/html/public
 RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/sites-available/*.conf
-COPY docker/apache.conf /etc/apache2/conf-available/servmon.conf
-RUN a2enconf servmon
+COPY docker/apache.conf /etc/apache2/conf-available/monitors.conf
+RUN a2enconf monitors
 
-COPY docker/php.ini /usr/local/etc/php/conf.d/servmon.ini
+COPY docker/php.ini /usr/local/etc/php/conf.d/monitors.ini
 
 WORKDIR /var/www/html
 COPY . /var/www/html
@@ -30,10 +30,10 @@ COPY . /var/www/html
 # config volume on first start (config/local.php must survive rebuilds).
 RUN cp -a /var/www/html/config /var/www/html/config.dist
 
-COPY docker/entrypoint.sh /usr/local/bin/servmon-entrypoint
-RUN chmod +x /usr/local/bin/servmon-entrypoint
+COPY docker/entrypoint.sh /usr/local/bin/monitors-entrypoint
+RUN chmod +x /usr/local/bin/monitors-entrypoint
 
 EXPOSE 80
 
-ENTRYPOINT ["servmon-entrypoint"]
+ENTRYPOINT ["monitors-entrypoint"]
 CMD ["apache2-foreground"]

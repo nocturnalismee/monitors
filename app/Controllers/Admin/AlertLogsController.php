@@ -139,14 +139,29 @@ final class AlertLogsController
 
         $whereSql = $where ? ('WHERE ' . implode(' AND ', $where)) : '';
 
-        $countRow = db_one(
-            'SELECT COUNT(*) AS total
-             FROM alert_logs a
-             LEFT JOIN servers s ON s.id = a.server_id
-             ' . $whereSql,
-            $params
-        );
-        $total = (int) ($countRow['total'] ?? 0);
+        // Count depends only on filters (not page). Cached under the alert:*
+        // prefix so invalidate_alert_cache() clears it together with rows.
+        $countCacheKey = 'alert:logs:count:' . md5(json_encode([
+            'type' => $filterType,
+            'severity' => $filterSeverity,
+            'status' => $filterStatus,
+            'server_id' => $filterServerId,
+            'q' => $filterSearch,
+        ], JSON_UNESCAPED_SLASHES));
+        $cachedCount = cache_get($countCacheKey);
+        if (is_int($cachedCount)) {
+            $total = $cachedCount;
+        } else {
+            $countRow = db_one(
+                'SELECT COUNT(*) AS total
+                 FROM alert_logs a
+                 LEFT JOIN servers s ON s.id = a.server_id
+                 ' . $whereSql,
+                $params
+            );
+            $total = (int) ($countRow['total'] ?? 0);
+            cache_set($countCacheKey, $total, cache_ttl('cache_ttl_alert_logs', 20));
+        }
 
         $totalPages = max(1, (int) ceil($total / $perPage));
         if ($page > $totalPages) {

@@ -4,7 +4,7 @@
             <div>
                 <h1 class="h3 mb-1 d-flex align-items-center gap-2">
                     <?php if ($brandingLogoUrl !== ''): ?>
-                        <img class="servmon-brand-logo" src="<?= e($brandingLogoUrl) ?>" alt="<?= e(APP_NAME) ?> logo">
+                        <img class="monitors-brand-logo" src="<?= e($brandingLogoUrl) ?>" alt="<?= e(APP_NAME) ?> logo">
                     <?php endif; ?>
                     <span><?= e(APP_NAME) ?></span>
                 </h1>
@@ -77,7 +77,7 @@
             </select>
         </div>
         <div class="table-responsive public-table-shell">
-            <table class="table servmon-table public-summary-table mb-0">
+            <table class="table monitors-table public-summary-table mb-0">
                 <colgroup>
                     <col class="public-col-name">
                     <col class="public-col-location">
@@ -209,7 +209,7 @@
         </div>
     </div>
 </main>
-<script<?= csp_nonce_attr() ?>>window.SERVMON_API_STATUS = <?= json_encode(app_url('api/status'), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;</script>
-<script<?= csp_nonce_attr() ?>>window.SERVMON_CPU_THRESHOLDS = <?= json_encode(['warn' => (float) ($cpuWarnThreshold ?? 2), 'critical' => (float) ($cpuCriticalThreshold ?? 4)]) ?>;</script>
-<script<?= csp_nonce_attr() ?>>window.SERVMON_PANEL_BRANDS = <?= json_encode(panel_brands_for_js(), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;</script>
+<script<?= csp_nonce_attr() ?>>window.MONITORS_API_STATUS = <?= json_encode(app_url('api/status'), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;</script>
+<script<?= csp_nonce_attr() ?>>window.MONITORS_CPU_THRESHOLDS = <?= json_encode(['warn' => (float) ($cpuWarnThreshold ?? 2), 'critical' => (float) ($cpuCriticalThreshold ?? 4)]) ?>;</script>
+<script<?= csp_nonce_attr() ?>>window.MONITORS_PANEL_BRANDS = <?= json_encode(panel_brands_for_js(), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;</script>
 <script src="<?= e(asset_url('assets/js/public.js')) ?>"></script>

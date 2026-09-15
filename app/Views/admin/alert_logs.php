@@ -49,7 +49,7 @@
         $resetUrl = app_url('alerts?' . http_build_query(array_filter(['type' => $filterType, 'severity' => $filterSeverity, 'status' => $filterStatus, 'server_id' => $filterServerId ?: null])));
         $wrapClass = 'alert-search-form';
         $showSubmit = false;
-        require SERVMON_BASE_DIR . '/app/Views/partials/admin_filter_bar.php';
+        require MONITORS_BASE_DIR . '/app/Views/partials/admin_filter_bar.php';
         ?>
     </div>
 
@@ -67,12 +67,12 @@
         </div>
         <?php endif; ?>
         <div class="table-responsive table-shell ping-table-shell ping-table-responsive alert-table-shell" data-ui-table>
-            <table class="table servmon-table alert-log-table mb-0">
+            <table class="table monitors-table alert-log-table mb-0">
                 <thead>
                 <tr>
                     <?php $isAlertAdmin = has_role('admin'); ?>
                     <?php if ($isAlertAdmin): ?>
-                    <th class="servmon-checkbox-cell"><input type="checkbox" class="form-check-input" data-bulk-checkall aria-label="Select all alerts"></th>
+                    <th class="monitors-checkbox-cell"><input type="checkbox" class="form-check-input" data-bulk-checkall aria-label="Select all alerts"></th>
                     <?php endif; ?>
                     <th>ID</th>
                     <th>Time</th>
@@ -116,7 +116,7 @@
                     ?>
                     <tr>
                         <?php if ($isAlertAdmin): ?>
-                        <td class="servmon-checkbox-cell">
+                        <td class="monitors-checkbox-cell">
                             <input type="checkbox" class="form-check-input" name="alert_ids[]" value="<?= e((string) $row['id']) ?>" data-bulk-checkbox aria-label="Select alert <?= e((string) $row['id']) ?>">
                         </td>
                         <?php endif; ?>

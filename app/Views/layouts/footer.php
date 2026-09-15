@@ -21,12 +21,12 @@ if ($isAdminPage || $isPublicPage) {
     $alertSoundEnabled = setting_get('alert_sound_enabled') === '1';
     $alertSoundVolume = max(0, min(10, (int) setting_get('alert_sound_volume')));
 ?>
-<div id="servmon-alert-toast-container" class="servmon-alert-toast-container toast-container position-fixed end-0 p-3"></div>
-  <script<?= csp_nonce_attr() ?>>window.SERVMON_API_ALERTS = <?= json_encode($alertEndpoint, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>; window.SERVMON_ALERT_STREAM = <?= json_encode($isAdminPage ? app_url('api/events') : '', JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>; window.SERVMON_ALERT_SOUND_ENABLED = <?= $alertSoundEnabled ? 'true' : 'false' ?>; window.SERVMON_ALERT_SOUND_VOLUME = <?= (int) $alertSoundVolume ?>; window.SERVMON_ALERT_SOUND_URL = <?= json_encode(asset_url('assets/sound/notification.wav'), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;</script>
+<div id="monitors-alert-toast-container" class="monitors-alert-toast-container toast-container position-fixed end-0 p-3"></div>
+  <script<?= csp_nonce_attr() ?>>window.MONITORS_API_ALERTS = <?= json_encode($alertEndpoint, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>; window.MONITORS_ALERT_STREAM = <?= json_encode($isAdminPage ? app_url('api/events') : '', JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>; window.MONITORS_ALERT_SOUND_ENABLED = <?= $alertSoundEnabled ? 'true' : 'false' ?>; window.MONITORS_ALERT_SOUND_VOLUME = <?= (int) $alertSoundVolume ?>; window.MONITORS_ALERT_SOUND_URL = <?= json_encode(asset_url('assets/sound/notification.wav'), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;</script>
 <script src="<?= e(asset_url('assets/js/alerts.js')) ?>"></script>
 <?php } ?>
 <script<?= csp_nonce_attr() ?>>
-document.querySelectorAll('[data-servmon-flash-toast="1"]').forEach(function (toastEl) {
+document.querySelectorAll('[data-monitors-flash-toast="1"]').forEach(function (toastEl) {
     if (typeof bootstrap === 'undefined' || !bootstrap.Toast) {
         return;
     }
@@ -35,19 +35,19 @@ document.querySelectorAll('[data-servmon-flash-toast="1"]').forEach(function (to
     toast.show();
 });
 </script>
-<div class="modal fade" id="servmonConfirmModal" tabindex="-1" aria-labelledby="servmonConfirmModalLabel" aria-hidden="true">
+<div class="modal fade" id="monitorsConfirmModal" tabindex="-1" aria-labelledby="monitorsConfirmModalLabel" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered modal-sm">
     <div class="modal-content">
       <div class="modal-header border-soft">
-        <h5 class="modal-title" id="servmonConfirmModalLabel">Confirm Action</h5>
+        <h5 class="modal-title" id="monitorsConfirmModalLabel">Confirm Action</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
-      <div class="modal-body" id="servmonConfirmModalBody">
+      <div class="modal-body" id="monitorsConfirmModalBody">
         Are you sure?
       </div>
       <div class="modal-footer border-soft">
         <button type="button" class="btn btn-soft" data-bs-dismiss="modal">Cancel</button>
-        <button type="button" class="btn btn-danger" id="servmonConfirmModalProceed">Delete</button>
+        <button type="button" class="btn btn-danger" id="monitorsConfirmModalProceed">Delete</button>
       </div>
     </div>
   </div>

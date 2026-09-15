@@ -7,7 +7,7 @@ final class View
 {
     public static function render(string $template, array $data = [], string $layout = 'admin'): string
     {
-        $base = SERVMON_BASE_DIR . '/app/Views/';
+        $base = MONITORS_BASE_DIR . '/app/Views/';
 
         $load = static function (string $file, array $vars): string {
             extract($vars, EXTR_SKIP);

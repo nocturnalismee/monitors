@@ -19,7 +19,7 @@ final class PartitionMaintainWorker
 
         try {
             if (!metrics_is_partitioned()) {
-                servmon_log_info('metrics is not partitioned, skipping partition maintenance', 'partition_maintain');
+                monitors_log_info('metrics is not partitioned, skipping partition maintenance', 'partition_maintain');
                 worker_mark_run_success($workerName);
                 echo "partition_maintain skipped: metrics not partitioned" . PHP_EOL;
                 return 0;
@@ -78,7 +78,7 @@ final class PartitionMaintainWorker
 
             $added = count($newBounds);
 
-            servmon_log_info("Partition maintenance done: partitions_added={$added}", 'partition_maintain');
+            monitors_log_info("Partition maintenance done: partitions_added={$added}", 'partition_maintain');
             worker_mark_run_success($workerName);
 
             echo "partition_maintain completed: start={$start}, end={$end}, added={$added}" . PHP_EOL;

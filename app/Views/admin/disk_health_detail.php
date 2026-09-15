@@ -39,7 +39,7 @@
             </small>
         </div>
         <div class="table-responsive table-shell" data-ui-table>
-            <table class="table servmon-table mb-0">
+            <table class="table monitors-table mb-0">
                 <thead>
                 <tr>
                     <th>Device</th>
@@ -86,5 +86,5 @@
         </div>
     </section>
 </main>
-<script<?= csp_nonce_attr() ?>>window.SERVMON_AUTO_REFRESH_MS = 30000;</script>
+<script<?= csp_nonce_attr() ?>>window.MONITORS_AUTO_REFRESH_MS = 30000;</script>
 <script src="<?= e(asset_url('assets/js/auto-refresh.js')) ?>"></script>

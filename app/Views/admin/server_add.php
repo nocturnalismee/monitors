@@ -26,7 +26,7 @@
                     'label' => (string) old('label'),
                 ];
                 $idPrefix = 'server';
-                require SERVMON_BASE_DIR . '/app/Views/partials/server_identity_form.php';
+                require MONITORS_BASE_DIR . '/app/Views/partials/server_identity_form.php';
                 ?>
                 <div class="col-12 settings-actions d-flex flex-wrap gap-2">
                     <button class="btn btn-info" type="submit" data-submit-loading data-loading-text="Saving...">Save</button>

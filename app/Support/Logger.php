@@ -12,10 +12,10 @@ final class Logger
 
     public static function dir(): string
     {
-        $dir = SERVMON_BASE_DIR . DIRECTORY_SEPARATOR . 'storage' . DIRECTORY_SEPARATOR . 'logs';
+        $dir = MONITORS_BASE_DIR . DIRECTORY_SEPARATOR . 'storage' . DIRECTORY_SEPARATOR . 'logs';
         if (!is_dir($dir)) {
             if (!@mkdir($dir, 0775, true)) {
-                error_log('servmon: failed to create log dir: ' . $dir);
+                error_log('monitors: failed to create log dir: ' . $dir);
             }
         }
         return $dir;
@@ -35,7 +35,7 @@ final class Logger
 
         $date = date('Y-m-d');
         $datetime = date('Y-m-d H:i:s');
-        $logFile = self::dir() . DIRECTORY_SEPARATOR . 'servmon-' . $date . '.log';
+        $logFile = self::dir() . DIRECTORY_SEPARATOR . 'monitors-' . $date . '.log';
 
         $line = sprintf('[%s] [%s] [%s] %s', $datetime, $level, $context, $message);
 
@@ -45,7 +45,7 @@ final class Logger
 
         $written = @file_put_contents($logFile, $line . PHP_EOL, FILE_APPEND | LOCK_EX);
         if ($written === false) {
-            error_log('servmon: failed to write log: ' . $logFile);
+            error_log('monitors: failed to write log: ' . $logFile);
         }
     }
 

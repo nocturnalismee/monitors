@@ -37,7 +37,7 @@ final class AlertDeliveryWorker
                 worker_heartbeat_lock($lockFp);
                 $queueId = (int) ($row['id'] ?? 0);
                 $channel = (string) ($row['channel'] ?? '');
-                $title = (string) ($row['title'] ?? 'servmon alert');
+                $title = (string) ($row['title'] ?? 'monitors alert');
                 $message = (string) ($row['message'] ?? '');
                 if ($queueId <= 0 || !in_array($channel, ['email', 'telegram'], true)) {
                     continue;

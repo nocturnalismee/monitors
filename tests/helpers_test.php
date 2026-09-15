@@ -2,7 +2,7 @@
 declare(strict_types=1);
 
 require_once __DIR__ . '/../config/bootstrap.php';
-require_once SERVMON_BASE_DIR . '/app/Support/functions.php';
+require_once MONITORS_BASE_DIR . '/app/Support/functions.php';
 
 function assert_true(bool $cond, string $message): void
 {

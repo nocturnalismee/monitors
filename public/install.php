@@ -5,7 +5,7 @@ require __DIR__ . '/../config/bootstrap.php';
 
 // Kill-switch: create config/.installer-locked to disable this installer entirely,
 // even if config/local.php is deleted. Prefer removing this file after setup.
-if (is_file(SERVMON_BASE_DIR . '/config/.installer-locked')) {
+if (is_file(MONITORS_BASE_DIR . '/config/.installer-locked')) {
     http_response_code(403);
     echo 'Installer disabled (config/.installer-locked is present). Delete the lock file to re-enable.';
     exit;
@@ -69,7 +69,7 @@ function splitSqlStatements(string $sql): array
 
 function isAlreadyInstalled(): bool
 {
-    return is_file(SERVMON_BASE_DIR . '/config/local.php');
+    return is_file(MONITORS_BASE_DIR . '/config/local.php');
 }
 
 function executeSqlFile(PDO $pdo, string $filePath): int
@@ -284,7 +284,7 @@ function defaultAppSettings(): array
         'cache_ttl_history_7d' => '120',
         'cache_ttl_history_30d' => '180',
         'cache_ttl_alert_logs' => '20',
-        'cache_ttl_disk_health_list' => '15',
+        'cache_ttl_disk_health_list' => '60',
         'disk_rollup_days' => '2',
         'disk_push_max_body_bytes' => '1048576',
         'disk_push_max_items' => '64',
@@ -299,7 +299,7 @@ function defaultAppSettings(): array
         'smtp_password' => '',
         'smtp_secure' => 'tls',
         'smtp_from_email' => '',
-        'smtp_from_name' => 'servmon',
+        'smtp_from_name' => 'monitors',
         'smtp_to_email' => '',
         'telegram_bot_token' => '',
         'telegram_chat_id' => '',
@@ -403,25 +403,23 @@ function ensureBaseRecordsWithoutSeed(PDO $pdo): void
 
 function writeLocalConfig(array $config): void
 {
-    $localPath = SERVMON_BASE_DIR . '/config/local.php';
+    $localPath = MONITORS_BASE_DIR . '/config/local.php';
     $localContent = "<?php\nreturn " . var_export($config, true) . ";\n";
     $bytes = file_put_contents($localPath, $localContent);
     if ($bytes === false) {
         throw new RuntimeException('Failed to write config/local.php (check permissions).');
     }
-    // Prefer 0640 (owner + group only); fall back to 0644 for panels like
-    // AaPanel/BT where web (www) and CLI (root) run as different users.
-    if (!@chmod($localPath, 0640)) {
-        @chmod($localPath, 0644);
-    }
+    // Use 0640 so web server user and group can read, others cannot.
+    // On AaPanel/BT, ensure web user (www) is in the group owning config/local.php.
+    @chmod($localPath, 0640);
     if (!is_readable($localPath)) {
-        throw new RuntimeException('config/local.php written but not readable (permission denied). Run: chmod 644 ' . $localPath);
+        throw new RuntimeException('config/local.php written but not readable (permission denied). Run: chmod 640 ' . $localPath . ' and verify web server user is in the group that owns the file.');
     }
 }
 
 function loadLocalConfig(): array
 {
-    $path = SERVMON_BASE_DIR . '/config/local.php';
+    $path = MONITORS_BASE_DIR . '/config/local.php';
     if (!is_file($path)) {
         throw new RuntimeException('config/local.php not found.');
     }
@@ -478,7 +476,7 @@ $defaultValues = [
     'app_tz' => 'Asia/Jakarta',
     'db_host' => '127.0.0.1',
     'db_port' => '3306',
-    'db_name' => 'servmon',
+    'db_name' => 'monitors',
     'db_user' => 'root',
     'db_pass' => '',
     'redis_enabled' => '0',
@@ -486,7 +484,7 @@ $defaultValues = [
     'redis_port' => '6379',
     'redis_password' => '',
     'redis_db' => '0',
-    'redis_prefix' => 'servmon:',
+    'redis_prefix' => 'monitors:',
     'trust_proxy_headers' => '0',
     'trusted_proxies' => '127.0.0.1,::1',
     'turnstile_site_key' => '',
@@ -536,9 +534,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !$installed) {
 
     if (empty($errors)) {
         try {
-            $schemaPath = SERVMON_BASE_DIR . '/database/schema.sql';
-            $seedPath = SERVMON_BASE_DIR . '/database/seed.sql';
-            $migrationDir = SERVMON_BASE_DIR . '/database/migrations';
+            $schemaPath = MONITORS_BASE_DIR . '/database/schema.sql';
+            $seedPath = MONITORS_BASE_DIR . '/database/seed.sql';
+            $migrationDir = MONITORS_BASE_DIR . '/database/migrations';
             if (!is_file($schemaPath)) {
                 throw new RuntimeException('database/schema.sql not found.');
             }
@@ -640,6 +638,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !$installed) {
             $success = true;
             $installed = true;
             $lastOperation = 'install';
+            // Auto-remove installer on successful fresh install for security
+            if ($success && $lastOperation === 'install') {
+                $installPath = __FILE__;
+                if (is_file($installPath)) {
+                    @unlink($installPath);
+                    $summary[] = ['step' => 'cleanup', 'message' => 'Installer auto-deleted for security.'];
+                }
+            }
             $mode = 'upgrade';
         } catch (Throwable $e) {
             $errors[] = 'Installation failed: ' . $e->getMessage();
@@ -672,7 +678,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $installed && ($_POST['action'] ?? 
     <script<?= csp_nonce_attr() ?>>
       (function () {
         try {
-          var stored = localStorage.getItem('servmon_theme');
+          var stored = localStorage.getItem('monitors_theme');
           var systemDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
           var theme = stored === 'dark' || stored === 'light' ? stored : (systemDark ? 'dark' : 'light');
           document.documentElement.setAttribute('data-bs-theme', theme);
@@ -680,7 +686,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $installed && ($_POST['action'] ?? 
       })();
     </script>
 </head>
-<body class="servmon-install">
+<body class="monitors-install">
 <a href="#install-main" class="visually-hidden-focusable">Skip to main content</a>
 <div class="container install-shell py-4 py-lg-5">
     <header class="install-topbar">
@@ -744,7 +750,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $installed && ($_POST['action'] ?? 
                     <?php if ($success): ?>
                         <div class="alert alert-success" role="status">
                             <?= $lastOperation === 'install' ? 'Installation successful.' : 'Migration upgrade successful (CLI).' ?>
-                            <div class="mt-2">If this is a production server, remove or rename <code>public/install.php</code> after setup.</div>
+                            <div class="mt-2">Installer has been auto-deleted. Please verify `config/local.php` is not world-readable.</div>
                         </div>
                     <?php endif; ?>
 
@@ -901,8 +907,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $installed && ($_POST['action'] ?? 
                     $requirements = [
                         'PHP 8.2 or newer' => version_compare(PHP_VERSION, '8.2.0', '>='),
                         'PDO MySQL driver' => extension_loaded('pdo_mysql'),
-                        'Schema file present' => is_file(SERVMON_BASE_DIR . '/database/schema.sql'),
-                        'config/ directory writable' => is_writable(SERVMON_BASE_DIR . '/config'),
+                        'Schema file present' => is_file(MONITORS_BASE_DIR . '/database/schema.sql'),
+                        'config/ directory writable' => is_writable(MONITORS_BASE_DIR . '/config'),
                     ];
                     ?>
                     <section class="install-aside-section" aria-labelledby="install-req-title">
@@ -991,7 +997,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $installed && ($_POST['action'] ?? 
         var current = document.documentElement.getAttribute('data-bs-theme') === 'light' ? 'light' : 'dark';
         var next = current === 'light' ? 'dark' : 'light';
         document.documentElement.setAttribute('data-bs-theme', next);
-        try { localStorage.setItem('servmon_theme', next); } catch (e) {}
+        try { localStorage.setItem('monitors_theme', next); } catch (e) {}
         syncIcon();
     });
     syncIcon();

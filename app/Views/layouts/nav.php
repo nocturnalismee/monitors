@@ -21,11 +21,11 @@ if ($brandingLogoRaw !== '') {
     }
 }
 ?>
-<aside class="servmon-sidebar" id="servmonSidebar">
-    <div class="servmon-sidebar-brand">
-        <a class="text-decoration-none fw-bold fs-5 servmon-brand-link" href="<?= e(app_url('dashboard')) ?>">
+<aside class="monitors-sidebar" id="monitorsSidebar">
+    <div class="monitors-sidebar-brand">
+        <a class="text-decoration-none fw-bold fs-5 monitors-brand-link" href="<?= e(app_url('dashboard')) ?>">
             <?php if ($brandingLogoUrl !== ''): ?>
-                <img class="servmon-brand-logo" src="<?= e($brandingLogoUrl) ?>" alt="<?= e(APP_NAME) ?> logo">
+                <img class="monitors-brand-logo" src="<?= e($brandingLogoUrl) ?>" alt="<?= e(APP_NAME) ?> logo">
         <?php else: ?>
             <i class="ti ti-server text-cyan"></i>
             <?php endif; ?>
@@ -41,7 +41,7 @@ if ($brandingLogoRaw !== '') {
             <i class="ti ti-chevron-left" data-sidebar-toggle-icon></i>
         </button>
     </div>
-    <nav class="nav flex-column servmon-sidebar-nav">
+    <nav class="nav flex-column monitors-sidebar-nav">
         <div class="sidebar-section-title">
             <span class="sidebar-label">MONITORING</span>
         </div>
@@ -88,7 +88,7 @@ if ($brandingLogoRaw !== '') {
             <i class="ti ti-world"></i><span class="sidebar-label sidebar-label-public">Public Status</span><i class="ti ti-external-link sidebar-external-icon" aria-hidden="true"></i>
         </a>
     </nav>
-    <div class="servmon-sidebar-footer">
+    <div class="monitors-sidebar-footer">
         <div class="sidebar-user-row">
             <div class="sidebar-user-meta" title="<?= e($user['username'] ?? '') ?>">
                 <i class="ti ti-user-circle" aria-hidden="true"></i>
@@ -108,7 +108,7 @@ if ($brandingLogoRaw !== '') {
         </div>
     </div>
 </aside>
-<button type="button" class="btn btn-info sidebar-mobile-toggle d-md-none" data-sidebar-toggle-mobile aria-expanded="false" aria-controls="servmonSidebar">
+<button type="button" class="btn btn-info sidebar-mobile-toggle d-md-none" data-sidebar-toggle-mobile aria-expanded="false" aria-controls="monitorsSidebar">
     <i class="ti ti-layout-sidebar"></i>
 </button>
 <div class="sidebar-overlay d-md-none" data-sidebar-overlay></div>

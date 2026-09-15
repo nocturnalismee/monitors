@@ -19,7 +19,7 @@ final class ServerSetupController
             flash_set('danger', 'Server not found.');
             redirect('servers');
         }
-        $sessionTokenKey = 'servmon_new_server_token_' . $id;
+        $sessionTokenKey = 'monitors_new_server_token_' . $id;
         $displayToken = trim((string) ($_SESSION[$sessionTokenKey] ?? ''));
 
         $pushEndpoint = app_url('api/push');

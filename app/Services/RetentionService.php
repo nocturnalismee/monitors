@@ -236,7 +236,7 @@ final class RetentionService
             return $purged;
         }
         $batchSize = max(1, min(500, $batchSize));
-        $exportsDir = defined('SERVMON_BASE_DIR') ? realpath(SERVMON_BASE_DIR . '/storage/exports') : false;
+        $exportsDir = defined('MONITORS_BASE_DIR') ? realpath(MONITORS_BASE_DIR . '/storage/exports') : false;
 
         do {
             $rows = db_all(
@@ -287,7 +287,7 @@ final class RetentionService
         $metricsRawHours = max(1, (int) setting_get('metrics_raw_hours'));
         $metricsCutoff = date('Y-m-d H:i:s', time() - $metricsRawHours * 3600);
 
-        servmon_log_info(
+        monitors_log_info(
             "Starting core retention cleanup: {$days} days, cutoff={$cutoff}, metrics_raw_cutoff={$metricsCutoff}",
             'retention'
         );
@@ -346,7 +346,7 @@ final class RetentionService
             'dead_queue_deleted' => $deadQueue,
         ];
 
-        servmon_log_info('Core retention cleanup complete', 'retention', $result);
+        monitors_log_info('Core retention cleanup complete', 'retention', $result);
 
         return $result;
     }
@@ -357,7 +357,7 @@ final class RetentionService
         $cutoff = self::retention_cutoff($days);
         $historyCutoffDate = substr(self::retention_cutoff($days * 3), 0, 10);
 
-        servmon_log_info("Starting disk retention cleanup: {$days} days, cutoff={$cutoff}", 'retention');
+        monitors_log_info("Starting disk retention cleanup: {$days} days, cutoff={$cutoff}", 'retention');
 
         $diskMetrics = 0;
         $diskHistory = 0;
@@ -376,7 +376,7 @@ final class RetentionService
             'disk_history_deleted' => $diskHistory,
         ];
 
-        servmon_log_info('Disk retention cleanup complete', 'retention', $result);
+        monitors_log_info('Disk retention cleanup complete', 'retention', $result);
 
         return $result;
     }

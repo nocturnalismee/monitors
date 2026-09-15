@@ -73,6 +73,8 @@ final class LiveStreamController
 
         $startTime = time();
         $maxDuration = 45;
+        // Per-server watermark for the Redis ring path (falls back to $sinceId).
+        $sentMaxByServer = [];
 
         while (true) {
             $emitted = false;
@@ -80,7 +82,13 @@ final class LiveStreamController
             if ($redis !== null && $ringServerIds !== []) {
                 try {
                     foreach ($ringServerIds as $sid) {
-                        $items = $redis->lRange(cache_key('ring:' . $sid), 0, -1);
+                        // Per-server high-water cursor: only the ring tail is
+                        // read each tick instead of rescanning all 200 entries
+                        // (O(new) instead of O(ring) per server per second).
+                        $sentMax = $sentMaxByServer[$sid] ?? $sinceId;
+                        // Tail slice keeps ring order (ascending id), 50 entries
+                        // comfortably covers the max push rate (600/min).
+                        $items = $redis->lRange(cache_key('ring:' . $sid), -50, -1);
                         if (!$items) {
                             continue;
                         }
@@ -90,15 +98,21 @@ final class LiveStreamController
                                 continue;
                             }
                             $rid = (int) $row['id'];
-                            if ($rid <= $sinceId) {
+                            if ($rid <= $sentMax) {
                                 continue;
                             }
-                            $sinceId = max($sinceId, $rid);
+                            $sentMax = max($sentMax, $rid);
                             $emitted = true;
                             echo "id: {$rid}\n";
                             echo "event: metric\n";
                             echo 'data: ' . json_encode($row, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) . "\n\n";
                         }
+                        $sentMaxByServer[$sid] = $sentMax;
+                    }
+                    // Keep the global cursor in sync so a mid-session Redis
+                    // failure makes the DB fallback resume, not replay.
+                    foreach ($sentMaxByServer as $sentMax) {
+                        $sinceId = max($sinceId, $sentMax);
                     }
                 } catch (Throwable $e) {
                     $redis = null;

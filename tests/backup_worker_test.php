@@ -3,10 +3,10 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/../config/bootstrap.php';
 
-$tmp = sys_get_temp_dir() . '/servmon-backup-test-' . getmypid();
+$tmp = sys_get_temp_dir() . '/monitors-backup-test-' . getmypid();
 @mkdir($tmp, 0770, true);
-$new = $tmp . '/servmon-20261120-010000.sql.gz';
-$old = $tmp . '/servmon-20200101-010000.sql.gz';
+$new = $tmp . '/monitors-20261120-010000.sql.gz';
+$old = $tmp . '/monitors-20200101-010000.sql.gz';
 file_put_contents($new, 'x');
 file_put_contents($old, 'x');
 touch($new);

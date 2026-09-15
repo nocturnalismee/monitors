@@ -20,12 +20,17 @@ namespace App\Controllers\Admin {
             );
 
             $latestMetricJoin = latest_metric_join_sql('s', 'm');
+            $totalRow = db_one('SELECT COUNT(*) AS cnt FROM servers');
+            $totalServers = (int) ($totalRow['cnt'] ?? 0);
+            $dashboardLimit = 50;
             $rows = db_all(
                 'SELECT s.id, s.name, s.location, s.host, s.type, s.provider, s.label, s.active,
                         COALESCE(s.last_seen_at, m.recorded_at) AS last_seen, m.uptime, m.cpu_load, m.ram_total, m.ram_used, m.hdd_total, m.hdd_used, m.network_in_bps, m.network_out_bps, m.mail_mta, m.mail_queue_total, m.panel_profile
                  FROM servers s' . $latestMetricJoin . '
-                 ORDER BY s.name ASC'
+                 ORDER BY s.name ASC
+                  LIMIT ' . $dashboardLimit
             );
+            $showAllLink = $totalServers > $dashboardLimit;
             $thresholds = ServerListService::thresholds();
             $statusOnlineMinutes = $thresholds['onlineMinutes'];
             $cpuWarnThreshold = $thresholds['cpuWarn'];
@@ -42,9 +47,9 @@ namespace App\Controllers\Admin {
             $rollupWorkerHealth = worker_health_status('rollup_metrics', \App\Services\Settings\CronWorkerService::TTL['rollup_metrics']);
             $diskCleanupWorkerHealth = worker_health_status('disk_retention_cleanup', \App\Services\Settings\CronWorkerService::TTL['disk_retention_cleanup']);
             $partitionMaintainWorkerHealth = worker_health_status('partition_maintain', \App\Services\Settings\CronWorkerService::TTL['partition_maintain']);
-            $projectRoot = realpath(SERVMON_BASE_DIR);
+            $projectRoot = realpath(MONITORS_BASE_DIR);
             if (!is_string($projectRoot) || $projectRoot === '') {
-                $projectRoot = dirname(SERVMON_BASE_DIR);
+                $projectRoot = dirname(MONITORS_BASE_DIR);
             }
             $workersRoot = rtrim(str_replace('\\', '/', $projectRoot), '/');
             $alertCronCmd = '* * * * * /usr/bin/php ' . $workersRoot . '/workers/alert-check.php >/dev/null 2>&1';
@@ -73,6 +78,7 @@ namespace App\Controllers\Admin {
                 'online' => $online,
                 'down' => $down,
                 'pending' => $pending,
+                'showAllLink' => $showAllLink,
                 'alertWorkerHealth' => $alertWorkerHealth,
                 'pingWorkerHealth' => $pingWorkerHealth,
                 'diskRollupWorkerHealth' => $diskRollupWorkerHealth,

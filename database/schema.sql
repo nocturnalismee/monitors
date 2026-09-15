@@ -1,5 +1,6 @@
-CREATE DATABASE IF NOT EXISTS servmon CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-USE servmon;
+-- NOTE: no CREATE DATABASE / USE here — import into YOUR target database
+-- (the installer and CI pass the DB name explicitly; a hard-coded USE would
+-- silently redirect every statement into a different schema).
 
 CREATE TABLE IF NOT EXISTS users (
     id INT AUTO_INCREMENT PRIMARY KEY,

@@ -5,12 +5,12 @@ use App\Services\MaintenanceService;
 use App\Support\Audit;
 use App\Support\Logger;
 
-function servmon_log_info(string $message, string $context = 'app', array $extra = []): void
+function monitors_log_info(string $message, string $context = 'app', array $extra = []): void
 {
     Logger::info($message, $context, $extra);
 }
 
-function servmon_log_error(string $message, string $context = 'app', array $extra = []): void
+function monitors_log_error(string $message, string $context = 'app', array $extra = []): void
 {
     Logger::error($message, $context, $extra);
 }

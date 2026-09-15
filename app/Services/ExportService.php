@@ -29,7 +29,7 @@ final class ExportService
 
     public static function export_job_dir(): string
     {
-        $dir = SERVMON_BASE_DIR . '/storage/exports';
+        $dir = MONITORS_BASE_DIR . '/storage/exports';
         if (!is_dir($dir)) {
             @mkdir($dir, 0775, true);
         }
@@ -54,7 +54,7 @@ final class ExportService
         }
 
         $extension = $format === 'json' ? 'json' : 'csv';
-        $fileName = 'servmon_' . $type . '_' . date('Ymd_His') . '_' . $jobId . '.' . $extension;
+        $fileName = 'monitors_' . $type . '_' . date('Ymd_His') . '_' . $jobId . '.' . $extension;
         $path = self::export_job_dir() . DIRECTORY_SEPARATOR . $fileName;
         $handle = fopen($path, 'wb');
         if ($handle === false) {
