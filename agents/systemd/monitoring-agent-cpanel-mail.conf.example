@@ -15,8 +15,9 @@
 #   1) sudo cp monitoring-agent-cpanel-mail.conf.example /etc/monitoring-agent-cpanel-mail.conf
 #   2) ubah MASTER_URL, SERVER_TOKEN, SERVER_ID (WAJIB per server)
 #   3) ubah nilai lain sesuai kebutuhan (semuanya opsional)
-#   4) jalankan manual sekali:  /usr/local/bin/monitoring-agent-cpanel-mail.sh
-#      lalu pasang timer:       systemctl enable --now monitoring-agent-cpanel-email.timer
+#   4) jalankan manual sekali:  systemctl start monitoring-agent-cpanel-email.service
+#      lalu jadwalkan via cron (tiap menit; menggantikan timer lama):
+#      (crontab -l 2>/dev/null; echo "* * * * * /usr/bin/systemctl start monitoring-agent-cpanel-email.service >/dev/null 2>&1") | crontab -
 
 # ─── WAJIB per server (tidak ada default yang aman) ─────────────────────────
 MASTER_URL=https://panel.developers.web.id/api/push

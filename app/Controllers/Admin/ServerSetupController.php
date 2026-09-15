@@ -29,7 +29,6 @@ final class ServerSetupController
         $systemdTimerUrl = app_url('agents/systemd/monitoring-agent.timer');
         $confExampleUrl = app_url('agents/systemd/monitoring-agent.conf.example');
         $systemdEmailServiceUrl = app_url('agents/systemd/monitoring-agent-cpanel-email.service');
-        $systemdEmailTimerUrl = app_url('agents/systemd/monitoring-agent-cpanel-email.timer');
         $confEmailExampleUrl = app_url('agents/systemd/monitoring-agent-cpanel-mail.conf.example');
 
         $data = [
@@ -43,7 +42,6 @@ final class ServerSetupController
             'systemdTimerUrl' => $systemdTimerUrl,
             'confExampleUrl' => $confExampleUrl,
             'systemdEmailServiceUrl' => $systemdEmailServiceUrl,
-            'systemdEmailTimerUrl' => $systemdEmailTimerUrl,
             'confEmailExampleUrl' => $confEmailExampleUrl,
             'title' => APP_NAME . ' - Agent Instructions',
             'activeNav' => 'servers',
