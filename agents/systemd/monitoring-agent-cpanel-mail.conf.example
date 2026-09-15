@@ -15,9 +15,9 @@
 #   1) sudo cp monitoring-agent-cpanel-mail.conf.example /etc/monitoring-agent-cpanel-mail.conf
 #   2) ubah MASTER_URL, SERVER_TOKEN, SERVER_ID (WAJIB per server)
 #   3) ubah nilai lain sesuai kebutuhan (semuanya opsional)
-#   4) jalankan manual sekali:  systemctl start monitoring-agent-cpanel-email.service
-#      lalu jadwalkan via cron (tiap menit; menggantikan timer lama):
-#      (crontab -l 2>/dev/null; echo "* * * * * /usr/bin/systemctl start monitoring-agent-cpanel-email.service >/dev/null 2>&1") | crontab -
+#   4) pasang service (daemon, tanpa timer/cron):
+#      wget monitoring-agent-cpanel-email.service -O /etc/systemd/system/monitoring-agent-cpanel-email.service
+#      systemctl daemon-reload && systemctl enable --now monitoring-agent-cpanel-email.service
 
 # ─── WAJIB per server (tidak ada default yang aman) ─────────────────────────
 MASTER_URL=https://panel.developers.web.id/api/push
@@ -46,6 +46,7 @@ LOG_MAX_BYTES=1048576       # 1 MB; file dipotong otomatis bila lebih besar
 # ─── Jaringan & API ──────────────────────────────────────────────────────────
 CURL_TIMEOUT=10             # timeout curl (detik)
 CURL_SSL_OPTIONS=           # flag ekstra curl, mis. --insecure (hati-hati) / --cacert /path
+PUSH_INTERVAL=10            # detik antar push (daemon loop; service systemd)
 NET_STATE_FILE=/tmp/monitoring-agent-email-net.state   # state delta network (dibaca ulang tiap run)
 LOCK_FILE=/tmp/monitoring-agent-email.lock   # lock anti-bentrok
 LOCK_WAIT_SECONDS=0         # detik menunggu lock; 0 = langsung skip bila dipakai

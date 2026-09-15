@@ -1,12 +1,14 @@
 #!/usr/bin/env bash
 # ============================================================
 #  SERVSTATS - Monitoring Server Agent (cPanel Email Host)
-#  Version: 3.0
+#  Version: 3.1
 #  Created by: Arief Efriyan
 #  Description: Monitor service email, firewall & SSH pada
 #               server cPanel khusus email, lalu push ke API.
 #               v3 = konfigurasi via /etc/monitoring-agent-cpanel-mail.conf
 #               + signing HMAC (SIGN_REQUESTS) + log rotation.
+#               v3.1 = daemon loop (push tiap PUSH_INTERVAL detik,
+#               dijalankan sebagai systemd service tanpa timer/cron).
 # ============================================================
 set -euo pipefail
 export PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:$PATH"
@@ -54,6 +56,7 @@ SERVER_ID="${SERVER_ID:-1}"
 # ── Jaringan & API ───────────────────────────
 CURL_TIMEOUT="${CURL_TIMEOUT:-10}"
 CURL_SSL_OPTIONS="${CURL_SSL_OPTIONS:-}"
+PUSH_INTERVAL="${PUSH_INTERVAL:-10}"       # detik antar push (daemon loop, sama seperti monitoring-agent.sh)
 NET_STATE_FILE="${NET_STATE_FILE:-/tmp/monitoring-agent-email-net.state}"
 LOCK_FILE="${LOCK_FILE:-/tmp/monitoring-agent-email.lock}"
 LOCK_WAIT_SECONDS="${LOCK_WAIT_SECONDS:-0}"
@@ -524,4 +527,17 @@ EOF
   log "OK push success server_id=${SERVER_ID} panel=${PANEL_PROFILE} mta=${mta} queue=${queue_total}"
 }
 
-main "$@"
+# ─────────────────────────────────────────────
+#  DAEMON LOOP
+#  Meniru monitoring-agent.sh: proses hidup terus,
+#  push tiap PUSH_INTERVAL detik. Kegagalan push
+#  tidak mematikan daemon (ulangi siklus berikutnya).
+# ─────────────────────────────────────────────
+daemon_loop() {
+  while true; do
+    ( main ) || log "WARN: push gagal, ulangi pada siklus berikutnya"
+    sleep "${PUSH_INTERVAL}"
+  done
+}
+
+daemon_loop

@@ -3,7 +3,7 @@
     <section class="page-header" data-ui-toolbar>
         <div>
             <h1 class="page-title">Agent Installation</h1>
-            <p class="page-subtitle">Server: <?= e((string) $server['name']) ?>. Select the appropriate agent profile, run a manual test, then enable the service or schedule it via cron.</p>
+            <p class="page-subtitle">Server: <?= e((string) $server['name']) ?>. Select the appropriate agent profile, run a manual test, then enable the service.</p>
         </div>
         <div class="toolbar-actions">
             <a class="btn btn-soft" href="<?= e(app_url('servers')) ?>">Back to List</a>
@@ -88,7 +88,7 @@ systemctl status monitoring-agent.service --no-pager
     <section class="card card-neon" data-ui-section>
         <div class="card-header bg-surface-2 border-soft d-flex justify-content-between align-items-center flex-wrap gap-2">
             <h2 class="h6 mb-0">Profile B: cPanel Email Host</h2>
-            <span class="badge text-bg-warning">specialized agent (cron-scheduled)</span>
+            <span class="badge text-bg-warning">systemd service (real-time)</span>
         </div>
         <div class="card-body">
             <p class="text-secondary mb-2">Use this profile specifically for mail/cPanel email nodes:</p>
@@ -108,22 +108,16 @@ sed -i "s|^MASTER_URL=.*|MASTER_URL=<?= e($pushEndpoint) ?>|" /etc/monitoring-ag
 sed -i "s|^SERVER_TOKEN=.*|SERVER_TOKEN=<?= e($setupToken) ?>|" /etc/monitoring-agent-cpanel-mail.conf
 sed -i "s|^SERVER_ID=.*|SERVER_ID=<?= e((string) $server['id']) ?>|" /etc/monitoring-agent-cpanel-mail.conf
 
-# Manual test (one-shot)
-/usr/local/bin/monitoring-agent-cpanel-mail.sh
-
 # 3) mkdir /var/lib/monitoring-agent
 
-# 4) Install systemd unit (one-shot runner: journald logging, UMask, timeout)
+# 4) Install systemd service (daemon, auto-restart, pushes every 10 seconds)
 wget <?= e($systemdEmailServiceUrl) ?> -O /etc/systemd/system/monitoring-agent-cpanel-email.service
 systemctl daemon-reload
-
-# 5) Schedule via cron every minute (replaces the old timer)
-(crontab -l 2>/dev/null; echo "* * * * * /usr/bin/systemctl start monitoring-agent-cpanel-email.service >/dev/null 2>&1") | crontab -
-crontab -l | grep monitoring-agent-cpanel-email
-
-# 6) Verify: trigger one run, then check the unit status
-systemctl start monitoring-agent-cpanel-email.service
+systemctl enable --now monitoring-agent-cpanel-email.service
 systemctl status monitoring-agent-cpanel-email.service --no-pager
+
+# 5) Watch live logs (optional)
+journalctl -u monitoring-agent-cpanel-email.service -f
 </code></pre>
 </div>
         </div>

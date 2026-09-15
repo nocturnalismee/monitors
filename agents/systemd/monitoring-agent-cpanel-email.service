@@ -4,12 +4,13 @@ Wants=network-online.target
 After=network-online.target
 
 [Service]
-Type=oneshot
+Type=simple
 User=root
 Group=root
 EnvironmentFile=-/etc/monitoring-agent-cpanel-mail.conf
 ExecStart=/usr/local/bin/monitoring-agent-cpanel-mail.sh
-TimeoutStartSec=20
+Restart=on-failure
+RestartSec=10
 # ---------------------------------------------------------------------------
 # CATATAN: direktif sandboxing namespace di bawah ini NONAKTIF secara default.
 # Pada sebagian VPS/container (OpenVZ/LXC/Virtualizor, dll) systemd tidak dapat
@@ -27,3 +28,6 @@ TimeoutStartSec=20
 UMask=0077
 StandardOutput=journal
 StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
