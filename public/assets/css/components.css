@@ -3365,6 +3365,7 @@ body:has(.admin-page) {
   position: relative;
   min-width: 180px;
   max-width: 260px;
+  margin-right: 0.3rem;
 }
 
 .dashboard-search-wrap i {
@@ -3379,7 +3380,7 @@ body:has(.admin-page) {
 
 .dashboard-search-wrap .form-control {
   padding-left: 2.1rem;
-  padding-right: 1.8rem;
+  padding-right: 2.1rem;
   font-size: 0.83rem;
   height: calc(1.5em + 0.65rem + 2px);
   border-radius: var(--sv-radius-sm);
