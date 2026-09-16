@@ -133,8 +133,10 @@ final class AlertLogsController
             $params[':server_id'] = $filterServerId;
         }
         if ($filterSearch !== '') {
-            $where[] = '(a.title LIKE :search OR a.message LIKE :search OR a.alert_type LIKE :search OR s.name LIKE :search)';
-            $params[':search'] = '%' . $filterSearch . '%';
+            $where[] = '(a.title LIKE :search0 OR a.message LIKE :search1 OR a.alert_type LIKE :search2 OR s.name LIKE :search3)';
+            // Native prepares (ATTR_EMULATE_PREPARES=false) forbid reusing one
+            // named placeholder, so the same value binds under distinct names.
+            $params[':search0'] = $params[':search1'] = $params[':search2'] = $params[':search3'] = '%' . $filterSearch . '%';
         }
 
         $whereSql = $where ? ('WHERE ' . implode(' AND ', $where)) : '';

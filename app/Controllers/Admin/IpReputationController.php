@@ -47,8 +47,10 @@ final class IpReputationController
         $params = [];
 
         if ($q !== '') {
-            $where[] = '(t.ip_address LIKE :q OR t.label LIKE :q)';
-            $params[':q'] = '%' . $q . '%';
+            $where[] = '(t.ip_address LIKE :q0 OR t.label LIKE :q1)';
+            // Native prepares (ATTR_EMULATE_PREPARES=false) forbid reusing one
+            // named placeholder, so the same value binds under distinct names.
+            $params[':q0'] = $params[':q1'] = '%' . $q . '%';
         }
         if ($statusFilter === 'clean') {
             $where[] = 't.active = 1 AND COALESCE(s.overall_status, "unknown") = "clean"';

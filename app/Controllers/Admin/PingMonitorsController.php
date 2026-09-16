@@ -51,8 +51,10 @@ final class PingMonitorsController
         $where = [];
         $params = [];
         if ($q !== '') {
-            $where[] = '(pm.name LIKE :q OR pm.target LIKE :q)';
-            $params[':q'] = '%' . $q . '%';
+            $where[] = '(pm.name LIKE :q0 OR pm.target LIKE :q1)';
+            // Native prepares (ATTR_EMULATE_PREPARES=false) forbid reusing one
+            // named placeholder, so the same value binds under distinct names.
+            $params[':q0'] = $params[':q1'] = '%' . $q . '%';
         }
         if ($typeFilter !== 'all') {
             $where[] = 'pm.target_type = :target_type';
