@@ -51,8 +51,9 @@ final class PingMonitorsController
         $where = [];
         $params = [];
         if ($q !== '') {
-            $where[] = '(pm.name LIKE :q OR pm.target LIKE :q)';
-            $params[':q'] = '%' . $q . '%';
+            $where[] = '(pm.name LIKE :q_name OR pm.target LIKE :q_target)';
+            $params[':q_name'] = '%' . $q . '%';
+            $params[':q_target'] = '%' . $q . '%';
         }
         if ($typeFilter !== 'all') {
             $where[] = 'pm.target_type = :target_type';
