@@ -18,29 +18,29 @@
         <div class="col-12 col-sm-6 col-xl-3">
             <div class="card card-neon summary-card summary-card-total p-3">
                 <div class="summary-card-head"><span class="summary-card-label">Total</span><i class="ti ti-radar summary-card-icon"></i></div>
-                <div class="summary-card-value"><?= e((string) $summary['total']) ?></div>
+                <div class="summary-card-value" data-ping-summary="total"><?= e((string) $summary['total']) ?></div>
                 <div class="summary-card-subtitle">Configured targets</div>
             </div>
         </div>
         <div class="col-12 col-sm-6 col-xl-3">
             <div class="card card-neon summary-card summary-card-online p-3">
                 <div class="summary-card-head"><span class="summary-card-label">Up</span><i class="ti ti-arrow-up-circle summary-card-icon"></i></div>
-                <div class="summary-card-value"><?= e((string) $summary['up']) ?></div>
+                <div class="summary-card-value" data-ping-summary="up"><?= e((string) $summary['up']) ?></div>
                 <div class="summary-card-subtitle">Reachable</div>
             </div>
         </div>
         <div class="col-12 col-sm-6 col-xl-3">
             <div class="card card-neon summary-card summary-card-down p-3">
                 <div class="summary-card-head"><span class="summary-card-label">Down</span><i class="ti ti-alert-triangle summary-card-icon"></i></div>
-                <div class="summary-card-value"><?= e((string) $summary['down']) ?></div>
+                <div class="summary-card-value" data-ping-summary="down"><?= e((string) $summary['down']) ?></div>
                 <div class="summary-card-subtitle">Unreachable</div>
             </div>
         </div>
         <div class="col-12 col-sm-6 col-xl-3">
             <div class="card card-neon summary-card summary-card-pending p-3">
                 <div class="summary-card-head"><span class="summary-card-label">Pending/Paused</span><i class="ti ti-history summary-card-icon"></i></div>
-                <div class="summary-card-value"><?= e((string) ($summary['pending'] + $summary['paused'])) ?></div>
-                <div class="summary-card-subtitle">Pending <?= e((string) $summary['pending']) ?> | Paused <?= e((string) $summary['paused']) ?></div>
+                <div class="summary-card-value" data-ping-summary="pending_paused"><?= e((string) ($summary['pending'] + $summary['paused'])) ?></div>
+                <div class="summary-card-subtitle">Pending <span data-ping-summary="pending"><?= e((string) $summary['pending']) ?></span> | Paused <span data-ping-summary="paused"><?= e((string) $summary['paused']) ?></span></div>
             </div>
         </div>
     </section>
@@ -108,7 +108,7 @@
                     <th class="text-end">Actions</th>
                 </tr>
                 </thead>
-                <tbody>
+                <tbody data-ping-tbody data-ping-points="<?= (int) $uptimePoints ?>">
                 <?php if (empty($rows)): ?>
                     <tr><td colspan="11" class="table-empty">
                         <div class="table-empty-inner">
@@ -126,7 +126,7 @@
                     $uptimeBars = $uptimeBarsByMonitor[$monitorId] ?? array_fill(0, $uptimePoints, ['status' => 'pending', 'checked_at' => null]);
                     $uptimeStats = $uptimeStatsByMonitor[$monitorId] ?? ['up' => 0, 'total' => 0, 'percent' => null];
                     ?>
-                    <tr>
+                    <tr data-monitor-id="<?= (int) ($row['id'] ?? 0) ?>">
                         <td><?= e((string) $row['name']) ?></td>
                         <td>
                             <div class="fw-semibold"><?= e((string) $row['target']) ?></div>
@@ -136,12 +136,12 @@
                         <td><?= e((string) ((int) ($row['check_interval_seconds'] ?? 60))) ?>s</td>
                         <td><?= e((string) ((int) ($row['timeout_seconds'] ?? 2))) ?>s</td>
                         <td><?= e((string) ((int) ($row['failure_threshold'] ?? 2))) ?></td>
-                        <td><span class="badge <?= e($pingStatusBadgeClass($status)) ?> text-uppercase"><?= e($status) ?></span></td>
+                        <td><span class="badge <?= e($pingStatusBadgeClass($status)) ?> text-uppercase" data-ping-cell="status"><?= e($status) ?></span></td>
                         <td>
-                            <div class="font-mono fw-semibold">
+                            <div class="font-mono fw-semibold" data-ping-cell="uptime_percent">
                                 <?= $uptimeStats['percent'] === null ? '-' : e(number_format((float) $uptimeStats['percent'], 2) . '%') ?>
                             </div>
-                            <div class="ping-uptime-strip" aria-label="Last <?= e((string) $uptimePoints) ?> checks">
+                            <div class="ping-uptime-strip" aria-label="Last <?= e((string) $uptimePoints) ?> checks" data-ping-cell="uptime_strip">
                                 <?php foreach ($uptimeBars as $segment): ?>
                                     <?php
                                     $segmentStatus = (string) ($segment['status'] ?? 'pending');
@@ -157,8 +157,8 @@
                                 <?php endforeach; ?>
                             </div>
                         </td>
-                        <td><?= isset($row['last_latency_ms']) ? e(number_format((float) $row['last_latency_ms'], 2)) . ' ms' : '-' ?></td>
-                        <td><?= e((string) ($row['last_checked_at'] ?? '-')) ?></td>
+                        <td data-ping-cell="latency"><?= isset($row['last_latency_ms']) ? e(number_format((float) $row['last_latency_ms'], 2)) . ' ms' : '-' ?></td>
+                        <td data-ping-cell="last_checked"><?= e((string) ($row['last_checked_at'] ?? '-')) ?></td>
                         <td class="text-end">
                             <div class="dropdown d-inline-block">
                                 <button
@@ -216,8 +216,8 @@
     </section>
 </main>
 <script src="<?= e(asset_url('assets/js/forms.js')) ?>"></script>
-<script<?= csp_nonce_attr() ?>>window.MONITORS_AUTO_REFRESH_MS = 15000; window.MONITORS_AUTO_REFRESH_SKIP_TERMINAL = true;</script>
-<script src="<?= e(asset_url('assets/js/auto-refresh.js')) ?>"></script>
+<script<?= csp_nonce_attr() ?>>window.MONITORS_PING_REFRESH_MS = 15000;</script>
+<script src="<?= e(asset_url('assets/js/ping-monitors.js')) ?>"></script>
 
 <div class="modal fade" id="pingTerminalModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-lg">

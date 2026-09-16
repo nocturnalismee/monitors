@@ -233,14 +233,15 @@ final class PingMonitorsController
             );
         }
 
-        $pingStatusBadgeClass = static function (string $status): string {
-            return match ($status) {
-                'up' => 'badge-online',
-                'down' => 'badge-down',
-                'paused' => 'text-bg-secondary',
-                default => 'badge-pending',
-            };
-        };
+        $pingStatusBadgeClass = static fn (string $status): string => self::badgeClass($status);
+
+        if (strtolower(trim((string) ($request->query('format') ?? ''))) === 'json') {
+            return Response::json([
+                'summary' => $summary,
+                'uptime_points' => $uptimePoints,
+                'rows' => self::buildJsonRows($rows, $uptimeBarsByMonitor, $uptimeStatsByMonitor, $uptimePoints),
+            ]);
+        }
 
         $data = [
             'rows' => $rows,
@@ -259,5 +260,57 @@ final class PingMonitorsController
         ];
 
         return Response::html(View::render('admin/ping_monitors', $data, 'admin'));
+    }
+
+    private static function badgeClass(string $status): string
+    {
+        return match ($status) {
+            'up' => 'badge-online',
+            'down' => 'badge-down',
+            'paused' => 'text-bg-secondary',
+            default => 'badge-pending',
+        };
+    }
+
+    /**
+     * @param array<int, array<string, mixed>> $rows
+     * @param array<int, array<int, array<string, mixed>>> $uptimeBarsByMonitor
+     * @param array<int, array<string, mixed>> $uptimeStatsByMonitor
+     * @return array<int, array<string, mixed>>
+     */
+    private static function buildJsonRows(array $rows, array $uptimeBarsByMonitor, array $uptimeStatsByMonitor, int $uptimePoints): array
+    {
+        $jsonRows = [];
+        foreach ($rows as $row) {
+            if (!is_array($row)) {
+                continue;
+            }
+            $monitorId = (int) ($row['id'] ?? 0);
+            $status = ping_display_status((string) ($row['last_status'] ?? 'unknown'), (int) ($row['active'] ?? 0));
+            $stats = $uptimeStatsByMonitor[$monitorId] ?? ['percent' => null];
+            $bars = [];
+            foreach (array_slice(array_values($uptimeBarsByMonitor[$monitorId] ?? []), -$uptimePoints) as $segment) {
+                $segment = is_array($segment) ? $segment : [];
+                $checkedAt = $segment['checked_at'] ?? null;
+                $bars[] = [
+                    'status' => (string) ($segment['status'] ?? 'pending'),
+                    'checked_at' => ($checkedAt === null || $checkedAt === '') ? null : (string) $checkedAt,
+                ];
+            }
+            while (count($bars) < $uptimePoints) {
+                array_unshift($bars, ['status' => 'pending', 'checked_at' => null]);
+            }
+            $jsonRows[] = [
+                'id' => $monitorId,
+                'display_status' => $status,
+                'badge_class' => self::badgeClass($status),
+                'last_latency_ms' => isset($row['last_latency_ms']) ? (float) $row['last_latency_ms'] : null,
+                'last_checked_at' => isset($row['last_checked_at']) && $row['last_checked_at'] !== '' ? (string) $row['last_checked_at'] : null,
+                'uptime_percent' => isset($stats['percent']) ? (float) $stats['percent'] : null,
+                'uptime_bars' => $bars,
+            ];
+        }
+
+        return $jsonRows;
     }
 }
