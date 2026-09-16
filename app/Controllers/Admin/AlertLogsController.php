@@ -133,8 +133,11 @@ final class AlertLogsController
             $params[':server_id'] = $filterServerId;
         }
         if ($filterSearch !== '') {
-            $where[] = '(a.title LIKE :search OR a.message LIKE :search OR a.alert_type LIKE :search OR s.name LIKE :search)';
-            $params[':search'] = '%' . $filterSearch . '%';
+            $where[] = '(a.title LIKE :search_title OR a.message LIKE :search_message OR a.alert_type LIKE :search_type OR s.name LIKE :search_name)';
+            $params[':search_title'] = '%' . $filterSearch . '%';
+            $params[':search_message'] = '%' . $filterSearch . '%';
+            $params[':search_type'] = '%' . $filterSearch . '%';
+            $params[':search_name'] = '%' . $filterSearch . '%';
         }
 
         $whereSql = $where ? ('WHERE ' . implode(' AND ', $where)) : '';

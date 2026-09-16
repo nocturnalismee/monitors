@@ -47,8 +47,9 @@ final class IpReputationController
         $params = [];
 
         if ($q !== '') {
-            $where[] = '(t.ip_address LIKE :q OR t.label LIKE :q)';
-            $params[':q'] = '%' . $q . '%';
+            $where[] = '(t.ip_address LIKE :q_ip OR t.label LIKE :q_label)';
+            $params[':q_ip'] = '%' . $q . '%';
+            $params[':q_label'] = '%' . $q . '%';
         }
         if ($statusFilter === 'clean') {
             $where[] = 't.active = 1 AND COALESCE(s.overall_status, "unknown") = "clean"';
