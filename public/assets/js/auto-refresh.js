@@ -23,10 +23,14 @@ document.addEventListener("DOMContentLoaded", () => {
     return !!modal && modal.classList.contains("show");
   };
 
-  window.setInterval(() => {
+  let timerId = window.setInterval(() => {
     if (document.hidden) return;
     if (hasActiveFormFocus()) return;
     if (skipTerminal && hasActiveTerminal()) return;
     window.location.reload();
   }, intervalMs);
+
+  document.addEventListener("submit", () => {
+    window.clearInterval(timerId);
+  }, true);
 });
