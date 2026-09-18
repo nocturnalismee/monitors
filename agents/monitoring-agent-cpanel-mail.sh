@@ -81,13 +81,13 @@ MAIL_QUEUE_SPOOL_FALLBACK="${MAIL_QUEUE_SPOOL_FALLBACK:-0}"
 #  Tambah/edit service cukup di sini saja.
 # ─────────────────────────────────────────────
 declare -A SERVICE_REGISTRY
-SERVICE_REGISTRY["exim"]="mail_mta|exim|exim|exim4|exim4 exim"
-SERVICE_REGISTRY["dovecot"]="mail_access|dovecot|dovecot|dovecot|dovecot cpanel-dovecot-solr"
-SERVICE_REGISTRY["mailman"]="mail_service|mailman|mailman|mailman3|mailman mailman3 mailman-core cpanel-mailman"
-SERVICE_REGISTRY["csf"]="firewall|csf|lfd|csf|csf lfd"
-SERVICE_REGISTRY["clamd"]="firewall|clamd|clamd|clamd|clamd clamd@scan clamav-daemon clamd-wrapper"
-SERVICE_REGISTRY["spamd"]="firewall|spamd|spamd|spamd|spamd spamassassin spamd-wrapper"
-SERVICE_REGISTRY["sshd"]="ssh|sshd|sshd|sshd|sshd ssh"
+SERVICE_REGISTRY["exim"]="mail_mta|exim|exim|exim4 exim"
+SERVICE_REGISTRY["dovecot"]="mail_access|dovecot|dovecot|dovecot cpanel-dovecot-solr"
+SERVICE_REGISTRY["mailman"]="mail_service|mailman|mailman|mailman mailman3 mailman-core cpanel-mailman"
+SERVICE_REGISTRY["csf"]="firewall|csf|lfd|csf lfd"
+SERVICE_REGISTRY["clamd"]="firewall|clamd|clamd|clamd clamd@scan clamav-daemon clamd-wrapper"
+SERVICE_REGISTRY["spamd"]="firewall|spamd|spamd|spamd spamassassin spamd-wrapper"
+SERVICE_REGISTRY["sshd"]="ssh|sshd|sshd|sshd ssh"
 
 # Urutan service yang akan di-monitor (sesuaikan jika perlu)
 MONITOR_SERVICES="exim dovecot mailman csf clamd spamd sshd"
@@ -274,10 +274,15 @@ build_services_json() {
     fi
 
     IFS='|' read -r group svc_key pgrep_pat aliases_str <<< "${reg}"
+    # Defense-in-depth: '|' adalah delimiter internal rows/record.
+    # Ubah sisa '|' liar (typo registry) jadi spasi agar tidak
+    # menggeser field status/source saat re-parse di bawah.
+    aliases_str="${aliases_str//|/ }"
     read -ra aliases_arr <<< "${aliases_str}"
 
     record="$(detect_service_status "${pgrep_pat}" "${aliases_arr[@]}")"
     IFS='|' read -r status source unit <<< "${record}"
+    unit="${unit//|/}"
     rows+=("${group}|${svc_key}|${unit}|${status}|${source}")
   done
 
