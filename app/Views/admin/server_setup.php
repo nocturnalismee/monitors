@@ -65,16 +65,13 @@ sed -i "s|^MASTER_URL=.*|MASTER_URL=<?= e($pushEndpoint) ?>|" /etc/systemd/monit
 sed -i "s|^SERVER_TOKEN=.*|SERVER_TOKEN=<?= e($setupToken) ?>|" /etc/systemd/monitoring-agent.conf
 sed -i "s|^SERVER_ID=.*|SERVER_ID=<?= e((string) $server['id']) ?>|" /etc/systemd/monitoring-agent.conf
 
-# Manual test (one-shot; the daemon only runs every 10 seconds once the service is active)
-/usr/local/bin/monitoring-agent.sh
-
 # 3) Create Direktory Monitoring Agent
 mkdir /var/lib/monitoring-agent
 
-# 4) Install systemd service (daemon, auto-restart, pushes every 10 seconds)
+# 4) Install systemd service
 wget <?= e($systemdServiceUrl) ?> -O /etc/systemd/system/monitoring-agent.service
 
-# Manual test (one-shot; the daemon only runs every 10 seconds once the service is active)
+# Manual test (Opsional)
 /usr/local/bin/monitoring-agent.sh
 
 # 5) Run service systemd
@@ -116,7 +113,7 @@ mkdir /var/lib/monitoring-agent
 # 4) Install systemd service
 wget <?= e($systemdEmailServiceUrl) ?> -O /etc/systemd/system/monitoring-agent-cpanel-email.service
 
-# Manual test
+# Manual test (Opsional)
 /usr/local/bin/monitoring-agent-cpanel-mail.sh
 
 # 5) Run service systemd

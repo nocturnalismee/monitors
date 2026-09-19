@@ -228,7 +228,7 @@ foreach ($unhealthyWorkers as $uw) {
                         <button type="button" class="sort-btn" data-sort-trigger="ram">RAM<i class="ti ti-arrows-sort sort-icon" aria-hidden="true"></i></button>
                     </th>
                     <th scope="col" data-sort-key="disk" aria-sort="none">
-                        <button type="button" class="sort-btn" data-sort-trigger="disk">Disk<i class="ti ti-arrows-sort sort-icon" aria-hidden="true"></i></button>
+                        <button type="button" class="sort-btn" data-sort-trigger="disk">DISK<i class="ti ti-arrows-sort sort-icon" aria-hidden="true"></i></button>
                     </th>
                     <th scope="col" class="d-none d-xl-table-cell">Panel</th>
                     <th scope="col">Services</th>
