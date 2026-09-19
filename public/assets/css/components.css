@@ -1867,7 +1867,7 @@ body:has(.admin-page) {
 }
 
 .public-summary-table .public-col-panel {
-  width: 9%;
+  width: 7%;
 }
 
 .public-summary-table .public-col-services {
@@ -1875,11 +1875,11 @@ body:has(.admin-page) {
 }
 
 .public-summary-table .public-col-net {
-  width: 9%;
+  width: 10%;
 }
 
 .public-summary-table .public-col-queue {
-  width: 6%;
+  width: 7%;
 }
 
 .table.monitors-table.public-summary-table th,
