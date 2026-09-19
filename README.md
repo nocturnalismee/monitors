@@ -4,13 +4,12 @@
 
 **Lightweight, High-Performance Self-Hosted Infrastructure & Server Monitoring Platform**
 
-Real-time telemetry, S.M.A.R.T. disk health, ICMP/HTTP ping monitors, IP reputation checks, and multi-channel alerting with zero third-party dependencies.
+Real-time telemetry, S.M.A.R.T. disk health, ICMP/HTTP ping monitors, IP reputation checks, and multi-channel alerting with no Composer runtime dependencies.
 
 [![PHP Version](https://img.shields.io/badge/PHP-8.2%2B-777BB4?style=flat-square&logo=php&logoColor=white)](https://php.net)
 [![Database](https://img.shields.io/badge/MySQL-8.0%20%7C%20MariaDB-4479A1?style=flat-square&logo=mysql&logoColor=white)](https://mysql.com)
 [![Architecture](https://img.shields.io/badge/Architecture-Vanilla%20PHP%20(Zero--Bloat)-success?style=flat-square)](https://github.com/nocturnalismee/monitors)
 [![Real-Time](https://img.shields.io/badge/Telemetry-SSE%20%2B%20AJAX%20Fallback-2dd4bf?style=flat-square)](https://github.com/nocturnalismee/monitors)
-[![License](https://img.shields.io/badge/License-MIT-blue?style=flat-square)](LICENSE)
 
 </div>
 
@@ -223,9 +222,9 @@ Monitors provides portable POSIX Bash agents that require **zero external packag
 ### 1. General Server Telemetry Agent
 1. Copy the configuration file template to target server:
    ```bash
-   sudo cp agents/systemd/monitoring-agent.conf.example /etc/monitoring-agent.conf
+   sudo cp agents/systemd/monitoring-agent.conf.example /etc/systemd/monitoring-agent.conf
    ```
-2. Populate `/etc/monitoring-agent.conf`:
+2. Populate `/etc/systemd/monitoring-agent.conf`:
    ```bash
    MASTER_URL="https://monitor.yourdomain.com/api/push"
    SERVER_TOKEN="<64_CHARACTER_TOKEN_FROM_PANEL>"
@@ -243,7 +242,7 @@ Monitors provides portable POSIX Bash agents that require **zero external packag
 ### 2. Disk S.M.A.R.T. Health Agent
 Run periodically via cron on target servers:
 ```cron
-*/15 * * * * /path/to/agent-disk-health.sh MASTER_URL="https://monitor.yourdomain.com/api/push-disk" SERVER_TOKEN="<TOKEN>" SERVER_ID="1" >/dev/null 2>&1
+*/15 * * * * MASTER_URL="https://monitor.yourdomain.com/api/push-disk" SERVER_TOKEN="<TOKEN>" SERVER_ID="1" /path/to/monitors/agents/agent-disk-health.sh >/dev/null 2>&1
 ```
 
 ---
@@ -269,6 +268,6 @@ BASE_URL=http://127.0.0.1:8000 bash tests/authz_matrix.sh
 
 ---
 
-## 📜 License & Acknowledgments
+## 📜 Acknowledgments
 
-This project is licensed under the [MIT License](LICENSE). Built with dedication by **Arief** and maintained for robust infrastructure observability.
+Built with dedication by **Arief** and maintained for robust infrastructure observability.
