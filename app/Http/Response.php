@@ -9,6 +9,8 @@ final class Response
     /** @var array<string, string> */
     public array $headers;
     public string $body;
+    /** @var array<string, mixed> extra metadata carried between layers (never emitted) */
+    public array $meta = [];
 
     public function __construct(string $body = '', int $status = 200, array $headers = [])
     {
@@ -20,6 +22,12 @@ final class Response
     public function withHeader(string $name, string $value): self
     {
         $this->headers[$name] = $value;
+        return $this;
+    }
+
+    public function withData(string $key, mixed $value): self
+    {
+        $this->meta[$key] = $value;
         return $this;
     }
 
@@ -55,6 +63,15 @@ final class Response
         http_response_code($this->status);
         foreach ($this->headers as $name => $value) {
             header($name . ': ' . $value);
+        }
+        $isHead = strtoupper((string) ($_SERVER['REQUEST_METHOD'] ?? '')) === 'HEAD';
+        // HEAD must advertise the same status/headers as GET but must not emit
+        // a body (RFC 9110 §9.3.2); announce the GET length instead.
+        if ($isHead && !isset($this->headers['Content-Length']) && $this->body !== '' && $this->status >= 200 && $this->status < 300 && $this->status !== 204) {
+            header('Content-Length: ' . strlen($this->body));
+        }
+        if ($isHead) {
+            return;
         }
         echo $this->body;
     }

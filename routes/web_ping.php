@@ -15,6 +15,12 @@ return [
         'middleware' => ['admin', 'csrf'],
     ],
     [
+        'methods' => ['POST'],
+        'pattern' => '/ping/terminal/token',
+        'handler' => [\App\Controllers\Admin\PingTerminalTokenController::class, 'issue'],
+        'middleware' => ['admin', 'csrf'],
+    ],
+    [
         'methods' => ['GET'],
         'pattern' => '/ping/terminal/stream',
         'handler' => [\App\Controllers\Admin\PingTerminalController::class, 'stream'],

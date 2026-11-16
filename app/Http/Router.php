@@ -9,6 +9,8 @@ final class Router
 {
     /** @var array<int, array<string, mixed>> */
     private array $routes = [];
+    /** @var array<string, string> compiled pattern cache (pattern => regex) */
+    private array $compiled = [];
     private bool $loaded = false;
 
     public function loadRoutes(): void
@@ -34,9 +36,11 @@ final class Router
 
     private function compilePattern(string $pattern): string
     {
-        $pattern = '/' . trim($pattern, '/');
-        $pattern = preg_replace('/\{(\w+)\}/', '(?P<$1>[^/]+)', $pattern) ?? $pattern;
-        return '~^' . $pattern . '$~';
+        return $this->compiled[$pattern] ??= (static function (string $pattern): string {
+            $pattern = '/' . trim($pattern, '/');
+            $pattern = preg_replace('/\{(\w+)\}/', '(?P<$1>[^/]+)', $pattern) ?? $pattern;
+            return '~^' . $pattern . '$~';
+        })($pattern);
     }
 
     public function dispatch(Request $request): Response
@@ -44,11 +48,19 @@ final class Router
         $this->loadRoutes();
         $path = '/' . trim($request->path, '/');
 
+        // HEAD is served by the GET handler; the response body is stripped in
+        // Response::send() so cache/proxy semantics stay correct.
+        $method = $request->method === 'HEAD' ? 'GET' : $request->method;
+        $allowed = [];
+
         foreach ($this->routes as $route) {
-            if (!in_array($request->method, (array) ($route['methods'] ?? []), true)) {
+            $methods = array_map('strtoupper', (array) ($route['methods'] ?? []));
+            $pattern = (string) ($route['pattern'] ?? '');
+            if (!preg_match($this->compilePattern($pattern), $path, $matches)) {
                 continue;
             }
-            if (!preg_match($this->compilePattern((string) ($route['pattern'] ?? '')), $path, $matches)) {
+            if (!in_array($method, $methods, true)) {
+                $allowed = array_merge($allowed, $methods);
                 continue;
             }
             foreach ($matches as $key => $value) {
@@ -60,22 +72,12 @@ final class Router
             $handler = $route['handler'] ?? null;
 
             if (is_string($handler) && str_starts_with($handler, 'redirect:')) {
-                $target = substr($handler, 9);
-                $queryString = http_build_query($request->query);
-                if ($queryString !== '') {
-                    $target .= (str_contains($target, '?') ? '&' : '?') . $queryString;
-                }
-                return Response::redirect(app_url($target), 301);
+                return Response::redirect($this->withQuery(app_url(substr($handler, 9)), $request), 301);
             }
 
             if (is_string($handler) && (str_starts_with($handler, 'redirect307:') || str_starts_with($handler, 'redirect308:'))) {
                 $status = str_starts_with($handler, 'redirect307:') ? 307 : 308;
-                $target = substr($handler, 12);
-                $queryString = http_build_query($request->query);
-                if ($queryString !== '') {
-                    $target .= (str_contains($target, '?') ? '&' : '?') . $queryString;
-                }
-                return Response::redirect(app_url($target), $status);
+                return Response::redirect($this->withQuery(app_url(substr($handler, 12)), $request), $status);
             }
 
             foreach ((array) ($route['middleware'] ?? []) as $middlewareName) {
@@ -89,7 +91,38 @@ final class Router
             return $result instanceof Response ? $result : Response::text((string) $result);
         }
 
+        if ($allowed !== []) {
+            // Path exists but not for this verb: 405 with an Allow header so
+            // clients and crawlers stop guessing (HEAD implied by GET).
+            if (in_array('GET', $allowed, true)) {
+                $allowed[] = 'HEAD';
+            }
+            $allowed[] = 'OPTIONS';
+            $allowed = array_values(array_unique($allowed));
+            sort($allowed);
+            $allowHeader = implode(', ', $allowed);
+            if ($request->method === 'OPTIONS') {
+                // The methods we advertise in Allow are the methods we answer.
+                $response = Response::text('', 204);
+                $response->headers['Allow'] = $allowHeader;
+                return $response;
+            }
+            $response = Response::text('Method Not Allowed', 405);
+            $response->headers['Allow'] = $allowHeader;
+            return $response;
+        }
+
         return Response::text('Not Found', 404);
+    }
+
+    private function withQuery(string $target, Request $request): string
+    {
+        $queryString = http_build_query($request->query);
+        if ($queryString === '') {
+            return $target;
+        }
+
+        return $target . (str_contains($target, '?') ? '&' : '?') . $queryString;
     }
 
     private function invoke(mixed $handler, Request $request): mixed

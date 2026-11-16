@@ -31,6 +31,10 @@ define('REDIS_DB', (int) env('REDIS_DB', '0'));
 define('REDIS_PREFIX', env('REDIS_PREFIX', 'monitors:'));
 define('LOGIN_MAX_ATTEMPTS', 5);
 define('LOGIN_WINDOW_MINUTES', 5);
+// Per-username budget is looser than the per-IP one: NATed offices try
+// several accounts legitimately, while a single account must not need 20
+// tries from 20 different IPs.
+define('LOGIN_USERNAME_MAX_ATTEMPTS', 20);
 // Fallback only: serverStatusFromLastSeen() prefers the alert_down_minutes
 // setting when no explicit threshold is passed.
 define('STATUS_ONLINE_MINUTES', 2);
@@ -61,7 +65,7 @@ if (PHP_SAPI !== 'cli') {
         header('X-Content-Type-Options: nosniff');
         header('Referrer-Policy: strict-origin-when-cross-origin');
         header('Permissions-Policy: geolocation=(), microphone=(), camera=()');
-        header("Content-Security-Policy: default-src 'self'; script-src 'self' 'nonce-" . MONITORS_CSP_NONCE . "' https://cdn.jsdelivr.net https://challenges.cloudflare.com; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; img-src 'self' data:; font-src 'self' data: https://cdn.jsdelivr.net; connect-src 'self' https://cdn.jsdelivr.net https://challenges.cloudflare.com; frame-src https://challenges.cloudflare.com; frame-ancestors 'self'");
+        header("Content-Security-Policy: default-src 'self'; script-src 'self' 'nonce-" . MONITORS_CSP_NONCE . "' https://challenges.cloudflare.com; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self' data:; connect-src 'self' https://challenges.cloudflare.com; frame-src https://challenges.cloudflare.com; frame-ancestors 'self'");
         $requestUri = (string)($_SERVER['REQUEST_URI'] ?? '');
         $isAsset = str_starts_with($requestUri, '/assets/');
         if (!$isAsset) {

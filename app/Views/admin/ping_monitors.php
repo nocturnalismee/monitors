@@ -239,5 +239,5 @@
     </div>
 </div>
 
-<script<?= csp_nonce_attr() ?>>window.MONITORS_CSRF_TOKEN = <?= json_encode(csrf_token(), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;</script>
+<script<?= csp_nonce_attr() ?>>window.MONITORS_CSRF_TOKEN = <?= json_encode(csrf_token(), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;window.MONITORS_PING_STREAM_URL = <?= json_encode(app_url('ping/terminal/stream'), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;</script>
 <script src="<?= e(asset_url('assets/js/ping-terminal.js')) ?>"></script>

@@ -43,12 +43,27 @@ function is_ip_rate_limited(string $ip): bool
     return AuthService::isIpRateLimited($ip);
 }
 
+function is_username_rate_limited(string $username): bool
+{
+    return AuthService::isUsernameRateLimited($username);
+}
+
+function is_login_rate_limited(string $ip, string $username): bool
+{
+    return AuthService::isLoginRateLimited($ip, $username);
+}
+
+function attempt_login(string $username, string $password): ?array
+{
+    return AuthService::attemptLogin($username, $password);
+}
+
 function register_login_attempt(string $ip, ?string $username): void
 {
     AuthService::registerLoginAttempt($ip, $username);
 }
 
-function clear_login_attempts(string $ip): void
+function clear_login_attempts(string $ip, ?string $username = null): void
 {
-    AuthService::clearLoginAttempts($ip);
+    AuthService::clearLoginAttempts($ip, $username);
 }

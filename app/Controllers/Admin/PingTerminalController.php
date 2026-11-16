@@ -17,7 +17,21 @@ final class PingTerminalController
 
         require_role('admin');
 
-        $token = (string) ($request->query('token') ?? '');
+        // The CSRF token must not travel in the query string (it leaks into access
+        // logs, Referer headers and browser history). Browsers cannot set
+        // headers on `new EventSource(url)`, so the client opens the stream
+        // through a fetch()-based reader that sends `X-CSRF-Token`; a per-session
+        // one-shot nonce is still accepted for legacy EventSource clients.
+        $token = (string) ($request->header('x-csrf-token') ?? '');
+        if ($token === '') {
+            $nonce = (string) ($request->query('nonce') ?? '');
+            $issued = $_SESSION['ping_terminal_nonce'] ?? null;
+            unset($_SESSION['ping_terminal_nonce']);
+            if ($nonce !== '' && is_array($issued) && hash_equals((string) ($issued['value'] ?? ''), $nonce)
+                && ($issued['expires_at'] ?? 0) >= time()) {
+                $token = (string) ($_SESSION['_csrf_token'] ?? '');
+            }
+        }
         if (!csrf_validate($token)) {
             return Response::text('419 Invalid security token.', 419);
         }

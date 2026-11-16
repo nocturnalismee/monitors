@@ -10,9 +10,15 @@ final class Admin
 {
     public static function handle(Request $request): ?Response
     {
-        if (!has_role('admin')) {
-            return Response::redirect(app_url('dashboard'));
+        if (has_role('admin')) {
+            return null;
         }
-        return null;
+
+        if (str_starts_with('/' . trim($request->path, '/'), '/api/')) {
+            return Response::json(['error' => 'Forbidden', 'message' => 'Insufficient permission to access this action.'], 403);
+        }
+
+        flash_set('danger', 'Insufficient permission to access this action.');
+        return Response::redirect(app_url('dashboard'), 303);
     }
 }

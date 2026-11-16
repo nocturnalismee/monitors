@@ -22,8 +22,9 @@ final class LoginController
         if (is_post()) {
             // CSRF single-guard: enforced by csrf middleware.
             $ip = get_client_ip();
-            if (is_ip_rate_limited($ip)) {
-                flash_set('danger', 'Too many login attempts. Please try again in 5 minutes.');
+            $username = trim((string) ($request->input('username') ?? ''));
+            if (is_login_rate_limited($ip, $username)) {
+                flash_set('danger', 'Too many login attempts. Please try again later.');
                 redirect('login');
             }
 
@@ -31,18 +32,17 @@ final class LoginController
                 (string) ($request->input('cf-turnstile-response') ?? ''),
                 $ip
             )) {
-                register_login_attempt($ip, trim((string) ($request->input('username') ?? '')));
+                register_login_attempt($ip, $username);
                 flash_set('danger', 'Security verification failed. Please try again.');
                 redirect('login');
             }
 
-            $username = trim((string) ($request->input('username') ?? ''));
             $password = (string) ($request->input('password') ?? '');
-            $user = db_one('SELECT id, username, password_hash, role FROM users WHERE username = :username LIMIT 1', [':username' => $username]);
+            $user = attempt_login($username, $password);
 
-            if ($user !== null && password_verify($password, (string) $user['password_hash'])) {
+            if ($user !== null) {
                 login_user($user);
-                clear_login_attempts($ip);
+                clear_login_attempts($ip, $username);
                 db_exec('UPDATE users SET last_login = NOW() WHERE id = :id', [':id' => (int) $user['id']]);
                 audit_log('auth_login_success', 'User login success', 'user', (int) $user['id']);
                 flash_set('success', 'Login successful.');
