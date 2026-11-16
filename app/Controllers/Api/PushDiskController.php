@@ -179,8 +179,9 @@ final class PushDiskController
             json_response(['error' => 'Failed to save disk health data'], 500);
         }
 
-        cache_delete('status:disk_summary:all');
-        cache_delete('status:disk_summary:active');
+        // Bump the global status version: the disk summary keys are
+        // version-suffixed, so this orphans both variants at once.
+        invalidate_status_cache(null);
         invalidate_status_cache($serverId);
 
         if ($accepted === 0) {

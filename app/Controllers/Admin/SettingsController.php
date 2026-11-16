@@ -116,6 +116,7 @@ final class SettingsController
                 'alert_service_status_enabled' => $request->input('alert_service_status_enabled') !== null ? '1' : '0',
                 'alert_ping_enabled' => $request->input('alert_ping_enabled') !== null ? '1' : '0',
                 'alert_sound_enabled' => $request->input('alert_sound_enabled') !== null ? '1' : '0',
+                'realtime_stream_enabled' => $request->input('realtime_stream_enabled') !== null ? '1' : '0',
                 'alert_sound_volume' => (string) max(0, min(10, (int) ($request->input('alert_sound_volume') ?? setting_get('alert_sound_volume')))),
                 'threshold_mail_queue' => (string) max(0, (int) ($request->input('threshold_mail_queue') ?? setting_get('threshold_mail_queue'))),
                 'threshold_mail_queue_critical' => (string) max(0, (int) ($request->input('threshold_mail_queue_critical') ?? setting_get('threshold_mail_queue_critical'))),

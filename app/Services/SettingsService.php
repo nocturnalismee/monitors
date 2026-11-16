@@ -30,6 +30,7 @@ final class SettingsService
             'alert_ping_enabled' => '1',
             'alert_sound_enabled' => '1',
             'alert_sound_volume' => '8',
+            'realtime_stream_enabled' => '1',
             'cache_ttl_status_list' => '15',
             'cache_ttl_status_single' => '15',
             'cache_ttl_history_5m' => '5',
@@ -136,45 +137,27 @@ final class SettingsService
             return self::$cache;
         }
 
-        $redisKey = 'settings:all';
-        $cached = Cache::get($redisKey);
-        if (is_array($cached)) {
-            $sensitiveKeys = array_filter(array_keys(self::defaults()), [self::class, 'isSensitive']);
-            if (!empty($sensitiveKeys)) {
-                $rows = Database::all('SELECT setting_key, setting_value FROM app_settings');
-                foreach ($rows as $row) {
-                    $k = (string) $row['setting_key'];
-                    if (in_array($k, $sensitiveKeys, true)) {
-                        $cached[$k] = self::decrypt((string) $row['setting_value']);
-                    }
-                }
+        $cacheKey = 'settings:all:v2';
+        $defaults = self::defaults();
+
+        // The cached blob holds RAW stored values (sensitive keys stay in
+        // their ENC2 form, exactly as in the DB), so a cache hit needs no
+        // second query to recover credentials.
+        $stored = Cache::get($cacheKey);
+        if (!is_array($stored)) {
+            $stored = [];
+            foreach (Database::all('SELECT setting_key, setting_value FROM app_settings') as $row) {
+                $stored[(string) $row['setting_key']] = (string) $row['setting_value'];
             }
-            self::$cache = $cached;
-            return self::$cache;
+            Cache::set($cacheKey, $stored, 300);
         }
 
-        $defaults = self::defaults();
-        $rows = Database::all('SELECT setting_key, setting_value FROM app_settings');
         $data = $defaults;
-        foreach ($rows as $row) {
-            $k = (string) $row['setting_key'];
-            $v = (string) $row['setting_value'];
-            if (self::isSensitive($k)) {
-                $v = self::decrypt($v);
-            }
-            $data[$k] = $v;
+        foreach ($stored as $k => $v) {
+            $data[$k] = self::isSensitive((string) $k) ? self::decrypt($v) : $v;
         }
 
         self::$cache = $data;
-
-        $safeForRedis = $data;
-        foreach (array_keys($safeForRedis) as $k) {
-            if (self::isSensitive($k)) {
-                unset($safeForRedis[$k]);
-            }
-        }
-        Cache::set($redisKey, $safeForRedis, 300);
-
         return self::$cache;
     }
 
@@ -196,12 +179,45 @@ final class SettingsService
         );
         self::$cache = null;
         Cache::delete('settings:all');
+        Cache::delete('settings:all:v2');
     }
 
+    /**
+     * Persist many settings in a single round trip. The old loop issued one
+     * INSERT ... ON DUPLICATE KEY UPDATE (+ one cache delete) per key, so a
+     * full settings save cost 75+ queries.
+     */
     public static function saveMany(array $values): void
     {
+        if ($values === []) {
+            return;
+        }
+
+        $tuples = [];
+        $binds = [];
+        $i = 0;
         foreach ($values as $k => $v) {
-            self::set((string) $k, (string) $v);
+            $key = (string) $k;
+            $value = (string) $v;
+            if (self::isSensitive($key)) {
+                $value = self::encrypt($value);
+            }
+            $tuples[] = '(:k' . $i . ', :v' . $i . ')';
+            $binds[':k' . $i] = $key;
+            $binds[':v' . $i] = $value;
+            $i++;
+        }
+
+        try {
+            Database::exec(
+                'INSERT INTO app_settings (setting_key, setting_value) VALUES ' . implode(', ', $tuples) . '
+                 ON DUPLICATE KEY UPDATE setting_value = VALUES(setting_value)',
+                $binds
+            );
+        } finally {
+            self::$cache = null;
+            Cache::delete('settings:all');
+            Cache::delete('settings:all:v2');
         }
     }
 }

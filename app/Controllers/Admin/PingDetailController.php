@@ -190,6 +190,7 @@ final class PingDetailController
         };
 
         $data = [
+            'loadEcharts' => true,
             'id' => $id,
             'monitor' => $monitor,
             'canManageMonitors' => $canManageMonitors,

@@ -9,7 +9,7 @@ final class WorkerService
 
     public static function worker_health_read(string $workerName): array
     {
-        $safe = substr(preg_replace('/[^a-zA-Z0-9_-]/', '_', $workerName) ?? 'unknown', 0, 50);
+        $safe = self::safeWorkerName($workerName);
         $row = db_one('SELECT * FROM worker_health WHERE worker_name = :name LIMIT 1', [':name' => $safe]);
         if ($row === null) {
             return [];
@@ -19,7 +19,7 @@ final class WorkerService
 
     public static function worker_health_write(string $workerName, array $data): void
     {
-        $safe = substr(preg_replace('/[^a-zA-Z0-9_-]/', '_', $workerName) ?? 'unknown', 0, 50);
+        $safe = self::safeWorkerName($workerName);
         db_exec(
             'INSERT INTO worker_health (worker_name, last_state, last_started_at, last_success_at, last_failure_at, last_error)
              VALUES (:name, :state, :started, :success, :failure, :err)
@@ -71,8 +71,62 @@ final class WorkerService
 
     public static function worker_health_status(string $workerName, int $staleSeconds): array
     {
-        $staleSeconds = max(30, $staleSeconds);
         $data = self::worker_health_read($workerName);
+        return self::statusFromRow($workerName, $data, $staleSeconds);
+    }
+
+    /**
+     * Batch variant: one query for every requested worker instead of N.
+     *
+     * @param array<string,int> $ttlByWorker worker name => stale seconds
+     * @return array<string,array> worker name => status payload
+     */
+    public static function worker_health_statuses(array $ttlByWorker): array
+    {
+        if ($ttlByWorker === []) {
+            return [];
+        }
+
+        $names = [];
+        $placeholders = [];
+        $binds = [];
+        foreach (array_keys($ttlByWorker) as $i => $name) {
+            $safe = self::safeWorkerName((string) $name);
+            $names[$safe] = (int) $ttlByWorker[$name];
+            $key = ':w' . $i;
+            $placeholders[] = $key;
+            $binds[$key] = $safe;
+        }
+
+        $byName = [];
+        try {
+            $rows = db_all(
+                'SELECT * FROM worker_health WHERE worker_name IN (' . implode(',', $placeholders) . ')',
+                $binds
+            );
+            foreach ($rows as $row) {
+                $byName[(string) ($row['worker_name'] ?? '')] = $row;
+            }
+        } catch (\Throwable) {
+            // Health is a dashboard nicety: never fail the page for it.
+            $byName = [];
+        }
+
+        $out = [];
+        foreach ($names as $safe => $ttl) {
+            $out[$safe] = self::statusFromRow($safe, $byName[$safe] ?? [], $ttl);
+        }
+        return $out;
+    }
+
+    private static function safeWorkerName(string $workerName): string
+    {
+        return substr(preg_replace('/[^a-zA-Z0-9_-]/', '_', $workerName) ?? 'unknown', 0, 50);
+    }
+
+    private static function statusFromRow(string $workerName, array $data, int $staleSeconds): array
+    {
+        $staleSeconds = max(30, $staleSeconds);
 
         $lastSuccessAt = (string) ($data['last_success_at'] ?? '');
         $lastState = (string) ($data['last_state'] ?? 'never');

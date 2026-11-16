@@ -22,6 +22,10 @@ final class EventsController
         header('Cache-Control: no-cache, no-transform');
         header('X-Accel-Buffering: no');
 
+        echo "retry: 3000\n\n";
+        @ob_flush();
+        flush();
+
         $lastId = max(0, (int) ($request->query('since_id') ?? 0));
         // See LiveStreamController: honor native reconnect cursor.
         $lastId = max($lastId, max(0, (int) ($_SERVER['HTTP_LAST_EVENT_ID'] ?? 0)));

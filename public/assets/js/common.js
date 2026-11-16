@@ -338,7 +338,13 @@ window.Monitors = window.Monitors || {};
   // ── Timestamp / theme helpers ──────────────────────────────────────
   // Shared by detail.js (server charts) and ping-detail.js (ping charts).
   ns.parseTimestampMs = function (ts) {
-    if (!ts) return null;
+    if (ts === null || ts === undefined || ts === "") return null;
+    // Numeric payload values are epoch: seconds when small, ms when large.
+    if (typeof ts === "number" || /^\d+(\.\d+)?$/.test(String(ts).trim())) {
+      const value = Number(ts);
+      if (!Number.isFinite(value) || value <= 0) return null;
+      return value < 1e12 ? value * 1000 : value;
+    }
     const text = String(ts).trim();
     const ms = Date.parse(text.includes("T") ? text : text.replace(" ", "T"));
     return Number.isFinite(ms) ? ms : null;

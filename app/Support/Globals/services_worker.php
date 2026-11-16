@@ -23,6 +23,15 @@ function worker_health_status(string $workerName, int $staleSeconds): array
     return WorkerService::worker_health_status($workerName, $staleSeconds);
 }
 
+/**
+ * @param array<string,int> $ttlByWorker worker name => stale seconds
+ * @return array<string,array> worker name => status payload
+ */
+function worker_health_statuses(array $ttlByWorker): array
+{
+    return WorkerService::worker_health_statuses($ttlByWorker);
+}
+
 function worker_acquire_lock(string $lockName, int $staleSeconds = 300): mixed
 {
     return WorkerService::worker_acquire_lock($lockName, $staleSeconds);

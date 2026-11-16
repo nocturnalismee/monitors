@@ -157,12 +157,13 @@ final class PushController
             'ingest_lag_ms' => $ingestLagMs,
         ];
 
-        $metricColumns = ['server_id', 'uptime', 'ram_total', 'ram_used', 'hdd_total', 'hdd_used', 'cpu_load'];
-        foreach (['network_in_bps', 'network_out_bps', 'mail_mta', 'mail_queue_total', 'panel_profile', 'ingest_lag_ms'] as $col) {
-            if (db_column_exists('metrics', $col)) {
-                $metricColumns[] = $col;
-            }
-        }
+        // Column set is fixed by database/schema.sql + migrations (every column
+        // below is part of the canonical schema), so no per-push
+        // information_schema probing is needed here.
+        $metricColumns = [
+            'server_id', 'uptime', 'ram_total', 'ram_used', 'hdd_total', 'hdd_used', 'cpu_load',
+            'network_in_bps', 'network_out_bps', 'mail_mta', 'mail_queue_total', 'panel_profile', 'ingest_lag_ms',
+        ];
 
         $metricPlaceholders = [];
         $metricParams = [];
@@ -173,9 +174,13 @@ final class PushController
         }
         $ingestPdo = db();
         $ingestPdo->beginTransaction();
+        // Capture the timestamp once: it is written and echoed back, so the
+        // response no longer needs a second `SELECT NOW()` round trip.
+        $recordedAt = date('Y-m-d H:i:s');
+        $metricParams[':recorded_at'] = $recordedAt;
         try {
             db_exec(
-                'INSERT INTO metrics (' . implode(', ', $metricColumns) . ', recorded_at) VALUES (' . implode(', ', $metricPlaceholders) . ', NOW())',
+                'INSERT INTO metrics (' . implode(', ', $metricColumns) . ', recorded_at) VALUES (' . implode(', ', $metricPlaceholders) . ', :recorded_at)',
                 $metricParams
             );
         } catch (Throwable $e) {
@@ -183,15 +188,16 @@ final class PushController
                 $ingestPdo->rollBack();
             }
             error_log('push.php metrics insert failed server_id=' . $serverId . ' error=' . $e->getMessage());
-            json_response(['error' => 'Failed to persist metrics'], 500);
+            return Response::json(['error' => 'Failed to persist metrics'], 500);
         }
         $metricId = (int) db()->lastInsertId();
 
-        // Update latest_metric_id pointer for optimized JOIN queries
-        if ($metricId > 0 && db_column_exists('servers', 'latest_metric_id')) {
+        // Update latest_metric_id pointer for optimized JOIN queries. Both
+        // columns are part of the canonical schema (see database/schema.sql +
+        // migrations), so the legacy column probes are gone.
+        if ($metricId > 0) {
             try {
-                $lastSeenSql = db_column_exists('servers', 'last_seen_at') ? ', last_seen_at = NOW()' : '';
-                db_exec('UPDATE servers SET latest_metric_id = :mid' . $lastSeenSql . ' WHERE id = :sid', [
+                db_exec('UPDATE servers SET latest_metric_id = :mid, last_seen_at = NOW() WHERE id = :sid', [
                     ':mid' => $metricId,
                     ':sid' => $serverId,
                 ]);
@@ -209,7 +215,7 @@ final class PushController
                 $ingestPdo->rollBack();
             }
             error_log('push.php ingest commit failed server_id=' . $serverId . ' error=' . $e->getMessage());
-            json_response(['error' => 'Failed to commit metrics'], 500);
+            return Response::json(['error' => 'Failed to commit metrics'], 500);
         }
 
         // Service samples + state upserts run AFTER the metric commit in a
@@ -274,8 +280,7 @@ final class PushController
         // evaluateServerThresholdAlerts(), evaluateCurrentServiceDownAlerts().
         invalidate_status_cache($serverId);
 
-        $recordedAt = db_one('SELECT DATE_FORMAT(NOW(), "%Y-%m-%d %H:%i:%s") AS ts');
-        return Response::json(['status' => 'ok', 'recorded_at' => $recordedAt['ts'] ?? date('Y-m-d H:i:s')], 200);
+        return Response::json(['status' => 'ok', 'recorded_at' => $recordedAt], 200);
     }
 
     private static function dbTableExists(string $table): bool

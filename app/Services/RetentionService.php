@@ -286,6 +286,11 @@ final class RetentionService
 
         $metricsRawHours = max(1, (int) setting_get('metrics_raw_hours'));
         $metricsCutoff = date('Y-m-d H:i:s', time() - $metricsRawHours * 3600);
+        // Keep one extra day of raw data beyond the reporting window. Rollup
+        // runs much more often than cleanup, so a single failed rollup can no
+        // longer delete a band of raw rows that was never aggregated (which
+        // used to leave a permanent ~24h hole in the 7d/30d charts).
+        $metricsDropCutoff = date('Y-m-d H:i:s', time() - ($metricsRawHours + 24) * 3600);
 
         monitors_log_info(
             "Starting core retention cleanup: {$days} days, cutoff={$cutoff}, metrics_raw_cutoff={$metricsCutoff}",
@@ -296,9 +301,9 @@ final class RetentionService
 
         $metrics = 0;
         if (self::metrics_is_partitioned()) {
-            $metrics = self::retention_drop_metrics_partitions($metricsCutoff);
+            $metrics = self::retention_drop_metrics_partitions($metricsDropCutoff);
         } else {
-            $metrics = self::retention_batch_delete('metrics', 'recorded_at', $metricsCutoff);
+            $metrics = self::retention_batch_delete('metrics', 'recorded_at', $metricsDropCutoff);
         }
 
         $metricsHistory = 0;
@@ -332,6 +337,7 @@ final class RetentionService
         $result = [
             'cutoff_at' => $cutoff,
             'metrics_cutoff_at' => $metricsCutoff,
+            'metrics_drop_cutoff_at' => $metricsDropCutoff,
             'history_cutoff_at' => $historyCutoff,
             'service_metrics_deleted' => $serviceMetrics,
             'metrics_deleted' => $metrics,

@@ -67,15 +67,27 @@ foreach (['5m', '30m', '24h', '7d', '30d', 'bogus-range'] as $range) {
     check(substr_count($sql, 'LIMIT {$points}') === 1, $range . ': single {$points} LIMIT marker');
     check(str_contains($sql, 'ORDER BY recorded_at ASC'), $range . ': rows ordered ascending');
 
-    if (in_array($range, ['5m', '30m', '24h', 'bogus-range'], true)) {
+    if (in_array($range, ['5m', '30m'], true)) {
         // Short ranges select bare columns straight from `metrics`.
         check(str_contains($sql, 'uptime, ram_total, ram_used, hdd_total, hdd_used,'), $range . ': payload columns (bare select)');
         check(str_contains($sql, 'network_in_bps, network_out_bps,'), $range . ': network columns');
         check(str_contains($sql, 'mail_mta, mail_queue_total'), $range . ': mail columns');
-        $expected = $range === '5m' ? 'INTERVAL 5 MINUTE' : ($range === '30m' ? 'INTERVAL 30 MINUTE' : 'INTERVAL 1440 MINUTE');
+        $expected = $range === '5m' ? 'INTERVAL 5 MINUTE' : 'INTERVAL 30 MINUTE';
         check(str_contains($sql, $expected), $range . ': bounded to ' . $expected);
         check(!str_contains($sql, 'metrics_history'), $range . ': raw-only (no history tables)');
         check(!str_contains($sql, 'UNION'), $range . ': no union needed');
+        // Tie-safe: same-second rows are averaged into one point instead of
+        // being dropped by the second-precision LIMIT.
+        check(str_contains($sql, 'GROUP BY ts') && str_contains($sql, 'ORDER BY ts DESC'), $range . ': tie-safe second selection');
+    } elseif (in_array($range, ['24h', 'bogus-range'], true)) {
+        // 24h reads the raw tail plus the 5-minute rollup for the older part.
+        // An unknown range key must fall back to 24h, never to the 30d scan.
+        check(str_contains($sql, 'UNION ALL'), $range . ': raw tail unioned with the 5m rollup');
+        check(str_contains($sql, 'bucket_seconds = 300'), $range . ': reads the 5-minute rollup level');
+        check(str_contains($sql, 'INTERVAL 1440 MINUTE'), $range . ': bounded to one day');
+        check(str_contains($sql, '< FROM_UNIXTIME(:boundary_24h_hist)'), $range . ': rollup slice stops at the raw boundary');
+        check(str_contains($sql, '>= FROM_UNIXTIME(:boundary_24h_raw)'), $range . ': raw slice starts at the boundary');
+        check(str_contains($sql, 'AS uptime'), $range . ': aggregate payload columns');
     } else {
         // Multi-slice ranges label the outer aggregate columns explicitly.
         foreach (
@@ -99,7 +111,7 @@ foreach (['5m', '30m', '24h', '7d', '30d', 'bogus-range'] as $range) {
     if ($range === '7d') {
         check(substr_count($sql, 'UNION ALL') === 1, '7d: two disjoint slices');
         check(str_contains($sql, 'bucket_seconds = 300'), '7d: reads the 5-minute rollup level');
-        check(str_contains($sql, '< :boundary_7d_hist') && str_contains($sql, '>= :boundary_7d_raw'), '7d: boundary splits history vs raw (no overlap)');
+        check(str_contains($sql, '< FROM_UNIXTIME(:boundary_7d_hist)') && str_contains($sql, '>= FROM_UNIXTIME(:boundary_7d_raw)'), '7d: boundary splits history vs raw (no overlap)');
         // The fixed 7-day window belongs to the history slice only; the raw
         // slice must be bounded by the boundary param instead.
         check(substr_count($sql, 'INTERVAL 7 DAY') === 1, '7d: fixed window appears exactly once');
@@ -115,18 +127,18 @@ foreach (['5m', '30m', '24h', '7d', '30d', 'bogus-range'] as $range) {
         check(substr_count($sql, 'UNION ALL') === 2, '30d: three disjoint slices');
         check(str_contains($sql, 'bucket_seconds = 3600'), '30d: reads the hourly rollup level');
         check(str_contains($sql, 'bucket_seconds = 300'), '30d: re-buckets the 5-minute level');
-        check(str_contains($sql, '< :boundary_5m_30d_hist') && str_contains($sql, '>= :boundary_5m_30d_raw'), '30d: 3600/300 seam disjoint');
-        check(str_contains($sql, '< :boundary_raw_30d_hist') && str_contains($sql, '>= :boundary_raw_30d_next'), '30d: history/raw seam disjoint');
-        check(preg_match('/INTERVAL 30 DAY\)\s*\n\s*AND recorded_at < :boundary_5m_30d_hist/', $sql) === 1, '30d: hourly slice capped at the 5m boundary');
+        check(str_contains($sql, '< FROM_UNIXTIME(:boundary_5m_30d_hist)') && str_contains($sql, '>= FROM_UNIXTIME(:boundary_5m_30d_raw)'), '30d: 3600/300 seam disjoint');
+        check(str_contains($sql, '< FROM_UNIXTIME(:boundary_raw_30d_hist)') && str_contains($sql, '>= FROM_UNIXTIME(:boundary_raw_30d_next)'), '30d: history/raw seam disjoint');
+        check(preg_match('/INTERVAL 30 DAY\)\s*\n\s*AND recorded_at < FROM_UNIXTIME\(:boundary_5m_30d_hist\)/', $sql) === 1, '30d: hourly slice capped at the 5m boundary');
     }
 
-    // Boundary params must be past datetime strings; server ids bound as ints.
+    // Boundary params travel as epoch integers (see historyQuery comment:
+    // string datetimes get re-parsed under the MySQL session time zone);
+    // server ids are bound as ints too.
     foreach ($params as $name => [$value, $type]) {
         if (str_starts_with($name, ':boundary')) {
-            check(is_string($value) && preg_match('/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/', $value) === 1, $range . ': ' . $name . ' is a datetime string');
-            $ts = strtotime((string) $value);
-            check($ts !== false && $ts > 0 && $ts < time(), $range . ': ' . $name . ' is in the past');
-            check($type === \PDO::PARAM_STR, $range . ': ' . $name . ' bound as string');
+            check(is_int($value) && $value > 0 && $value < time(), $range . ': ' . $name . ' is a past epoch');
+            check($type === \PDO::PARAM_INT, $range . ': ' . $name . ' bound as int');
         } else {
             check($type === \PDO::PARAM_INT && (int) $value === 1, $range . ': ' . $name . ' bound as int');
         }
@@ -175,11 +187,42 @@ try {
                  VALUES (?, 3600, FROM_UNIXTIME(FLOOR(UNIX_TIMESTAMP(NOW() - INTERVAL ? MINUTE) / 3600) * 3600), 99, 2048, 900, 50000, 25000, 3.5, 60000, 50000, 1, 1, "generic")'
             )->execute([$sid, 20 * 1440]);
 
-            // Expected row counts: 5m -> raw tail only; 7d -> 2 history buckets
-            // + 2 raw buckets; 30d -> 1 hourly bucket + 1 re-bucketed 300 group
-            // + 2 middle buckets + 1 raw bucket.
-            $expected = ['5m' => 1, '7d' => 4, '30d' => 5];
-            foreach ($expected as $range => $expectedRows) {
+            // Derive the expected buckets from the seeded rows themselves.
+            // Hard-coded row counts were clock-flaky: two raw rows nine and
+            // one minute old fall into the same hourly bucket unless the run
+            // crosses the hour (and back then the count silently changed).
+            $bucketize = static function (int $ts, int $size): int {
+                return (int) (floor($ts / $size) * $size);
+            };
+            $seedRaw = array_map(
+                static fn (array $r): int => (int) strtotime((string) $r['recorded_at']),
+                db_all('SELECT recorded_at FROM metrics WHERE server_id = :sid', [':sid' => $sid])
+            );
+            $seedHist = db_all('SELECT bucket_seconds, recorded_at FROM metrics_history WHERE server_id = :sid', [':sid' => $sid]);
+            $nowTs = time();
+
+            $expectedByRange = [
+                // 5m: raw rows inside the window, tie-collapsed per second.
+                '5m' => array_values(array_unique(array_filter($seedRaw, static fn (int $ts): bool => $ts >= $nowTs - 300))),
+                // 7d: 300s history buckets plus 300s raw buckets.
+                '7d' => array_values(array_unique(array_merge(
+                    array_map(static fn (int $ts): int => $bucketize($ts, 300), $seedRaw),
+                    array_map(
+                        static fn (array $r): int => $bucketize((int) strtotime((string) $r['recorded_at']), 300),
+                        array_filter($seedHist, static fn (array $r): bool => (int) $r['bucket_seconds'] === 300 && (int) strtotime((string) $r['recorded_at']) >= $nowTs - 7 * 86400)
+                    )
+                ))),
+                // 30d: hourly history buckets plus everything re-bucketed to 3600.
+                '30d' => array_values(array_unique(array_merge(
+                    array_map(static fn (int $ts): int => $bucketize($ts, 3600), $seedRaw),
+                    array_map(
+                        static fn (array $r): int => $bucketize((int) strtotime((string) $r['recorded_at']), 3600),
+                        array_filter($seedHist, static fn (array $r): bool => (int) strtotime((string) $r['recorded_at']) >= $nowTs - 30 * 86400)
+                    )
+                ))),
+            ];
+
+            foreach ($expectedByRange as $range => $expectedBuckets) {
                 $built = StatusController::historyQuery($range, $sid);
                 $stmt = $pdo->prepare(str_replace('{$points}', '2000', $built['sql']));
                 foreach ($built['params'] as $name => [$value, $type]) {
@@ -187,7 +230,14 @@ try {
                 }
                 $stmt->execute();
                 $rows = $stmt->fetchAll();
-                check(count($rows) === $expectedRows, 'runtime ' . $range . ': returns ' . $expectedRows . ' bucketed rows (got ' . count($rows) . ')');
+                $actualBuckets = array_map(static fn (array $r): int => (int) ($r['ts'] ?? 0), $rows);
+                sort($expectedBuckets);
+                sort($actualBuckets);
+                check(
+                    $actualBuckets === $expectedBuckets,
+                    'runtime ' . $range . ': bucket set matches the seeded rows (expected ['
+                        . implode(', ', $expectedBuckets) . '], got [' . implode(', ', $actualBuckets) . '])'
+                );
                 if ($rows !== []) {
                     $first = $rows[0];
                     check(

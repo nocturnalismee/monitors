@@ -5,8 +5,17 @@ $user = current_user();
 $isAdminUser = has_role('admin');
 $activeAlertCount = 0;
 try {
-    $activeAlertRow = db_one("SELECT COUNT(*) AS total FROM alert_logs WHERE status = 'active'");
-    $activeAlertCount = (int) ($activeAlertRow['total'] ?? 0);
+    // Every page renders the sidebar; cache the badge for a few seconds
+    // instead of running COUNT(*) on alert_logs per request.
+    $navAlertCacheKey = 'alert:count:active';
+    $cachedAlertCount = cache_get($navAlertCacheKey);
+    if (is_numeric($cachedAlertCount)) {
+        $activeAlertCount = (int) $cachedAlertCount;
+    } else {
+        $activeAlertRow = db_one("SELECT COUNT(*) AS total FROM alert_logs WHERE status = 'active'");
+        $activeAlertCount = (int) ($activeAlertRow['total'] ?? 0);
+        cache_set($navAlertCacheKey, $activeAlertCount, 15);
+    }
 } catch (Throwable) {
     $activeAlertCount = 0;
 }

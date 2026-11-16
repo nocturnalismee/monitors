@@ -57,21 +57,26 @@ final class ServerDetailController
             [':id' => $id]
         );
         $historyEndpoint = app_url('api/status?id=' . $id . '&history=30m&points=1200');
+        // Keep the newest rows for the first paint (the API selects DESC);
+        // an ASC LIMIT on a busy server would show only the oldest window.
         $historyBootstrap = db_all(
             'SELECT
+                UNIX_TIMESTAMP(recorded_at) AS ts,
                 DATE_FORMAT(recorded_at, "%Y-%m-%d %H:%i:%s") AS recorded_at,
                 ram_used, hdd_used, cpu_load, network_in_bps, network_out_bps
              FROM metrics
              WHERE server_id = :id AND recorded_at >= DATE_SUB(NOW(), INTERVAL 30 MINUTE)
-             ORDER BY recorded_at ASC
+             ORDER BY recorded_at DESC
              LIMIT 1200',
             [':id' => $id]
         );
+        $historyBootstrap = array_reverse($historyBootstrap);
 
         $cpuWarnThreshold = max(0.0, (float) setting_get('threshold_cpu_load'));
         $cpuCriticalThreshold = max($cpuWarnThreshold, (float) setting_get('threshold_cpu_load_critical'));
 
         $data = [
+            'loadEcharts' => true,
             'id' => $id,
             'server' => $server,
             'statusOnlineMinutes' => $statusOnlineMinutes,

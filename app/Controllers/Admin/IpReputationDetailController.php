@@ -79,6 +79,7 @@ final class IpReputationDetailController
         }
 
         $data = [
+            'loadEcharts' => true,
             'target'            => $target,
             'checks'            => $checks,
             'displayStatus'     => $displayStatus,

@@ -92,6 +92,71 @@ final class MigrateCommand
         natsort($files);
         $files = array_values($files);
 
+        $flags = array_slice($args, 1);
+        $statusOnly = in_array('--status', $flags, true);
+        $dryRun = in_array('--dry-run', $flags, true);
+        $unknownFlags = array_diff($flags, ['--status', '--dry-run']);
+        if ($unknownFlags !== []) {
+            fwrite(STDERR, 'Unknown option(s): ' . implode(' ', $unknownFlags) . "\nUsage: php migrate.php [--status] [--dry-run]\n");
+            return 2;
+        }
+        if ($statusOnly && $dryRun) {
+            fwrite(STDERR, "Usage: php migrate.php [--status] [--dry-run] (choose one)\n");
+            return 2;
+        }
+
+        // Plan first so --status / --dry-run can report without touching data.
+        $pending = [];
+        $drifted = [];
+        foreach ($files as $file) {
+            $migrationName = basename($file);
+            $checksum = hash_file('sha256', $file);
+            if ($checksum === false) {
+                fwrite(STDERR, "Error: Failed to read checksum for {$migrationName}\n");
+                return 1;
+            }
+            if (isset($appliedMap[$migrationName])) {
+                if ($appliedMap[$migrationName] !== $checksum) {
+                    $drifted[] = $migrationName;
+                }
+                continue;
+            }
+            $pending[] = $migrationName;
+        }
+
+        if ($statusOnly) {
+            foreach ($files as $file) {
+                $migrationName = basename($file);
+                $state = in_array($migrationName, $drifted, true)
+                    ? 'MODIFIED'
+                    : (isset($appliedMap[$migrationName]) ? 'applied' : 'pending');
+                echo str_pad($state, 10) . $migrationName . "\n";
+            }
+            echo "\n" . count($files) . ' total, ' . count($pending) . ' pending, ' . count($drifted) . " checksum mismatch(es).\n";
+            if ($drifted !== []) {
+                fwrite(STDERR, "Checksum changed for already-applied migration: " . implode(', ', $drifted) . "\n");
+                return 1;
+            }
+            return 0;
+        }
+
+        if ($drifted !== []) {
+            fwrite(STDERR, 'Error: Checksum changed for already-applied migration: ' . implode(', ', $drifted) . "\n");
+            return 1;
+        }
+
+        if ($dryRun) {
+            if ($pending === []) {
+                echo "Nothing to apply: all " . count($files) . " migrations are up to date.\n";
+            } else {
+                echo "Would apply " . count($pending) . " migration(s):\n";
+                foreach ($pending as $migrationName) {
+                    echo "  - {$migrationName}\n";
+                }
+            }
+            return 0;
+        }
+
         $applied = 0;
         $skipped = 0;
 

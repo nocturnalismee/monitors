@@ -5,6 +5,7 @@ namespace App\Controllers\Admin {
     use App\Http\Request;
     use App\Http\Response;
     use App\Services\ServerListService;
+    use App\Services\Settings\CronWorkerService;
     use App\Support\View;
 
     final class DashboardController
@@ -13,15 +14,17 @@ namespace App\Controllers\Admin {
         {
             require_login();
 
+            // One query for the fleet totals; the KPI cards no longer reuse
+            // the LIMIT-window rows, which under-reported past 50 servers.
             $summary = db_one(
                 'SELECT
-                    (SELECT COUNT(*) FROM servers) AS total_servers,
-                    (SELECT COUNT(*) FROM servers WHERE active = 1) AS active_servers'
+                    COUNT(*) AS total_servers,
+                    SUM(active = 1) AS active_servers
+                 FROM servers'
             );
+            $totalServers = (int) ($summary['total_servers'] ?? 0);
 
             $latestMetricJoin = latest_metric_join_sql('s', 'm');
-            $totalRow = db_one('SELECT COUNT(*) AS cnt FROM servers');
-            $totalServers = (int) ($totalRow['cnt'] ?? 0);
             $dashboardLimit = 50;
             $rows = db_all(
                 'SELECT s.id, s.name, s.location, s.host, s.type, s.provider, s.label, s.active,
@@ -38,30 +41,45 @@ namespace App\Controllers\Admin {
             $rows = ServerListService::sortBySeverity($rows, $cpuWarnThreshold, $cpuCriticalThreshold);
             $serverIds = array_values(array_filter(array_map(static fn (array $row): int => (int) ($row['id'] ?? 0), $rows), static fn (int $id): bool => $id > 0));
             $serviceSummaryByServer = ServerListService::serviceSummaryMap($serverIds);
-            // Reliability overview (queue/SLO) lives on Settings → Ops; /api/health keeps the JSON contract.
-            $alertWorkerHealth = worker_health_status('alert_check', \App\Services\Settings\CronWorkerService::TTL['alert_check']);
-            $pingWorkerHealth = worker_health_status('ping_check', \App\Services\Settings\CronWorkerService::TTL['ping_check']);
-            $diskRollupWorkerHealth = worker_health_status('disk_history_rollup', \App\Services\Settings\CronWorkerService::TTL['disk_history_rollup']);
-            $retentionWorkerHealth = worker_health_status('retention_cleanup', \App\Services\Settings\CronWorkerService::TTL['retention_cleanup']);
-            $ipRepWorkerHealth = worker_health_status('ip_reputation_check', \App\Services\Settings\CronWorkerService::TTL['ip_reputation_check']);
-            $rollupWorkerHealth = worker_health_status('rollup_metrics', \App\Services\Settings\CronWorkerService::TTL['rollup_metrics']);
-            $diskCleanupWorkerHealth = worker_health_status('disk_retention_cleanup', \App\Services\Settings\CronWorkerService::TTL['disk_retention_cleanup']);
-            $partitionMaintainWorkerHealth = worker_health_status('partition_maintain', \App\Services\Settings\CronWorkerService::TTL['partition_maintain']);
+
+            // Worker health in one round trip (was 8 queries per page load).
+            $health = worker_health_statuses([
+                'alert_check' => CronWorkerService::TTL['alert_check'],
+                'ping_check' => CronWorkerService::TTL['ping_check'],
+                'disk_history_rollup' => CronWorkerService::TTL['disk_history_rollup'],
+                'retention_cleanup' => CronWorkerService::TTL['retention_cleanup'],
+                'ip_reputation_check' => CronWorkerService::TTL['ip_reputation_check'],
+                'rollup_metrics' => CronWorkerService::TTL['rollup_metrics'],
+                'disk_retention_cleanup' => CronWorkerService::TTL['disk_retention_cleanup'],
+                'partition_maintain' => CronWorkerService::TTL['partition_maintain'],
+            ]);
+            $alertWorkerHealth = $health['alert_check'];
+            $pingWorkerHealth = $health['ping_check'];
+            $diskRollupWorkerHealth = $health['disk_history_rollup'];
+            $retentionWorkerHealth = $health['retention_cleanup'];
+            $ipRepWorkerHealth = $health['ip_reputation_check'];
+            $rollupWorkerHealth = $health['rollup_metrics'];
+            $diskCleanupWorkerHealth = $health['disk_retention_cleanup'];
+            $partitionMaintainWorkerHealth = $health['partition_maintain'];
+
+            // Quote the same schedule the Settings → Ops page recommends
+            // instead of keeping a second, drifting copy of every crontab line.
             $projectRoot = realpath(MONITORS_BASE_DIR);
             if (!is_string($projectRoot) || $projectRoot === '') {
-                $projectRoot = dirname(MONITORS_BASE_DIR);
+                $projectRoot = MONITORS_BASE_DIR;
             }
             $workersRoot = rtrim(str_replace('\\', '/', $projectRoot), '/');
-            $alertCronCmd = '* * * * * /usr/bin/php ' . $workersRoot . '/workers/alert-check.php >/dev/null 2>&1';
-            $pingCronCmd = '* * * * * /usr/bin/php ' . $workersRoot . '/workers/ping-check.php >/dev/null 2>&1';
-            $diskRollupCronCmd = '0 2 * * * /usr/bin/php ' . $workersRoot . '/workers/disk-rollup.php >/dev/null 2>&1';
-            $retentionCronCmd = '0 3 * * * /usr/bin/php ' . $workersRoot . '/workers/cleanup.php >/dev/null 2>&1';
-            $ipRepCronCmd = '*/5 * * * * /usr/bin/php ' . $workersRoot . '/workers/ip-reputation-check.php >/dev/null 2>&1';
-            $rollupCronCmd = '0 2 * * * /usr/bin/php ' . $workersRoot . '/workers/rollup.php >/dev/null 2>&1';
-            $diskCleanupCronCmd = '30 2 * * * /usr/bin/php ' . $workersRoot . '/workers/disk-cleanup.php >/dev/null 2>&1';
-            $partitionMaintainCronCmd = '30 0 * * * /usr/bin/php ' . $workersRoot . '/workers/partition-maintain.php >/dev/null 2>&1';
+            $cron = (new CronWorkerService())->cronCommands($workersRoot);
+            $alertCronCmd = $cron['alert-check'] ?? '';
+            $pingCronCmd = $cron['ping-check'] ?? '';
+            $diskRollupCronCmd = $cron['disk-rollup'] ?? '';
+            $retentionCronCmd = $cron['cleanup'] ?? '';
+            $ipRepCronCmd = $cron['ip-reputation-check'] ?? '';
+            $rollupCronCmd = $cron['rollup'] ?? '';
+            $diskCleanupCronCmd = $cron['disk-cleanup'] ?? '';
+            $partitionMaintainCronCmd = $cron['partition-maintain'] ?? '';
 
-            $counts = ServerListService::countByStatus($rows, $statusOnlineMinutes);
+            $counts = ServerListService::countByStatusFromDb($statusOnlineMinutes);
             $online = $counts['online'];
             $down = $counts['down'];
             $pending = $counts['pending'];

@@ -124,19 +124,16 @@ function getChartPalette() {
   };
 }
 
-function downsample(rows, maxPoints = 720) {
-  if (!Array.isArray(rows) || rows.length <= maxPoints) return rows;
-  const step = Math.ceil(rows.length / maxPoints);
-  return rows.filter((_, i) => i % step === 0 || i === rows.length - 1);
-}
-
 function normalizeRows(payload) {
   if (!Array.isArray(payload)) return [];
   const rows = payload.map((row) => {
     const recorded_at = String(row.recorded_at || "");
+    // The API now emits `ts` as epoch seconds; prefer it so the chart no
+    // longer depends on the browser time zone matching the server one.
+    const stamp = row.ts !== undefined && row.ts !== null && row.ts !== "" ? row.ts : recorded_at;
     return {
       recorded_at,
-      ts: Monitors.parseTimestampMs(recorded_at),
+      ts: Monitors.parseTimestampMs(stamp),
       ram_used: toNumber(row.ram_used, 0),
       hdd_used: toNumber(row.hdd_used, 0),
       cpu_load: toNumber(row.cpu_load, 0),
@@ -146,11 +143,13 @@ function normalizeRows(payload) {
   });
   rows.sort((a, b) => {
     if (a.ts === null && b.ts === null) return 0;
-    if (a.ts === null) return -1;
-    if (b.ts === null) return 1;
+    if (a.ts === null) return 1;
+    if (b.ts === null) return -1;
     return a.ts - b.ts;
   });
-  return downsample(rows, 720);
+  // The server already caps the series (`points`); decimating again by
+  // index stride would drop spikes and make the line look incomplete.
+  return rows;
 }
 
 function formatServerDetailUptime(totalSeconds) {

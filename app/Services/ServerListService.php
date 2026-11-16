@@ -55,17 +55,23 @@ final class ServerListService
         if (empty($safeIds)) {
             return [];
         }
-        $placeholders = implode(',', array_fill(0, count($safeIds), '?'));
+        $placeholders = [];
+        $params = [];
+        foreach ($safeIds as $index => $id) {
+            $name = ':sid' . $index;
+            $placeholders[] = $name;
+            $params[$name] = $id;
+        }
         $stmt = db()->prepare(
             "SELECT server_id,
                     SUM(last_status = 'up') AS up_count,
                     SUM(last_status = 'down') AS down_count,
                     SUM(last_status = 'unknown') AS unknown_count
              FROM server_service_states
-             WHERE server_id IN ({$placeholders})
+             WHERE server_id IN (" . implode(',', $placeholders) . ")
              GROUP BY server_id"
         );
-        $stmt->execute($safeIds);
+        $stmt->execute($params);
         $map = [];
         foreach ($stmt->fetchAll() as $row) {
             $sid = (int) ($row['server_id'] ?? 0);
@@ -96,5 +102,49 @@ final class ServerListService
             }
         }
         return $counts;
+    }
+
+    /**
+     * Fleet-wide status counts in one query.
+     *
+     * The dashboard table is capped (`LIMIT 50`), so counting its rows
+     * silently under-reports once an install has more servers than the cap.
+     * This mirrors `serverStatusFromLastSeen()` exactly:
+     *   inactive            -> pending
+     *   no last_seen        -> pending
+     *   seen within window  -> online
+     *   older               -> down
+     *
+     * @return array{online: int, down: int, pending: int}
+     */
+    public static function countByStatusFromDb(int $onlineMinutes): array
+    {
+        $minutes = max(1, $onlineMinutes);
+        $join = latest_metric_join_sql('s', 'm');
+        $row = db_one(
+            'SELECT
+                COALESCE(SUM(CASE
+                    WHEN s.active = 1
+                     AND COALESCE(s.last_seen_at, m.recorded_at) IS NOT NULL
+                     AND COALESCE(s.last_seen_at, m.recorded_at) >= DATE_SUB(NOW(), INTERVAL :mins_online MINUTE)
+                    THEN 1 ELSE 0 END), 0) AS online_count,
+                COALESCE(SUM(CASE
+                    WHEN s.active = 1
+                     AND (COALESCE(s.last_seen_at, m.recorded_at) IS NULL
+                          OR COALESCE(s.last_seen_at, m.recorded_at) < DATE_SUB(NOW(), INTERVAL :mins_down MINUTE))
+                    THEN 1 ELSE 0 END), 0) AS down_count,
+                COALESCE(SUM(CASE
+                    WHEN s.active = 0
+                      OR COALESCE(s.last_seen_at, m.recorded_at) IS NULL
+                    THEN 1 ELSE 0 END), 0) AS pending_count
+             FROM servers s' . $join,
+            [':mins_online' => $minutes, ':mins_down' => $minutes]
+        );
+
+        return [
+            'online' => (int) ($row['online_count'] ?? 0),
+            'down' => (int) ($row['down_count'] ?? 0),
+            'pending' => (int) ($row['pending_count'] ?? 0),
+        ];
     }
 }

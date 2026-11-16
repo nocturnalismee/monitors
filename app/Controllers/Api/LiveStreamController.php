@@ -27,6 +27,13 @@ final class LiveStreamController
         header('Cache-Control: no-cache, no-transform');
         header('X-Accel-Buffering: no');
 
+        // The stream closes on a fixed cycle to free the PHP worker; tell
+        // EventSource how quickly to come back instead of relying on the
+        // browser default.
+        echo "retry: 3000\n\n";
+        @ob_flush();
+        flush();
+
         $serverId = max(0, (int) ($request->query('server_id') ?? 0));
         $sinceId = max(0, (int) ($request->query('since_id') ?? 0));
         // Native EventSource reconnects send Last-Event-ID when the server

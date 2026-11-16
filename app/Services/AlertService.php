@@ -9,6 +9,82 @@ final class AlertService
 {
     private static ?bool $available = null;
 
+    /**
+     * Lazily built index of currently-open incidents, keyed by
+     * "<serverId|null>|<alert_type>".
+     *
+     * The alert-check worker evaluates every server x resource (and every
+     * service / ping monitor) once a minute. Most of those conditions are
+     * clear, so without this index each evaluation issued an UPDATE that
+     * matched zero rows just to discover nothing needed resolving. One
+     * SELECT per worker process replaces hundreds of no-op writes.
+     *
+     * @var array<string, true>|null
+     */
+    private static ?array $openAlertIndex = null;
+
+    private static bool $openAlertIndexDisabled = false;
+
+    private static function openAlertKey(?int $serverId, string $alertType): string
+    {
+        return ($serverId === null ? 'null' : (string) $serverId) . '|' . $alertType;
+    }
+
+    /**
+     * @return array<string, true>
+     */
+    private static function openAlertIndex(): array
+    {
+        if (self::$openAlertIndex !== null) {
+            return self::$openAlertIndex;
+        }
+        $index = [];
+        try {
+            $rows = db_all(
+                "SELECT server_id, alert_type FROM alert_logs
+                 WHERE status IN ('active', 'acknowledged', 'silenced')"
+            );
+            foreach ($rows as $row) {
+                $serverId = $row['server_id'] === null ? null : (int) $row['server_id'];
+                $index[self::openAlertKey($serverId, (string) ($row['alert_type'] ?? ''))] = true;
+            }
+        } catch (Throwable) {
+            // Never let the optimisation change behaviour: fall back to the
+            // plain UPDATE path for the rest of the process.
+            self::$openAlertIndexDisabled = true;
+        }
+        self::$openAlertIndex = $index;
+        return $index;
+    }
+
+    private static function markAlertOpen(?int $serverId, string $alertType): void
+    {
+        if (self::$openAlertIndexDisabled || self::$openAlertIndex === null) {
+            return;
+        }
+        self::$openAlertIndex[self::openAlertKey($serverId, $alertType)] = true;
+    }
+
+    private static function markAlertClosed(?int $serverId, array $alertTypes): void
+    {
+        if (self::$openAlertIndexDisabled || self::$openAlertIndex === null) {
+            return;
+        }
+        foreach ($alertTypes as $alertType) {
+            unset(self::$openAlertIndex[self::openAlertKey($serverId, $alertType)]);
+        }
+    }
+
+    /**
+     * Test/worker hook: forget the cached open-incident index so the next
+     * evaluation re-reads alert_logs.
+     */
+    public static function resetOpenAlertIndex(): void
+    {
+        self::$openAlertIndex = null;
+        self::$openAlertIndexDisabled = false;
+    }
+
     public static function deliveryQueueAvailable(): bool
     {
         if (self::$available !== null) {
@@ -165,6 +241,7 @@ final class AlertService
             error_log('AlertService::create alert_id=' . $alertId . ' has no delivery queue table; run migrations');
         }
         invalidate_alert_cache();
+        self::markAlertOpen($serverId, $alertType);
     }
 
     /**
@@ -196,6 +273,24 @@ final class AlertService
             $params[':resolve_server_id'] = $serverId;
         }
 
+        // Fast path: nothing open for these conditions in this process's
+        // snapshot of alert_logs -> skip the no-op UPDATE entirely. The worker
+        // evaluates every server x resource each minute, so most calls would
+        // otherwise be zero-row writes.
+        if (!self::$openAlertIndexDisabled) {
+            $index = self::openAlertIndex();
+            $hasOpen = false;
+            foreach ($alertTypes as $alertType) {
+                if (isset($index[self::openAlertKey($serverId, $alertType)])) {
+                    $hasOpen = true;
+                    break;
+                }
+            }
+            if (!$hasOpen) {
+                return 0;
+            }
+        }
+
         // NOTE: db_exec() returns bool (statement success), NOT the affected
         // row count. Use db_exec_count() here: callers rely on the return
         // value to decide whether an incident was actually closed (e.g. the
@@ -210,6 +305,7 @@ final class AlertService
         );
 
         if ($changed > 0) {
+            self::markAlertClosed($serverId, $alertTypes);
             invalidate_alert_cache();
         }
 
@@ -482,15 +578,28 @@ final class AlertService
         }
         $statusOnlineMinutes = max(1, (int) ($settings['alert_down_minutes'] ?? '5'));
 
-        $rows = db_all(
-            'SELECT s.id AS server_id, s.name AS server_name,
-                    COALESCE(s.last_seen_at, m.recorded_at) AS last_seen,
-                    st.service_group, st.service_key, st.unit_name, st.last_status, st.updated_at
-             FROM servers s' . latest_metric_join_sql('s', 'm') . '
-             INNER JOIN server_service_states st ON st.server_id = s.id
-             WHERE s.active = 1
-             LIMIT 1000'
-        );
+        $rows = [];
+        $scanOffset = 0;
+        $scanBatch = 1000;
+        do {
+            // Page through instead of a hard LIMIT 1000: beyond 1000 service
+            // states the tail used to be silently ignored, so a down service
+            // on a large fleet never alerted.
+            $batch = db_all(
+                'SELECT s.id AS server_id, s.name AS server_name,
+                        COALESCE(s.last_seen_at, m.recorded_at) AS last_seen,
+                        st.service_group, st.service_key, st.unit_name, st.last_status, st.updated_at
+                 FROM servers s' . latest_metric_join_sql('s', 'm') . '
+                 INNER JOIN server_service_states st ON st.server_id = s.id
+                 WHERE s.active = 1
+                 ORDER BY s.id ASC, st.service_group ASC, st.service_key ASC
+                 LIMIT ' . $scanBatch . ' OFFSET ' . $scanOffset
+            );
+            foreach ($batch as $batchRow) {
+                $rows[] = $batchRow;
+            }
+            $scanOffset += count($batch);
+        } while (count($batch) === $scanBatch);
 
         foreach ($rows as $row) {
             $serverOnline = serverStatusFromLastSeen($row['last_seen'] ?? null, true, $statusOnlineMinutes) === 'online';
@@ -568,14 +677,24 @@ final class AlertService
             return;
         }
 
-        $rows = db_all(
-            'SELECT pm.id, pm.name, pm.target, pm.check_method,
-                    ps.last_status, ps.last_error, ps.updated_at
-             FROM ping_monitors pm
-             INNER JOIN ping_monitor_states ps ON ps.monitor_id = pm.id
-             WHERE pm.active = 1
-             LIMIT 1000'
-        );
+        $rows = [];
+        $scanOffset = 0;
+        $scanBatch = 1000;
+        do {
+            $batch = db_all(
+                'SELECT pm.id, pm.name, pm.target, pm.check_method,
+                        ps.last_status, ps.last_error, ps.updated_at
+                 FROM ping_monitors pm
+                 INNER JOIN ping_monitor_states ps ON ps.monitor_id = pm.id
+                 WHERE pm.active = 1
+                 ORDER BY pm.id ASC
+                 LIMIT ' . $scanBatch . ' OFFSET ' . $scanOffset
+            );
+            foreach ($batch as $batchRow) {
+                $rows[] = $batchRow;
+            }
+            $scanOffset += count($batch);
+        } while (count($batch) === $scanBatch);
 
         foreach ($rows as $row) {
             $lastStatus = (string) ($row['last_status'] ?? 'unknown');

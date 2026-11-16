@@ -51,19 +51,14 @@ final class PushAuthService
         }
 
         try {
-            $server = null;
+            // push_allowed_ips is part of the canonical schema since
+            // migration 20260224_alert_quality_and_push_allowlist.sql, so no
+            // per-request information_schema probe is needed.
             $tokenHash = hash('sha256', $token);
-            if (db_column_exists('servers', 'push_allowed_ips')) {
-                $server = db_one(
-                    'SELECT id, active, push_allowed_ips FROM servers WHERE token_hash = :token_hash LIMIT 1',
-                    [':token_hash' => $tokenHash]
-                );
-            } else {
-                $server = db_one(
-                    'SELECT id, active, NULL AS push_allowed_ips FROM servers WHERE token_hash = :token_hash LIMIT 1',
-                    [':token_hash' => $tokenHash]
-                );
-            }
+            $server = db_one(
+                'SELECT id, active, push_allowed_ips FROM servers WHERE token_hash = :token_hash LIMIT 1',
+                [':token_hash' => $tokenHash]
+            );
         } catch (Throwable $e) {
             error_log('push auth server lookup failed error=' . $e->getMessage());
             json_response(['error' => 'Database unavailable'], 503);
