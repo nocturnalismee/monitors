@@ -369,14 +369,7 @@ final class AlertService
     ): void {
         $criticalType = $resource . '_critical';
         $warningType = $resource . '_high';
-        $label = match ($resource) {
-            'mail_queue' => 'Mail Queue',
-            'cpu' => 'CPU Load',
-            'ram' => 'RAM Usage',
-            'disk' => 'Disk Usage',
-            default => ucfirst($resource),
-        };
-        $valueDisplay = $resource === 'mail_queue' ? (string) $value : ($resource === 'cpu' ? (string) $value : ((string) $value . '%'));
+        $label = self::thresholdLabel($resource);
 
         if ($value >= $criticalThreshold) {
             self::resolveConditionAlerts($serverId, [$warningType]);
@@ -385,7 +378,7 @@ final class AlertService
                 $criticalType,
                 'danger',
                 "[{$serverName}] Critical {$label}",
-                "{$label} {$valueDisplay} exceeds critical threshold {$criticalThreshold}" . ($resource === 'cpu' ? '' : '%') . ".",
+                self::thresholdMessage($resource, $value, $criticalThreshold, true),
                 array_merge($context, ['threshold' => $criticalThreshold])
             );
         } elseif ($value >= $warnThreshold) {
@@ -395,12 +388,49 @@ final class AlertService
                 $warningType,
                 'warning',
                 "[{$serverName}] High {$label}",
-                "{$label} {$valueDisplay} exceeds threshold {$warnThreshold}" . ($resource === 'cpu' ? '' : '%') . ".",
+                self::thresholdMessage($resource, $value, $warnThreshold),
                 array_merge($context, ['threshold' => $warnThreshold])
             );
         } else {
             self::resolveConditionAlerts($serverId, [$criticalType, $warningType]);
         }
+    }
+
+    private static function thresholdLabel(string $resource): string
+    {
+        return match ($resource) {
+            'mail_queue' => 'Mail Queue',
+            'cpu' => 'CPU Load',
+            'ram' => 'RAM Usage',
+            'disk' => 'Disk Usage',
+            default => ucfirst($resource),
+        };
+    }
+
+    /**
+     * Unit suffix shared by a resource's measured value and its threshold.
+     * RAM and disk are percentages; CPU load and mail queue depth are counts.
+     */
+    public static function thresholdUnitSuffix(string $resource): string
+    {
+        return in_array($resource, ['ram', 'disk'], true) ? '%' : '';
+    }
+
+    /**
+     * Alert detail line, e.g. "Mail Queue 2601 exceeds threshold 2600." — the
+     * value and the threshold always share the same unit.
+     */
+    public static function thresholdMessage(
+        string $resource,
+        int|float $value,
+        int|float $threshold,
+        bool $critical = false
+    ): string {
+        $label = self::thresholdLabel($resource);
+        $suffix = self::thresholdUnitSuffix($resource);
+        $severity = $critical ? 'critical threshold' : 'threshold';
+
+        return "{$label} {$value}{$suffix} exceeds {$severity} {$threshold}{$suffix}.";
     }
 
     public static function evaluateServiceTransitionAlerts(array $server, array $transitions): void
