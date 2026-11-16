@@ -896,21 +896,6 @@ body.sidebar-collapsed .sidebar-section-title::after {
   gap: 0.35rem;
 }
 
-.sparkline-legend {
-  display: inline-flex;
-  gap: 0.2rem;
-  vertical-align: middle;
-  margin-left: 0.25rem;
-}
-
-.sparkline-legend i {
-  display: inline-block;
-  width: 6px;
-  height: 6px;
-  border-radius: 999px;
-  background: var(--legend-color);
-}
-
 .sort-btn {
   display: inline-flex;
   align-items: center;

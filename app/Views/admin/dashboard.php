@@ -226,7 +226,6 @@ foreach ($unhealthyWorkers as $uw) {
                     <th scope="col">Uptime</th>
                     <th scope="col" data-sort-key="cpu" aria-sort="none">
                         <button type="button" class="sort-btn" data-sort-trigger="cpu">CPU<i class="ti ti-arrows-sort sort-icon" aria-hidden="true"></i></button>
-                        <span class="sparkline-legend" title="Sparkline color: teal normal, amber high, red critical" aria-hidden="true"><i style="--legend-color: var(--sv-accent)"></i><i style="--legend-color: var(--sv-warning)"></i><i style="--legend-color: var(--sv-danger)"></i></span>
                     </th>
                     <th scope="col" data-sort-key="ram" aria-sort="none">
                         <button type="button" class="sort-btn" data-sort-trigger="ram">RAM<i class="ti ti-arrows-sort sort-icon" aria-hidden="true"></i></button>
