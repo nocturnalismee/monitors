@@ -115,6 +115,14 @@
                             </div>
                         </div>
                         <div class="col-md-4">
+                            <label class="form-label d-block" for="realtime_stream_enabled">Live Stream</label>
+                            <div class="form-check mt-2">
+                                <input class="form-check-input" type="checkbox" name="realtime_stream_enabled" id="realtime_stream_enabled" <?= ($settings['realtime_stream_enabled'] ?? '1') === '1' ? 'checked' : '' ?>>
+                                <label class="form-check-label" for="realtime_stream_enabled">Enable SSE live stream (falls back to polling)</label>
+                            </div>
+                            <div class="field-help">Kept off automatically under PHP's built-in dev server, which cannot serve pages while a stream is open.</div>
+                        </div>
+                        <div class="col-md-4">
                             <label class="form-label" for="setting-alert-sound-volume">Sound Volume (0–10)</label>
                             <input class="form-range" type="range" min="0" max="10" step="1" name="alert_sound_volume" id="setting-alert-sound-volume" value="<?= e($settings['alert_sound_volume'] ?? '8') ?>">
                             <div class="field-help">Applies to new browser alert popups.</div>

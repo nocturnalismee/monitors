@@ -197,6 +197,10 @@ foreach ($unhealthyWorkers as $uw) {
                     <i class="ti ti-circle-filled" aria-hidden="true"></i>
                     <span data-dashboard-live-label>Live</span><span class="dashboard-live-separator">|</span><time>Loading…</time>
                 </span>
+                <button type="button" class="btn btn-sm btn-soft dashboard-density-toggle" data-table-density aria-pressed="false" title="Toggle compact rows">
+                    <i class="ti ti-layout-rows" aria-hidden="true"></i>
+                    <span class="visually-hidden">Toggle table density</span>
+                </button>
             </div>
         </div>
         <div class="table-responsive table-shell" data-ui-table>
@@ -343,7 +347,15 @@ foreach ($unhealthyWorkers as $uw) {
                         </td>
                         <?php $mailQueue = max(0, (int) ($row['mail_queue_total'] ?? 0)); ?>
                         <td class="font-mono"><?= e((string) $mailQueue) ?></td>
-                        <td><span class="badge <?= e('badge-' . $status) ?> text-uppercase"><?= e($status) ?></span></td>
+                        <td>
+                            <span class="badge <?= e('badge-' . $status) ?> text-uppercase"><?= e($status) ?></span>
+                            <?php
+                            $lastSeenEpoch = !empty($row['last_seen']) ? (int) strtotime((string) $row['last_seen']) : 0;
+                            ?>
+                            <span class="row-freshness" data-row-freshness data-last-seen-ts="<?= e((string) $lastSeenEpoch) ?>" title="Last update: <?= e((string) ($row['last_seen'] ?? 'never')) ?>">
+                                <i class="ti ti-clock" aria-hidden="true"></i><span data-freshness-text><?= $lastSeenEpoch > 0 ? '—' : 'never' ?></span>
+                            </span>
+                        </td>
                     </tr>
                 <?php endforeach; ?>
                 <?php if (!empty($showAllLink)): ?>
@@ -356,10 +368,57 @@ foreach ($unhealthyWorkers as $uw) {
         </div>
     </section>
 
+    <section class="card card-neon fleet-chart-card is-collapsed" data-ui-section data-fleet-chart
+             data-endpoint="<?= e(app_url('api/status')) ?>"
+             data-echarts-src="<?= e(asset_url('assets/vendor/echarts/echarts.min.js')) ?>"
+             aria-labelledby="fleetChartTitle">
+        <h2 class="visually-hidden" id="fleetChartTitle">Fleet Performance</h2>
+        <button type="button" class="fleet-chart-toggle" data-fleet-toggle aria-expanded="false" aria-controls="fleetChartBody">
+            <span class="fleet-chart-toggle-title">
+                <i class="ti ti-chart-line" aria-hidden="true"></i>
+                <span>Fleet Performance</span>
+            </span>
+            <span class="fleet-chart-metrics">
+                <span class="fleet-chart-metric" data-fleet-metric="cpu">
+                    <span class="fleet-chart-metric-label">CPU</span>
+                    <span class="fleet-chart-metric-value" data-fleet-value="cpu">&mdash;</span>
+                    <span class="fleet-chart-metric-trend" data-fleet-trend="cpu"><i class="ti ti-minus" aria-hidden="true"></i></span>
+                </span>
+                <span class="fleet-chart-metric" data-fleet-metric="ram">
+                    <span class="fleet-chart-metric-label">RAM</span>
+                    <span class="fleet-chart-metric-value" data-fleet-value="ram">&mdash;</span>
+                    <span class="fleet-chart-metric-trend" data-fleet-trend="ram"><i class="ti ti-minus" aria-hidden="true"></i></span>
+                </span>
+                <span class="fleet-chart-metric" data-fleet-metric="disk">
+                    <span class="fleet-chart-metric-label">Disk</span>
+                    <span class="fleet-chart-metric-value" data-fleet-value="disk">&mdash;</span>
+                    <span class="fleet-chart-metric-trend" data-fleet-trend="disk"><i class="ti ti-minus" aria-hidden="true"></i></span>
+                </span>
+            </span>
+            <span class="fleet-chart-chevron" aria-hidden="true"><i class="ti ti-chevron-down"></i></span>
+        </button>
+        <div class="fleet-chart-body" id="fleetChartBody" data-fleet-body hidden>
+            <div class="fleet-chart-body-head">
+                <p class="fleet-chart-subtitle">Average CPU, RAM and disk utilisation across all active servers.</p>
+                <div class="fleet-chart-controls" role="group" aria-label="Chart time range">
+                    <button type="button" class="btn btn-sm btn-soft is-active" data-fleet-range="30m" aria-pressed="true">30m</button>
+                    <button type="button" class="btn btn-sm btn-soft" data-fleet-range="6h" aria-pressed="false">6h</button>
+                    <button type="button" class="btn btn-sm btn-soft" data-fleet-range="24h" aria-pressed="false">24h</button>
+                    <button type="button" class="btn btn-sm btn-soft" data-fleet-range="7d" aria-pressed="false">7d</button>
+                </div>
+            </div>
+            <div class="fleet-chart-plot">
+                <div class="chart-skeleton is-active" data-fleet-skeleton><span class="visually-hidden">Loading chart data…</span></div>
+                <div class="fleet-chart-canvas" data-fleet-canvas role="img" aria-label="Fleet utilisation chart"></div>
+                <div class="fleet-chart-state" data-fleet-state hidden></div>
+            </div>
+        </div>
+    </section>
+
 </main>
 <script<?= csp_nonce_attr() ?>>
 window.MONITORS_API_STATUS = <?= json_encode(app_url('api/status?include_inactive=1'), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;
-window.MONITORS_API_STREAM = <?= json_encode(app_url('api/stream'), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;
+window.MONITORS_API_STREAM = <?= json_encode(realtime_stream_enabled() ? app_url('api/stream') : '', JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;
 window.MONITORS_SERVERS_LIST = <?= json_encode(app_url('servers'), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;
 window.MONITORS_ADMIN_DETAIL_BASE = <?= json_encode(app_url('servers/'), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;
 window.MONITORS_API_ALERTS = <?= json_encode(app_url('api/alerts'), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;
@@ -369,4 +428,5 @@ window.MONITORS_CPU_THRESHOLDS = <?= json_encode(['warn' => (float) ($cpuWarnThr
 window.MONITORS_PANEL_BRANDS = <?= json_encode(panel_brands_for_js(), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;
 </script>
 <script src="<?= e(asset_url('assets/js/dashboard.js')) ?>"></script>
+<script src="<?= e(asset_url('assets/js/fleet-chart.js')) ?>"></script>
 <script src="<?= e(asset_url('assets/js/notification-center.js')) ?>"></script>

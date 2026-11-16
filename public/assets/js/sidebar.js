@@ -66,11 +66,48 @@
   });
 
   let mobileLastFocused = null;
+  const sidebar = document.querySelector(".monitors-sidebar");
+  const mainRegion = document.getElementById("main-content");
 
   const isMobileOpen = () => body.classList.contains("sidebar-open-mobile");
+  const mobileQuery = typeof window.matchMedia === "function" ? window.matchMedia("(max-width: 767.98px)") : null;
+
+  const focusableIn = (root) =>
+    Array.from(
+      root.querySelectorAll(
+        'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+      )
+    ).filter((el) => el.offsetParent !== null || el === document.activeElement);
 
   const setMobileAria = () => {
     if (mobileBtn) mobileBtn.setAttribute("aria-expanded", String(isMobileOpen()));
+    const isMobile = !mobileQuery || mobileQuery.matches;
+    if (sidebar) {
+      if (isMobile) sidebar.setAttribute("aria-hidden", isMobileOpen() ? "false" : "true");
+      else sidebar.removeAttribute("aria-hidden");
+    }
+    // Keep the page behind the drawer out of the tab order and the
+    // accessibility tree while the drawer is open (mobile only).
+    if (mainRegion) {
+      if (isMobile) mainRegion.toggleAttribute("inert", isMobileOpen());
+      else mainRegion.removeAttribute("inert");
+    }
+  };
+
+  const trapFocus = (event) => {
+    if (event.key !== "Tab" || !isMobileOpen() || !sidebar) return;
+    if (mobileQuery && !mobileQuery.matches) return;
+    const focusables = focusableIn(sidebar);
+    if (focusables.length === 0) return;
+    const first = focusables[0];
+    const last = focusables[focusables.length - 1];
+    if (event.shiftKey && document.activeElement === first) {
+      event.preventDefault();
+      last.focus();
+    } else if (!event.shiftKey && document.activeElement === last) {
+      event.preventDefault();
+      first.focus();
+    }
   };
 
   const closeMobileSidebar = (restoreFocus) => {
@@ -89,6 +126,11 @@
       mobileLastFocused = document.activeElement;
       body.classList.add("sidebar-open-mobile");
       setMobileAria();
+      if (sidebar) {
+        const focusables = focusableIn(sidebar);
+        const target = focusables.find((el) => el.classList.contains("nav-link")) || focusables[0];
+        if (target) target.focus();
+      }
     }
   });
 
@@ -103,8 +145,17 @@
   });
 
   document.addEventListener("keydown", (event) => {
+    trapFocus(event);
     if (event.key === "Escape" && isMobileOpen()) {
       closeMobileSidebar(true);
     }
   });
+
+  setMobileAria();
+  if (mobileQuery) {
+    mobileQuery.addEventListener("change", () => {
+      closeMobileSidebar(false);
+      setMobileAria();
+    });
+  }
 })();

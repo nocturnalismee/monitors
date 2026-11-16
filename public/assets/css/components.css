@@ -4249,3 +4249,246 @@ body.sidebar-collapsed .sidebar-section-title .sidebar-label {
 
 
 
+
+/* ---------------------------------------------------------------------------
+   Dashboard: fleet performance chart (collapsed summary row by default)
+   --------------------------------------------------------------------------- */
+.fleet-chart-card {
+  overflow: hidden;
+}
+
+.fleet-chart-toggle {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem 1rem;
+  width: 100%;
+  min-height: 48px;
+  padding: 0.5rem 0.9rem;
+  background: transparent;
+  border: 0;
+  color: var(--sv-text);
+  text-align: left;
+  cursor: pointer;
+}
+
+.fleet-chart-toggle:hover {
+  background: color-mix(in srgb, var(--sv-text) 4%, transparent);
+}
+
+.fleet-chart-toggle:focus-visible {
+  outline: 2px solid var(--sv-accent);
+  outline-offset: -2px;
+}
+
+.fleet-chart-card:not(.is-collapsed) .fleet-chart-toggle {
+  border-bottom: 1px solid var(--sv-stroke-soft);
+}
+
+.fleet-chart-toggle-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.fleet-chart-toggle-title .ti {
+  color: var(--sv-accent);
+}
+
+.fleet-chart-metrics {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 1.1rem;
+  margin-left: auto;
+}
+
+.fleet-chart-metric {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.3rem;
+  font-size: 0.75rem;
+  white-space: nowrap;
+}
+
+.fleet-chart-metric-label {
+  color: var(--sv-muted);
+  font-size: 0.62rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.fleet-chart-metric-value {
+  font-family: var(--sv-font-mono);
+  font-size: 0.8rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.fleet-chart-metric-trend {
+  color: var(--sv-muted);
+  font-size: 0.72rem;
+  line-height: 1;
+}
+
+.fleet-chart-metric-trend.is-up {
+  color: var(--sv-warning);
+}
+
+.fleet-chart-metric-trend.is-down {
+  color: var(--sv-success);
+}
+
+.fleet-chart-metric-trend.is-flat {
+  color: var(--sv-muted);
+}
+
+.fleet-chart-chevron {
+  color: var(--sv-muted);
+  line-height: 1;
+  transition: transform 0.18s ease;
+}
+
+.fleet-chart-card:not(.is-collapsed) .fleet-chart-chevron {
+  transform: rotate(180deg);
+}
+
+.fleet-chart-body {
+  padding: 0.55rem 0.9rem 0.9rem;
+}
+
+.fleet-chart-body[hidden] {
+  display: none !important;
+}
+
+.fleet-chart-body-head {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 1rem;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 0.45rem;
+}
+
+.fleet-chart-subtitle {
+  margin: 0;
+  color: var(--sv-muted);
+  font-size: 0.78rem;
+}
+
+.fleet-chart-controls {
+  display: inline-flex;
+  gap: 0.25rem;
+}
+
+.fleet-chart-controls .btn {
+  padding: 0.16rem 0.6rem;
+  font-size: 0.75rem;
+  line-height: 1.35;
+}
+
+.fleet-chart-controls .btn.is-active {
+  color: var(--sv-accent);
+  border-color: color-mix(in srgb, var(--sv-accent) 55%, transparent);
+  background: color-mix(in srgb, var(--sv-accent) 16%, transparent);
+}
+
+.fleet-chart-plot {
+  position: relative;
+}
+
+.fleet-chart-canvas {
+  width: 100%;
+  height: 220px;
+}
+
+.fleet-chart-card[data-loading="1"] .fleet-chart-canvas {
+  opacity: 0.55;
+  transition: opacity 0.2s ease;
+}
+
+.fleet-chart-state {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 1rem;
+  color: var(--sv-muted);
+  font-size: 0.85rem;
+  text-align: center;
+}
+
+.fleet-chart-state[hidden] {
+  display: none;
+}
+
+@media (max-width: 767.98px) {
+  .fleet-chart-toggle {
+    gap: 0.3rem 0.75rem;
+    padding: 0.5rem 0.75rem;
+  }
+
+  .fleet-chart-metrics {
+    gap: 0.2rem 0.85rem;
+  }
+
+  .fleet-chart-canvas {
+    height: 180px;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   Dashboard: per-row freshness label + table density toggle
+   --------------------------------------------------------------------------- */
+.row-freshness {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+  margin-left: 0.4rem;
+  color: var(--sv-muted);
+  font-size: 0.68rem;
+  white-space: nowrap;
+}
+
+.row-freshness i {
+  font-size: 0.72rem;
+  opacity: 0.8;
+}
+
+.row-freshness.is-fresh {
+  color: var(--sv-success);
+}
+
+.row-freshness.is-warm {
+  color: var(--sv-warning);
+}
+
+.row-freshness.is-stale {
+  color: color-mix(in srgb, var(--sv-danger) 75%, var(--sv-muted) 25%);
+}
+
+.row-freshness.is-unknown {
+  color: var(--sv-muted);
+  opacity: 0.75;
+}
+
+.dashboard-summary-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.dashboard-density-toggle.is-active {
+  color: var(--sv-accent);
+  border-color: color-mix(in srgb, var(--sv-accent) 55%, transparent);
+}
+
+[data-ui-table].is-compact .table.monitors-table {
+  --bs-table-cell-padding-y: 0.28rem;
+}
+
+[data-ui-table].is-compact .resource-progress {
+  min-height: 0.3rem;
+}

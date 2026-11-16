@@ -152,8 +152,50 @@ function renderAdminRowCells(s) {
       <div class="net-line text-secondary"><i class="ti ti-arrow-up" aria-label="Out"></i> <span class="font-mono">${SM.escapeHtml(SM.formatBps(s.network_out_bps))}</span></div>
     </td>
     <td class="font-mono">${SM.escapeHtml(SM.formatMailQueue(s.mail_mta, s.mail_queue_total))}</td>
-    <td><span class="badge ${SM.statusClass(s.status)} text-uppercase">${SM.escapeHtml(s.status ?? "pending")}</span></td>
+    <td>
+      <span class="badge ${SM.statusClass(s.status)} text-uppercase">${SM.escapeHtml(s.status ?? "pending")}</span>
+      ${renderFreshness(s.last_seen_ts, s.last_seen)}
+    </td>
   `;
+}
+
+/** Relative "12s ago" label; epoch-based so it is time-zone safe. */
+function formatFreshness(epochSeconds) {
+  const epoch = Number(epochSeconds);
+  if (!Number.isFinite(epoch) || epoch <= 0) return "never";
+  const age = Math.max(0, Math.floor(Date.now() / 1000) - epoch);
+  if (age < 60) return `${age}s ago`;
+  if (age < 3600) return `${Math.floor(age / 60)}m ago`;
+  if (age < 86400) return `${Math.floor(age / 3600)}h ago`;
+  return `${Math.floor(age / 86400)}d ago`;
+}
+
+function freshnessClass(epochSeconds) {
+  const epoch = Number(epochSeconds);
+  if (!Number.isFinite(epoch) || epoch <= 0) return "is-unknown";
+  const age = Math.max(0, Math.floor(Date.now() / 1000) - epoch);
+  if (age <= 180) return "is-fresh";
+  if (age <= 900) return "is-warm";
+  return "is-stale";
+}
+
+function renderFreshness(epochSeconds, rawText) {
+  const epoch = Number(epochSeconds) || 0;
+  return `<span class="row-freshness ${freshnessClass(epoch)}" data-row-freshness data-last-seen-ts="${epoch}" title="Last update: ${SM.escapeHtml(String(rawText ?? "never"))}">
+      <i class="ti ti-clock" aria-hidden="true"></i><span data-freshness-text>${SM.escapeHtml(formatFreshness(epoch))}</span>
+    </span>`;
+}
+
+function updateRowFreshness() {
+  document.querySelectorAll("[data-row-freshness]").forEach((node) => {
+    const epoch = Number(node.getAttribute("data-last-seen-ts")) || 0;
+    const text = node.querySelector("[data-freshness-text]");
+    if (text) text.textContent = formatFreshness(epoch);
+    node.classList.toggle("is-fresh", freshnessClass(epoch) === "is-fresh");
+    node.classList.toggle("is-warm", freshnessClass(epoch) === "is-warm");
+    node.classList.toggle("is-stale", freshnessClass(epoch) === "is-stale");
+    node.classList.toggle("is-unknown", freshnessClass(epoch) === "is-unknown");
+  });
 }
 
 function buildDashboardEmptyRow() {
@@ -490,14 +532,11 @@ function pausePoller() {
 }
 
 function startLiveStream() {
-  if (!window.EventSource || !document.querySelector("[data-server-table]")) {
+  if (!window.EventSource || !window.MONITORS_API_STREAM || !document.querySelector("[data-server-table]")) {
     ensurePollerActive();
     return;
   }
-  const url = new URL(
-    window.MONITORS_API_STREAM || "/api/stream",
-    window.location.origin,
-  );
+  const url = new URL(window.MONITORS_API_STREAM, window.location.origin);
   url.searchParams.set("limit", "50");
   if (liveStreamSinceId > 0) {
     url.searchParams.set("since_id", String(liveStreamSinceId));
@@ -636,3 +675,47 @@ document.addEventListener("click", (event) => {
 
 ensurePollerActive();
 startLiveStream();
+
+// Per-row freshness ticker: the label is derived from the epoch the server
+// sent, so it stays correct for viewers in another time zone.
+updateRowFreshness();
+setInterval(() => {
+  if (document.visibilityState === "visible") updateRowFreshness();
+}, 15000);
+
+// Table density (comfortable/compact), persisted per browser.
+(function wireTableDensity() {
+  const toggle = document.querySelector("[data-table-density]");
+  const shell = document.querySelector("[data-ui-table]");
+  if (!shell) return;
+
+  const storageKey = "monitors_table_density";
+  const apply = (compact) => {
+    shell.classList.toggle("is-compact", compact);
+    if (toggle) {
+      toggle.setAttribute("aria-pressed", compact ? "true" : "false");
+      toggle.classList.toggle("is-active", compact);
+      toggle.setAttribute("title", compact ? "Use comfortable rows" : "Use compact rows");
+    }
+    window.dispatchEvent(new Event("resize"));
+  };
+
+  let compact = false;
+  try {
+    compact = localStorage.getItem(storageKey) === "compact";
+  } catch (err) {
+    // Storage unavailable; fall back to the comfortable default.
+  }
+  apply(compact);
+
+  if (!toggle) return;
+  toggle.addEventListener("click", () => {
+    compact = !shell.classList.contains("is-compact");
+    try {
+      localStorage.setItem(storageKey, compact ? "compact" : "comfortable");
+    } catch (err) {
+      // Ignore storage errors.
+    }
+    apply(compact);
+  });
+})();
