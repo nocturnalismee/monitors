@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 ?>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="<?= e(asset_url('assets/vendor/bootstrap/bootstrap.bundle.min.js')) ?>"></script>
 <script src="<?= e(asset_url('assets/js/theme.js')) ?>"></script>
 <script src="<?= e(asset_url('assets/js/sidebar.js')) ?>"></script>
 <?php
@@ -16,13 +16,17 @@ if ($isPublicPage) {
 </footer>
 <?php } ?>
 <?php
-if ($isAdminPage || $isPublicPage) {
-    $alertEndpoint = $isAdminPage ? app_url('api/alerts') : app_url('api/public-alerts');
-    $alertSoundEnabled = setting_get('alert_sound_enabled') === '1';
-    $alertSoundVolume = max(0, min(10, (int) setting_get('alert_sound_volume')));
+$alertEndpoint = $isAdminPage ? app_url('api/alerts') : app_url('api/public-alerts');
+$alertSoundEnabled = setting_get('alert_sound_enabled') === '1';
+$alertSoundVolume = max(0, min(10, (int) setting_get('alert_sound_volume')));
+$alertStreamEndpoint = ($isAdminPage && realtime_stream_enabled()) ? app_url('api/events') : '';
 ?>
+<script<?= csp_nonce_attr() ?>>
+window.MONITORS_BASE_URL = <?= json_encode(app_url(''), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;
+</script>
+<?php if ($isAdminPage || $isPublicPage) { ?>
 <div id="monitors-alert-toast-container" class="monitors-alert-toast-container toast-container position-fixed end-0 p-3"></div>
-  <script<?= csp_nonce_attr() ?>>window.MONITORS_API_ALERTS = <?= json_encode($alertEndpoint, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>; window.MONITORS_ALERT_STREAM = <?= json_encode($isAdminPage ? app_url('api/events') : '', JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>; window.MONITORS_ALERT_SOUND_ENABLED = <?= $alertSoundEnabled ? 'true' : 'false' ?>; window.MONITORS_ALERT_SOUND_VOLUME = <?= (int) $alertSoundVolume ?>; window.MONITORS_ALERT_SOUND_URL = <?= json_encode(asset_url('assets/sound/notification.wav'), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;</script>
+  <script<?= csp_nonce_attr() ?>>window.MONITORS_API_ALERTS = <?= json_encode($alertEndpoint, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>; window.MONITORS_ALERT_STREAM = <?= json_encode($alertStreamEndpoint, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>; window.MONITORS_ALERT_SOUND_ENABLED = <?= $alertSoundEnabled ? 'true' : 'false' ?>; window.MONITORS_ALERT_SOUND_VOLUME = <?= (int) $alertSoundVolume ?>; window.MONITORS_ALERT_SOUND_URL = <?= json_encode(asset_url('assets/sound/notification.wav'), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;</script>
 <script src="<?= e(asset_url('assets/js/alerts.js')) ?>"></script>
 <?php } ?>
 <script<?= csp_nonce_attr() ?>>

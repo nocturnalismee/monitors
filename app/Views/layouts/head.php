@@ -32,8 +32,8 @@ if ($sidebarCollapsedCookie === '1') {
         <link rel="shortcut icon" href="<?= e($brandingFaviconUrl) ?>">
     <?php endif; ?>
     <link href="<?= e(asset_url('assets/css/fonts.css')) ?>" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.34.1/dist/tabler-icons.min.css" rel="stylesheet">
+    <link href="<?= e(asset_url('assets/vendor/bootstrap/bootstrap.min.css')) ?>" rel="stylesheet">
+    <link href="<?= e(asset_url('assets/vendor/tabler-icons/tabler-icons.min.css')) ?>" rel="stylesheet">
     <link href="<?= e(asset_url('assets/css/tokens.css')) ?>" rel="stylesheet">
     <link href="<?= e(asset_url('assets/css/components.css')) ?>" rel="stylesheet">
     <link href="<?= e(asset_url('assets/css/app.css')) ?>" rel="stylesheet">
@@ -47,7 +47,10 @@ if ($sidebarCollapsedCookie === '1') {
         } catch (e) {}
       })();
     </script>
-    <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.1/dist/echarts.min.js"></script>
+    <?php if (!empty($loadEcharts)): ?>
+    <?php /* Only pages that draw charts load the ~1 MB engine. */ ?>
+    <script src="<?= e(asset_url('assets/vendor/echarts/echarts.min.js')) ?>" defer></script>
+    <?php endif; ?>
     <script src="<?= e(asset_url('assets/js/common.js')) ?>"></script>
 </head>
 <body class="<?= e(implode(' ', $bodyClasses)) ?>">
