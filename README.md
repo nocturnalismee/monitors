@@ -8,7 +8,7 @@ Real-time telemetry, S.M.A.R.T. disk health, ICMP/HTTP ping monitors, IP reputat
 
 [![PHP Version](https://img.shields.io/badge/PHP-8.2%2B-777BB4?style=flat-square&logo=php&logoColor=white)](https://php.net)
 [![Database](https://img.shields.io/badge/MySQL-8.0%20%7C%20MariaDB-4479A1?style=flat-square&logo=mysql&logoColor=white)](https://mysql.com)
-[![Architecture](https://img.shields.io/badge/Architecture-Vanilla%20PHP%20(Zero--Bloat)-success?style=flat-square)](https://github.com/nocturnalismee/monitors)
+[![Architecture](<https://img.shields.io/badge/Architecture-Vanilla%20PHP%20(Zero--Bloat)-success?style=flat-square>)](https://github.com/nocturnalismee/monitors)
 [![Real-Time](https://img.shields.io/badge/Telemetry-SSE%20%2B%20AJAX%20Fallback-2dd4bf?style=flat-square)](https://github.com/nocturnalismee/monitors)
 
 </div>
@@ -36,35 +36,48 @@ Monitors adheres to a clean Front Controller architecture, custom PSR-style auto
 ## ✨ Core Features
 
 ### ⚡ 1. Real-Time Telemetry & Live Dashboard
-* **Sub-Second Streaming**: Live metric streaming via **Server-Sent Events (SSE)** with graceful, non-blocking AJAX polling fallback.
-* **Interactive KPI Fleet Cards**: Instant one-click filtering by operational status (*Online*, *Down*, *Pending*).
-* **Live Search & Fast Triage**: Real-time client-side filter by hostname, IP address, geographical location, or panel profile without page reloads.
-* **Synchronized Metrics Inspection**: Historical ECharts (`CPU`, `RAM`, `Disk`, `Network`) connected via synchronized crosshair scrubbers for accelerated root-cause analysis.
-* **Visual Threshold Guides**: Configurable warning and critical marklines displayed right inside telemetry plots.
+
+- **Sub-Second Streaming**: Live metric streaming via **Server-Sent Events (SSE)** with graceful, non-blocking AJAX polling fallback.
+- **Fleet Performance Chart**: Aggregate CPU / RAM / Disk time-series for the whole fleet (30m / 6h / 24h / 7d), collapsed to a one-line CPU/RAM/Disk summary under the server table and expanded on click with a lazily loaded chart engine.
+- **Interactive KPI Fleet Cards**: Instant one-click filtering by operational status (_Online_, _Down_, _Pending_).
+- **Live Search & Fast Triage**: Real-time client-side filter by hostname, IP address, geographical location, or panel profile without page reloads.
+- **Per-Row Freshness & Density**: Every row shows how long ago it last reported, and the table supports a compact density toggle that is remembered per browser.
+- **Synchronized Metrics Inspection**: Historical ECharts (`CPU`, `RAM`, `Disk`, `Network`) connected via synchronized crosshair scrubbers for accelerated root-cause analysis.
+- **Visual Threshold Guides**: Configurable warning and critical marklines displayed right inside telemetry plots.
 
 ### 💾 2. S.M.A.R.T. Disk Health Telemetry
-* Dedicated disk condition tracking via `agent-disk-health.sh`.
-* Monitors drive health percentage, Power-On Hours (POH), Total Bytes Written (TBW), reallocated sector counts, and drive temperature trends.
+
+- Dedicated disk condition tracking via `agent-disk-health.sh`.
+- Monitors drive health percentage, Power-On Hours (POH), Total Bytes Written (TBW), reallocated sector counts, and drive temperature trends.
 
 ### 🌐 3. ICMP Ping & HTTP/HTTPS Availability
-* Continuous round-trip latency tracking (min, avg, max, packet loss).
-* HTTP/HTTPS endpoint monitoring with expected response status code validation and SSL certificate validation.
-* Interactive web-based terminal simulator for immediate on-demand diagnostic pings.
+
+- Continuous round-trip latency tracking (min, avg, max, packet loss).
+- HTTP/HTTPS endpoint monitoring with expected response status code validation and SSL certificate validation.
+- Interactive web-based terminal simulator for immediate on-demand diagnostic pings.
 
 ### 🛡️ 4. IP Reputation & Blacklist Protection (RBL/DNSBL)
-* Automated blacklist scanning across industry reputation providers (Spamhaus ZEN, Barracuda, SpamCop, SORBS, etc.).
-* **Smart Resolver Block Mitigation**: Built-in detection for Spamhaus `127.255.255.x` open-resolver query refusals, preventing false-positive incidents when using public resolvers (e.g. `8.8.8.8` or `1.1.1.1`).
+
+- Automated blacklist scanning across industry reputation providers (Spamhaus ZEN, Barracuda, SpamCop, SORBS, etc.).
+- **Smart Resolver Block Mitigation**: Built-in detection for Spamhaus `127.255.255.x` open-resolver query refusals, preventing false-positive incidents when using public resolvers (e.g. `8.8.8.8` or `1.1.1.1`).
 
 ### 🔔 5. Multi-Channel Incident Alerting & Lifecycle
-* **Channels**: Instant notifications via **Telegram Bot** and **SMTP Email**.
-* **Incident Lifecycle**: Comprehensive state management (*Active*, *Acknowledged*, *Snoozed*, *Resolved*).
-* **Anti-Flapping & Cooldown**: Smart cooldown engine prevents notification storms during transient network spikes, while ensuring genuine post-recovery incidents trigger immediately.
+
+- **Channels**: Instant notifications via **Telegram Bot** and **SMTP Email**.
+- **Incident Lifecycle**: Comprehensive state management (_Active_, _Acknowledged_, _Snoozed_, _Resolved_).
+- **Anti-Flapping & Cooldown**: Smart cooldown engine prevents notification storms during transient network spikes, while ensuring genuine post-recovery incidents trigger immediately.
 
 ### 🔒 6. Security & Ingestion Integrity
-* **Hashed Agent Tokens**: Ingested tokens are stored as non-reversible `SHA-256` hashes (`CHAR(64)`).
-* **Optional HMAC-SHA256 Ingest Signing**: Protect against replay and spoofing attacks via `X-Server-Timestamp` and `X-Server-Signature` headers.
-* **Bot Protection & Rate Limiting**: Native Cloudflare Turnstile integration for login access and file-based token bucket rate limiters.
-* **Role-Based Access Control (RBAC)**: Distinct permissions for `admin` (management & configuration) and `viewer` (read-only monitoring).
+
+- **Hashed Agent Tokens**: Ingested tokens are stored as non-reversible `SHA-256` hashes (`CHAR(64)`).
+- **Optional HMAC-SHA256 Ingest Signing**: Protect against replay and spoofing attacks via `X-Server-Timestamp` and `X-Server-Signature` headers.
+- **Bot Protection & Rate Limiting**: Native Cloudflare Turnstile integration for login access and file-based token bucket rate limiters. Login attempts are throttled per IP **and** per username, with constant-time password checks.
+- **Role-Based Access Control (RBAC)**: Distinct permissions for `admin` (management & configuration) and `viewer` (read-only monitoring).
+- **Self-Hosted Assets**: Bootstrap, Tabler Icons, and ECharts are vendored under `public/assets/vendor/` — no third-party CDN in the Content-Security-Policy, no origin requests at runtime.
+
+### ⚙️ 7. Optional Redis, Local Cache Fallback
+
+Redis is optional. When `REDIS_ENABLED=1` and the extension is reachable, cached API payloads, settings, and alert counters live in Redis. When it is disabled, the same `Cache` API transparently stores entries under `storage/cache/` (atomically written JSON files), so `/api/status`, alert counts, and settings stay fast on a plain PHP + MySQL install.
 
 ---
 
@@ -99,10 +112,11 @@ monitors/
 ## 🚀 Quick Start & Installation
 
 ### Prerequisites
-* **PHP 8.2+** with extensions: `pdo`, `pdo_mysql`, `openssl`, `mbstring`, `curl`
-* **MySQL 8.0+** or **MariaDB 10.5+**
-* Web Server: **Nginx** (recommended) or **Apache** with `mod_rewrite`
-* *Alternatively*: **Docker + Docker Compose** (Method B below — no PHP/MySQL needed on the host)
+
+- **PHP 8.2+** with extensions: `pdo`, `pdo_mysql`, `openssl`, `mbstring`, `curl`
+- **MySQL 8.0+** or **MariaDB 10.5+**
+- Web Server: **Nginx** (recommended) or **Apache** with `mod_rewrite`
+- _Alternatively_: **Docker + Docker Compose** (Method B below — no PHP/MySQL needed on the host)
 
 ---
 
@@ -170,21 +184,27 @@ Then open `http://localhost:8010/install.php` (Database host: `db`, port: `3306`
    ```bash
    mysql -u your_db_user -p monitors < database/schema.sql
    mysql -u your_db_user -p monitors < database/seed.sql
-   php migrate.php
+   php migrate.php --status   # show applied / pending / modified migrations
+   php migrate.php --dry-run  # list what would be applied, change nothing
+   php migrate.php            # apply pending migrations
    ```
 4. Default seed credentials:
-   * **Admin**: `admin` / `admin123` *(change immediately upon login!)*
-   * **Viewer**: `support` / `admin123`
+   - **Admin**: `admin` / `admin123` _(change immediately upon login!)_
+   - **Viewer**: `support` / `admin123`
 
 ---
 
 ### Local Development Server
 
 Run the built-in development router from the project root:
+
 ```bash
 php -S 127.0.0.1:8000 -t public public/router.php
 ```
+
 Access the dashboard at `http://127.0.0.1:8000/dashboard`.
+
+> **Note:** PHP's built-in server is single-threaded. A long-lived SSE stream would block every other request on the page (stylesheets, the icon font, chart engine, polling), which can look like missing icons or a chart stuck on "Loading…". The app detects `php -S` automatically and disables the stream, falling back to the normal polling loop. Behind Apache/nginx/php-fpm the stream stays on. You can toggle it in **Settings → General → Live Stream** (`realtime_stream_enabled`).
 
 ---
 
@@ -203,7 +223,7 @@ Add the following entries to your crontab (`crontab -e -u www-data`):
 * * * * *   php /path/to/monitors/workers/ping-check.php >/dev/null 2>&1
 * * * * *   php /path/to/monitors/workers/export-worker.php >/dev/null 2>&1
 */5 * * * * php /path/to/monitors/workers/ip-reputation-check.php >/dev/null 2>&1
-0 2 * * *   php /path/to/monitors/workers/rollup.php >/dev/null 2>&1
+15 * * * *  php /path/to/monitors/workers/rollup.php >/dev/null 2>&1
 0 2 * * *   php /path/to/monitors/workers/disk-rollup.php >/dev/null 2>&1
 30 0 * * *  php /path/to/monitors/workers/partition-maintain.php >/dev/null 2>&1
 30 2 * * *  php /path/to/monitors/workers/disk-cleanup.php >/dev/null 2>&1
@@ -220,6 +240,7 @@ The nightly `backup.php` worker writes a gzipped `mysqldump` to `storage/backups
 Monitors provides portable POSIX Bash agents that require **zero external package installations** (works out of the box on Ubuntu, Debian, RHEL, CentOS, Rocky Linux, and AlmaLinux).
 
 ### 1. General Server Telemetry Agent
+
 1. Copy the configuration file template to target server:
    ```bash
    sudo cp agents/systemd/monitoring-agent.conf.example /etc/systemd/monitoring-agent.conf
@@ -240,7 +261,9 @@ Monitors provides portable POSIX Bash agents that require **zero external packag
    ```
 
 ### 2. Disk S.M.A.R.T. Health Agent
+
 Run periodically via cron on target servers:
+
 ```cron
 */15 * * * * MASTER_URL="https://monitor.yourdomain.com/api/push-disk" SERVER_TOKEN="<TOKEN>" SERVER_ID="1" /path/to/monitors/agents/agent-disk-health.sh >/dev/null 2>&1
 ```
@@ -258,8 +281,19 @@ php tests/helpers_test.php
 # Validate schema consistency against migrations
 php tests/schema_consistency_test.php
 
+# History payload shape + completeness (no truncated/gapped chart data)
+php tests/history_payload_test.php
+php tests/history_completeness_test.php
+
+# Fleet time-series aggregation used by the dashboard chart
+php tests/fleet_history_test.php
+
 # Enforce clean architecture guidelines (no circular dependencies or raw superglobals)
 php tests/architecture_test.php
+
+# HTTP contract (405/Allow, HEAD, JSON bodies, session expiry) and alert resolution
+php tests/http_contract_test.php
+php tests/alert_resolution_test.php
 
 # Run end-to-end smoke tests (requires running instance)
 BASE_URL=http://127.0.0.1:8000 bash tests/api_smoke.sh
@@ -270,4 +304,4 @@ BASE_URL=http://127.0.0.1:8000 bash tests/authz_matrix.sh
 
 ## 📜 Acknowledgments
 
-Built with dedication by **Arief** and maintained for robust infrastructure observability.
+Built with dedication by **Nocturnalismee** and maintained for robust infrastructure observability.
